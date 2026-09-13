@@ -81,7 +81,7 @@ def result(d,kind,m,body):
         amount=integer(p.get('amount'),'罚分（0.1PT）',1,100000)
         scope=p.get('scope');require(scope in ['personal','team','both'],'处罚范围错误')
         require(kind=='team' or scope=='personal','个人赛仅支持个人罚分')
-        reason=label(p.get('explanation'))
+        reason=optional_note(p.get('explanation'))
         if scope in ['personal','both']: who['penalty']+=amount;who['points']-=amount
         if scope in ['team','both']: who['teamPoints']-=amount
         clean.append(dict(playerId=who['playerId'],amount=amount,scope=scope,explanation=reason))
@@ -133,8 +133,8 @@ def apply(d,kind,action,b):
     elif action in ['lineup','score','publish','correct','cancel']:
         m=find(d['matches'],b.get('id'));live_stage(d,m['stageId'])
         if action=='correct':
-            require(m['state']=='published','只能更正已发布战果');label(b.get('reason'))
-            m.update(result(d,kind,m,b));m['correctionReason']=b['reason']
+            require(m['state']=='published','只能更正已发布战果');optional_note(b.get('reason'))
+            m.update(result(d,kind,m,b));m['correctionReason']=optional_note(b.get('reason'))
         else:
             require(m['state']=='draft','已发布或取消的记录不可直接修改')
             if action=='lineup':
@@ -148,6 +148,11 @@ def apply(d,kind,action,b):
                 # Revalidate the server-saved result before publication.
                 m.update(result(d,kind,m,dict(scores=[s['score'] for s in m['seats']],penalties=m['penalties'],yakuman=m['yakuman'])))
                 m.update(state='published',lineupPublished=True)
-            else: label(b.get('reason'));m['state']='cancelled'
+            else: optional_note(b.get('reason'));m['state']='cancelled'
     else: raise Invalid('不支持的操作')
     return d
+
+
+def optional_note(value):
+    if value is None or (isinstance(value,str) and not value.strip()): return ""
+    return label(value)

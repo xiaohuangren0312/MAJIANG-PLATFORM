@@ -1,3 +1,4 @@
+from .domain import optional_note
 import json,hashlib,datetime
 from functools import wraps
 from pathlib import Path
@@ -114,7 +115,7 @@ def event_detail(request,id):
         token=signing.dumps(dict(event=str(e.id),revision=e.revision,preview=preview),salt='settlement')
         return JsonResponse({'preview':preview,'token':token})
     if action=='grant':
-        username=label(b.get('username'));reason=label(b.get('reason'));role=b.get('role')
+        username=label(b.get('username'));reason=optional_note(b.get('reason'));role=b.get('role')
         require(role in ['admin','revoke'],'授权角色错误')
         grant_user=get_user_model().objects.filter(username=username,is_active=True).first()
         require(grant_user is not None,'账号不存在或已停用，请由平台管理员先创建账号')
@@ -128,7 +129,7 @@ def event_detail(request,id):
         signed=signing.loads(b.get('token'),salt='history-correction',max_age=1800)
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'更正预览已过期，请重新生成')
         require(b.get('acknowledgeCarry') is True,'请确认原表快照与后续带入分保留不变')
-        new=history_commit(old,signed['body']);new['historyCorrections'][-1].update(actor=request.user.username,at=timezone.now().isoformat());b['reason']=signed['body']['reason']
+        new=history_commit(old,signed['body']);new['historyCorrections'][-1].update(actor=request.user.username,at=timezone.now().isoformat());b['reason']=optional_note(signed['body'].get('reason'))
     elif action=='pairing-commit':
         from .pairing import commit as pairing_commit
         signed=signing.loads(b.get('token'),salt='pairing',max_age=1800)
@@ -148,7 +149,7 @@ def event_detail(request,id):
     elif action=='visibility':
         require(type(b.get('public')) is bool,'公开状态错误');new=old;e.public=b['public']
     else:
-        if action=='rule' and old.get('historySnapshot'):label(b.get('reason'))
+        if action=='rule' and old.get('historySnapshot'):optional_note(b.get('reason'))
         new=apply(old,e.kind,action,b)
     with transaction.atomic():
         if action=='visibility' and e.public and old.get('historySnapshot'):
@@ -279,7 +280,7 @@ def import_history(request,key):
     from .models import HistoryImport,HistoryReview
     from .history_review import fingerprint,report
     if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以导入历史赛事')
-    b=body(request);reason=label(b.get('reason'))
+    b=body(request);reason=optional_note(b.get('reason'))
     with transaction.atomic():
         archive=get_object_or_404(HistoricalArchive.objects.select_for_update(),pk=key)
         digest=fingerprint(archive.payload)

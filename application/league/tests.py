@@ -55,9 +55,9 @@ class ScoringTests(TestCase):
         d=publish(fixture());id=d['matches'][0]['id']
         for action in ['score','publish','lineup','cancel']:
             with self.assertRaises(Invalid):apply(d,'team',action,{'id':id})
-    def test_correction_requires_reason(self):
+    def test_correction_reason_optional(self):
         d=publish(fixture())
-        with self.assertRaises(Invalid):apply(d,'team','correct',dict(id=d['matches'][0]['id'],scores=[25000]*4))
+        self.assertEqual(apply(d,'team','correct',dict(id=d['matches'][0]['id'],scores=[25000]*4))['matches'][0]['correctionReason'],'')
 
 class SettlementTests(TestCase):
     def args(self,d):return dict(source=d['stages'][0]['id'],target=d['stages'][1]['id'],ids=[x['id'] for x in d['teams']],numerator=1,denominator=2)
@@ -72,9 +72,9 @@ class SettlementTests(TestCase):
     def test_draft_prevents_settlement(self):
         d=fixture()
         with self.assertRaises(Invalid):settlement_preview(d,'team',self.args(d))
-    def test_override_requires_reason(self):
+    def test_override_reason_optional(self):
         d=publish(fixture());p=settlement_preview(d,'team',self.args(d));id=p['rows'][0]['id']
-        with self.assertRaises(Invalid):settle(d,p,{id:{'value':300}})
+        self.assertEqual(settle(d,p,{id:{'value':300}})['settlements'][0]['rows'][id],300)
         changed=settle(d,p,{id:{'value':300,'reason':'赛事裁定'}});self.assertEqual(changed['settlements'][0]['rows'][id],300)
 
 class ApiTests(TestCase):
@@ -140,7 +140,8 @@ class RosterTests(TestCase):
         with self.assertRaises(Invalid):apply(d,'team','player-update',dict(id=p['id'],number=d['players'][1]['number'],reason='测试'))
     def test_reason_boolean_and_event_scope(self):
         d=fixture();id=d['players'][0]['id']
-        for body in [dict(id=id),dict(id=id,reason='测试',active='false'),dict(id='foreign',reason='测试')]:
+        self.assertEqual(apply(d,'team','player-update',dict(id=id)),d)
+        for body in [dict(id=id,reason='测试',active='false'),dict(id='foreign',reason='测试')]:
             with self.assertRaises(Invalid):apply(d,'team','player-update',body)
     def test_pending_transfer_and_disable_rejected(self):
         d=fixture();p=d['players'][0]

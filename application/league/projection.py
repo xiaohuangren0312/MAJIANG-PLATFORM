@@ -1,3 +1,4 @@
+from .domain import optional_note
 import copy
 from fractions import Fraction
 from .domain import require,find,integer,label,eligible_ids
@@ -71,7 +72,7 @@ def settle(d,preview,overrides):
     require(set(overrides)<=set(r['id'] for r in preview['rows']),'覆盖对象不属于预览')
     for r in preview['rows']:
         if r['id'] in overrides:
-            o=overrides[r['id']];rows[r['id']]=integer(o.get('value'),'带入积分',-10000000,10000000);reasons[r['id']]=label(o.get('reason'))
+            o=overrides[r['id']];rows[r['id']]=integer(o.get('value'),'带入积分',-10000000,10000000);reasons[r['id']]=optional_note(o.get('reason'))
         else: rows[r['id']]=r['suggested']
     d['settlements'].append(dict(source=preview['source'],target=preview['target'],kind=preview['kind'],rows=rows,reasons=reasons,preview=preview))
     find(d['stages'],preview['source'])['locked']=True

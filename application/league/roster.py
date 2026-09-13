@@ -1,4 +1,5 @@
-"""Roster changes preserve result team snapshots and require explicit reasons."""
+from .domain import optional_note
+"""Roster changes preserve result team snapshots and accept optional notes."""
 import datetime, re
 from .domain import find, require, label
 
@@ -8,7 +9,7 @@ def update_roster(d,kind,action,b):
     rows=d['teams' if is_team else 'players'];row=find(rows,b.get('id'))
     name=label(b.get('name',row['name']))
     active=b.get('active',row['active']);require(type(active) is bool,'参赛状态格式错误')
-    reason=label(b.get('reason'))
+    reason=optional_note(b.get('reason'))
     pending=[m for m in d['matches'] if m['state']=='draft' and any(s['teamId' if is_team else 'playerId']==row['id'] for s in m['seats'])]
     if is_team:
         require(not any(x['id']!=row['id'] and x['name']==name for x in rows),'队伍名称重复')

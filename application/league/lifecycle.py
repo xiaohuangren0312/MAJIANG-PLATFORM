@@ -1,3 +1,4 @@
+from .domain import optional_note
 """Final standings snapshot and isolated, backed-up test tournament cleanup."""
 import copy,json,hashlib
 from django.conf import settings
@@ -26,7 +27,7 @@ def archive_event(event,reason,actor):
     payload=public_event(event);at=timezone.now().isoformat()
     payload.update(archived=True,archivedAt=at,finalStandings=copy.deepcopy(preview))
     for stage in d['stages']:stage['locked']=True
-    d['archive']=dict(at=at,actor=actor,reason=label(reason),standings=preview,publicPayload=payload)
+    d['archive']=dict(at=at,actor=actor,reason=optional_note(reason),standings=preview,publicPayload=payload)
     return d
 
 def cleanup_preview(event):
@@ -40,7 +41,7 @@ def cleanup_event(event_id,revision,name,reason,actor):
     with transaction.atomic():
         e=Event.objects.select_for_update().get(pk=event_id)
         require(e.revision==revision,'清理预览已过期，请重新预览')
-        preview=cleanup_preview(e);require(name==e.name,'请输入完整赛事名称确认清理');reason=label(reason)
+        preview=cleanup_preview(e);require(name==e.name,'请输入完整赛事名称确认清理');reason=optional_note(reason)
         audits=list(Audit.objects.filter(event=e).order_by('revision').values())
         backup=dict(event=dict(id=str(e.pk),name=e.name,kind=e.kind,public=e.public,isTest=e.is_test,revision=e.revision,document=e.document,editors=list(e.editors.values_list('pk',flat=True))),audits=audits)
         raw=json.dumps(backup,ensure_ascii=False,default=str,sort_keys=True).encode()

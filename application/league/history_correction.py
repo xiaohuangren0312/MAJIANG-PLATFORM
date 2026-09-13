@@ -1,3 +1,4 @@
+from .domain import optional_note
 """Corrections overlay an immutable source; historical carry is never inferred."""
 import copy
 from .domain import require,label,integer,find,score
@@ -22,7 +23,7 @@ def totals(payload,stage,kind,entity_id):
 
 def preview(document,body):
     require(bool(document.get('historySnapshot')),'此操作仅支持导入历史赛事')
-    reason=label(body.get('reason'));old=effective(document);new=copy.deepcopy(old)
+    reason=optional_note(body.get('reason'));old=effective(document);new=copy.deepcopy(old)
     match=find(new['results'],body.get('id'));original=find(old['results'],body.get('id'))
     incoming=body.get('seats');require(isinstance(incoming,list) and len(incoming)==len(match['seats'])==4,'必须保留四个座次')
     mode=body.get('scoreMode','keep-pt');require(mode in ['keep-pt','recalculate'],'点棒处理模式错误')

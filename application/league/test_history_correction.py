@@ -59,7 +59,7 @@ class HistoryCorrectionTests(TestCase):
             response=self.client.post(self.url,dict(action='history-preview',revision=1,**b),content_type='application/json')
             self.assertEqual(response.status_code,400,(field,value))
         b=self.body();b['reason']=''
-        self.assertEqual(self.client.post(self.url,dict(action='history-preview',revision=1,**b),content_type='application/json').status_code,400)
+        self.assertEqual(self.client.post(self.url,dict(action='history-preview',revision=1,**b),content_type='application/json').status_code,200)
     def test_commit_requires_acknowledgement(self):
         res=self.client.post(self.url,dict(action='history-preview',revision=1,**self.body()),content_type='application/json').json()
         self.assertEqual(self.client.post(self.url,dict(action='history-correct',revision=1,token=res['token']),content_type='application/json').status_code,400)

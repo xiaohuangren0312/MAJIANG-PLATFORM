@@ -26,9 +26,9 @@ class HistoryRuleTests(TestCase):
     def test_revoked_member_denied(self):
         self.e.editors.remove(self.child)
         self.assertEqual(self.client.post(self.url,self.rule_body(),content_type='application/json').status_code,404)
-    def test_reason_required_and_revision_conflict(self):
+    def test_reason_optional_and_revision_conflict(self):
         b=self.rule_body();b['reason']=''
-        self.assertEqual(self.client.post(self.url,b,content_type='application/json').status_code,400)
+        self.assertEqual(self.client.post(self.url,b,content_type='application/json').status_code,200)
         self.client.post(self.url,self.rule_body(),content_type='application/json')
         self.assertEqual(self.client.post(self.url,self.rule_body(),content_type='application/json').status_code,409)
     def test_choose_old_new_versions(self):

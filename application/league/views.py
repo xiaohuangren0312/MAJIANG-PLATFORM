@@ -1,3 +1,4 @@
+from .projection import rank_metrics
 from .domain import optional_note
 import json,hashlib,datetime
 from functools import wraps
@@ -64,7 +65,7 @@ def manage(request):
 
 @require_GET
 def public_data(request):
-    response=JsonResponse({'demo':False,'updatedAt':timezone.now().isoformat(),'tournaments':[public_event(e) for e in Event.objects.filter(public=True)]+[x.payload for x in HistoricalArchive.objects.filter(public=True)]},json_dumps_params={'ensure_ascii':False})
+    response=JsonResponse({'demo':False,'updatedAt':timezone.now().isoformat(),'tournaments':[public_event(e) for e in Event.objects.filter(public=True)]+[rank_metrics(x.payload) for x in HistoricalArchive.objects.filter(public=True)]},json_dumps_params={'ensure_ascii':False})
     response['Cache-Control']='no-store';return response
 
 @api

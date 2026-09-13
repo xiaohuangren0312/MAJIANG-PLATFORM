@@ -10,13 +10,13 @@ def totals(payload,stage,kind,entity_id):
     key='teamPoints' if kind=='team' else 'points'
     pairs=[(m,s) for m in sorted(payload['results'],key=lambda m:(m.get('date',''),m.get('number',0))) if stage=='all' or m['stageId']==stage for s in m['seats'] if s.get(kind+'Id')==entity_id]
     seats=[s for _,s in pairs];known=[s[key] for s in seats if s.get(key) is not None]
-    places=[0.0]*4
+    places=[0]*4
     for m,s in pairs:
         rank=s.get('rank')
         if rank is None:continue
         tied=sum(1 for t in m['seats'] if t.get('rank')==rank) if s.get('tied') else 1
         if not 1<=rank<=4 or rank+tied>5:continue
-        for i in range(rank-1,rank-1+tied):places[i]+=1/tied
+        places[rank-1]+=1
     ranked=sum(places);scores=[s['score'] for s in seats if s.get('score') is not None]
     bases=[s['base'] for s in seats if s.get('base') is not None]
     return dict(contribution=sum(known),games=len(seats),rankedGames=ranked,places=places,avgRank=sum((i+1)*v for i,v in enumerate(places))/ranked if ranked else None,topRate=places[0]/ranked if ranked else None,topTwo=sum(places[:2])/ranked if ranked else None,avoidLast=1-places[3]/ranked if ranked else None,best=max(scores,default=None),avgPoints=sum(scores)/len(scores) if scores else None,history=known,last=known[-1] if known else 0,base=sum(bases) if len(bases)==len(seats) else None)

@@ -69,3 +69,18 @@ class PairingTests(TestCase):
         self.assertEqual(len(e.document['matches']),2);self.assertEqual(Audit.objects.count(),1)
         self.assertEqual(post('pairing-commit',token=token).status_code,400)
         self.client.force_login(other);self.assertEqual(post('pairing-preview',**self.b).status_code,404)
+
+    def test_tied_first_counts_as_first_and_shares_bonus(self):
+        from .domain import score
+        from .projection import statistics,rank_metrics
+        from .history_correction import totals
+        seats=score(self.d['rules'][-1],[35000,35000,20000,10000])
+        self.assertEqual([s['rank'] for s in seats],[1,1,3,4])
+        self.assertEqual([s['points'] for s in seats],[350,350,-200,-500])
+        for i,s in enumerate(seats):s['playerId']=str(i)
+        payload={'results':[{'date':'2026-09-13','number':1,'stageId':'regular','seats':seats}]}
+        t=totals(payload,'all','player','0')
+        self.assertEqual(t['places'],[1,0,0,0]);self.assertEqual(t['avgRank'],1)
+        self.assertEqual(t['topRate'],1)
+        payload['statistics']={'all':{'raw':{'player':[{'id':'0','total':350}]}}}
+        self.assertEqual(rank_metrics(payload)['statistics']['all']['raw']['player'][0]['total'],350)

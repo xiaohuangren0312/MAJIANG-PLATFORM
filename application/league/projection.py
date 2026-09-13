@@ -15,7 +15,7 @@ def statistics(d,stage='all',competitive=False,kind='player'):
         seats=[s for _,s in pairs];n=len(seats);places=[0.0]*4
         for m,s in pairs:
             tied=sum(x['score']==s['score'] for x in m['seats'])
-            for k in range(s['rank']-1,s['rank']-1+tied): places[k]+=1/tied
+            places[s['rank']-1]+=1
         key='teamPoints' if kind=='team' else 'points'
         total=sum(s[key] for s in seats);base=sum(s['base'] for s in seats)
         carry=sum(c['rows'].get(e['id'],0) for c in d['settlements'] if c['target']==stage and c['kind']==kind) if competitive and stage!='all' else 0
@@ -29,7 +29,7 @@ def public_event(event):
     if event.document.get('archive'):return copy.deepcopy(event.document['archive']['publicPayload'])
     if event.document.get('historySnapshot'):
         payload=copy.deepcopy(event.document.get('historyCurrent',event.document['historySnapshot']));payload['name']=event.name
-        return payload
+        return rank_metrics(payload)
     d=event.document;results=[];schedule=[]
     for m in sorted(d['matches'],key=lambda m:(m['date'],m['time'],m['number'])):
         published=m['state']=='published'
@@ -77,3 +77,19 @@ def settle(d,preview,overrides):
     d['settlements'].append(dict(source=preview['source'],target=preview['target'],kind=preview['kind'],rows=rows,reasons=reasons,preview=preview))
     find(d['stages'],preview['source'])['locked']=True
     return d
+
+
+def rank_metrics(payload):
+    """Recompute only rank metrics; preserve historical PT and source snapshots."""
+    from .history_correction import totals
+    payload=copy.deepcopy(payload)
+    for stage,metrics in payload.get('statistics',{}).items():
+        cache={}
+        for kinds in metrics.values():
+            for kind,rows in kinds.items():
+                for row in rows:
+                    key=(kind,row['id'])
+                    if key not in cache:cache[key]=totals(payload,stage,kind,row['id'])
+                    t=cache[key]
+                    for field in ['places','rankedGames','avgRank','topRate','topTwo','avoidLast']:row[field]=t[field]
+    return payload

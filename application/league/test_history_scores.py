@@ -21,7 +21,7 @@ class HistoryScoreTests(TestCase):
         self.assertEqual([s['rank'] for s in n['results'][0]['seats']],[1,1,3,4])
         self.assertEqual([s['points'] for s in n['results'][0]['seats']],[500,100,-100,-500])
         row=next(r for r in n['statistics']['all']['raw']['player'] if r['id']=='p1')
-        self.assertEqual(row['avgRank'],1.5)
+        self.assertEqual(row['avgRank'],1)
     def test_recalculate(self):
         b=self.body([40000,30000,20000,10000]);b.update(scoreMode='recalculate',confirmNoPenalties=True)
         p,n=preview(self.doc,b)

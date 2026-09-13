@@ -1,0 +1,37 @@
+/* 欢雀楼：暖白、朱红、墨灰。队伍色由 --team 独立控制。 */
+:root{--bg:#faf7f3;--ink:#292522;--muted:#78716a;--green:#b73830;--lime:#fff4e4;--line:#e8dfd6;--red:#a64939;--brand:#b73830}
+body{background:var(--bg)}
+button:focus-visible,a:focus-visible{outline-color:#c55c47}
+input,select{accent-color:var(--brand)}
+.site-header{border-top:4px solid var(--brand);background:#fffdfa;border-bottom-color:var(--line)}
+.brand{letter-spacing:2px}.brand-tile{background:var(--brand);color:#fff9ed;border-radius:3px;box-shadow:0 3px 0 #78291f;font-family:serif}
+.brand small{color:#8c6255}.site-header nav a{color:#78716a}.site-header nav a.active{color:var(--brand)}
+.demo-tag{background:#f0eae3;color:#786c60}.context-bar select{background:#fffdfa}
+.button{background:var(--brand);border-radius:5px;transition:background .15s,box-shadow .15s}
+.button:hover{background:#942920;box-shadow:0 3px 10px #7f28101a}.button.light{background:#fff3dd;color:#7d2c24}
+.button.outline{border-color:#dca492}.filters .button:last-child{background:#eee7df!important;color:#594d42!important}
+.card{background:#fffefa;box-shadow:0 2px 8px #4d281204}.match-card:hover{box-shadow:0 6px 20px #65362b12}
+.badge{background:#f6e8e2;color:#96382e}.badge.gold{background:#f7edda;color:#8c642d}.badge.red{background:#f5e3dc;color:#963c2d}
+.scoreline{border-bottom-color:#eee7df}.rank{color:#a0978c}.avatar{background:#f3e8e0;color:#954335}
+.positive{color:#31596b}.negative{color:#a64939}
+.spotlight,.detail-hero{background:#f4ece3;border-color:#e8d9ca}.spotlight p{color:#79675b}
+th{background:#f7f2ec}.leader-banner,.result-head{background:#7d3029}.leader-banner small,.result-head p{color:#ecd4c5}
+.site-footer{color:#82776a}.site-footer strong{color:#614b3e}.history-notice{background:#f1ebe3;border-left:2px solid #c5a574}
+.history-heading{position:relative;margin-top:10px;padding:26px 30px;background:#fffdfa;border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:4px;overflow:hidden}
+.history-heading:after{content:'雀';font-family:serif;font-size:156px;line-height:1;position:absolute;right:170px;top:10px;color:#b7383006;pointer-events:none}
+.history-heading h1{font-size:34px;letter-spacing:1px;color:#302621}.history-heading>div,.history-heading>.button{position:relative;z-index:1}
+.history-heading p{color:#806746;font-size:14px}.history-heading p strong{color:#8a642b;margin-left:10px}
+.history-heading .badge{background:#f1e9dc;color:#886638}
+.stage-nav{gap:8px;padding:0 0 12px;margin-top:24px}
+.stage-nav a.button{opacity:1!important;background:transparent;color:#7b6c60;border:1px solid transparent;padding:9px 22px}
+.stage-nav a.button[aria-current="page"]{background:#b73830;color:#fff8ee;border-color:#b73830;box-shadow:0 3px 7px #b7383015}
+.stage-nav button.active{color:#a53229;border-color:#b73830}
+.history-layout .section-head h2{font-size:21px;border-left:3px solid var(--brand);padding-left:11px}
+.history-layout .rank-row:first-child{background:linear-gradient(90deg,#faf1e0,#fffefa)}
+.history-layout .rank-row:first-child .rank{color:#9b783a}.history-layout .rank-row:first-child>.num{color:#8a642b}
+.history-layout .rank-row:hover{background:#faf5ee}.history-layout .rank-row .identity small{color:#82786d;margin-top:4px}
+.history-layout .rank-row>.num{font-size:26px}.history-layout .rank-row{padding-top:20px;padding-bottom:20px}
+.hero{background:#7d3029}.hero p{color:#efd6c9}.hero-art{background:radial-gradient(ellipse at center,#a35442,transparent 65%)}
+.mahjong-tile{background:#fff6e7;color:#4a4037;box-shadow:6px 10px 0 #c5ad8c}.hero-art:before,.hero-art:after{border-color:#e6c9a330}
+#mobile-nav{background:#fffdfa;border-color:var(--line)}#mobile-nav a{color:#87766a}#mobile-nav a.active{background:#f5e6df;color:#aa342b}
+@media(max-width:750px){.history-heading{padding:22px 19px;border-left-width:4px;gap:20px}.history-heading h1{font-size:27px;line-height:1.45}.history-heading:after{right:12px;top:25px;font-size:120px}.history-heading p{font-size:12px}.history-heading p strong{margin-left:5px}.stage-nav a.button{padding:9px 19px}.history-layout .rank-row{padding:16px 13px}.history-layout .rank-row>.num{font-size:22px}.history-layout .identity strong{font-size:14px}.history-layout .identity small{font-size:10px}}

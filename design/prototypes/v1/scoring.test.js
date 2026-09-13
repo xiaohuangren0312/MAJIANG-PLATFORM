@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const {calculate, defaults} = require('./scoring');
+const points = scores => calculate(scores).map(x => x.pointsTenths);
+assert.deepEqual(points([41600,30000,20000,8400]), [616,100,-200,-516]);
+assert.deepEqual(points([35000,35000,20000,10000]), [350,350,-200,-500]);
+assert.deepEqual(points([30000,30000,30000,10000]), [167,167,166,-500]);
+assert.deepEqual(points([40000,20000,20000,20000]), [600,-200,-200,-200]);
+assert.deepEqual(points([25000,25000,25000,25000]), [0,0,0,0]);
+assert.deepEqual(points([60000,30000,20000,-10000]), [800,100,-200,-700]);
+assert.throws(() => points([40000,30000,20000,9000]), /总点数/);
+assert.throws(() => points([NaN,30000,20000,10000]));
+assert.deepEqual(calculate([35000,35000,20000,10000], {...defaults,tie:'seat'}).map(x=>x.pointsTenths), [550,150,-200,-500]);
+assert.deepEqual(calculate([25000,25000,25000,25000], {...defaults, returnPoints:25000, bonuses:[30,10,-10,-30]}).map(x=>x.pointsTenths), [0,0,0,0]);
+console.log('10 scoring cases passed');

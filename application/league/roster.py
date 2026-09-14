@@ -21,6 +21,7 @@ def update_roster(d,kind,action,b):
         number=label(b.get('number',row['number']))
         require(not any(x['id']!=row['id'] and x['number']==number for x in rows),'报名编号重复')
         tid=b.get('teamId',row['teamId']) or None
+        require(not row.get('bond') or tid is None,'羁绊选手请通过阶段报名指定代表队伍')
         require(kind=='team' or tid is None,'个人赛不能设置队伍')
         if tid:
             team=find(d['teams'],tid)

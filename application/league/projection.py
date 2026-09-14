@@ -9,7 +9,7 @@ def statistics(d,stage='all',competitive=False,kind='player'):
     incoming=next((c for c in d['settlements'] if c['target']==stage),None)
     for e in d['players' if kind=='player' else 'teams']:
         if incoming:
-            qualifier=e['id'] if incoming['kind']==kind else e.get('teamId')
+            qualifier=e['id'] if incoming['kind']==kind else (e.get('bondStages',{}).get(stage) if e.get('bond') else e.get('teamId'))
             if qualifier not in incoming['rows']:continue
         pairs=[(m,s) for m in matches for s in m['seats'] if s[kind+'Id']==e['id']]
         seats=[s for _,s in pairs];n=len(seats);places=[0.0]*4
@@ -20,7 +20,7 @@ def statistics(d,stage='all',competitive=False,kind='player'):
         total=sum(s[key] for s in seats);base=sum(s['base'] for s in seats)
         carry=sum(c['rows'].get(e['id'],0) for c in d['settlements'] if c['target']==stage and c['kind']==kind) if competitive and stage!='all' else 0
         yakuman=sum(1 for m in matches for y in m['yakuman'] if any(s['playerId']==y['playerId'] and s[kind+'Id']==e['id'] for s in m['seats']))
-        rows.append(dict(id=e['id'],name=e['name'],base=base,penalty=base-total,carry=carry,raw=total,total=total+carry,games=n,rank=0,places=places,avgRank=sum((i+1)*v for i,v in enumerate(places))/n if n else None,topRate=places[0]/n if n else None,topTwo=sum(places[:2])/n if n else None,avoidLast=1-places[3]/n if n else None,best=max((s['score'] for s in seats),default=None),avgPoints=sum(s['score'] for s in seats)/n if n else None,yakuman=yakuman,last=seats[-1][key] if seats else 0,history=[s[key] for s in seats]))
+        rows.append(dict(id=e['id'],name=e['name'],bond=e.get('bond',False),base=base,penalty=base-total,carry=carry,raw=total,total=total+carry,games=n,rank=0,places=places,avgRank=sum((i+1)*v for i,v in enumerate(places))/n if n else None,topRate=places[0]/n if n else None,topTwo=sum(places[:2])/n if n else None,avoidLast=1-places[3]/n if n else None,best=max((s['score'] for s in seats),default=None),avgPoints=sum(s['score'] for s in seats)/n if n else None,yakuman=yakuman,last=seats[-1][key] if seats else 0,history=[s[key] for s in seats]))
     rows.sort(key=lambda r:-r['total'])
     for i,r in enumerate(rows):r['rank']=rows[i-1]['rank'] if i and rows[i-1]['total']==r['total'] else i+1
     return rows
@@ -37,7 +37,7 @@ def _public_event(event):
         if published:
             results.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],pairingRound=m.get('pairingRound'),table=m['table'],number=m['number'],ruleName=m['rule']['name'],ruleVersion=m['rule']['version'],seats=copy.deepcopy(m['seats']),penalties=copy.deepcopy(m['penalties']),yakuman=copy.deepcopy(m['yakuman'])))
     stats={stage:{metric:{kind:statistics(d,stage,metric=='competitive',kind) for kind in ['player','team']} for metric in ['raw','competitive']} for stage in ['all']+[s['id'] for s in d['stages']]}
-    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name'],advanceCount=s.get('advanceCount',0)) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl')} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
+    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name'],advanceCount=s.get('advanceCount',0)) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl'),'bond':p.get('bond',False),'bondStages':p.get('bondStages',{})} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
 
 def settlement_preview(d,kind,b):
     require(not d.get('archive'),'赛事已归档')

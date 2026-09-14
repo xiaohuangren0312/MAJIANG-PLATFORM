@@ -48,7 +48,7 @@ def validate_qualification(d,kind,stage_id,seats):
 
 def live_stage(d,id):
     stage=find(d['stages'],id);require(not stage.get('locked'),'阶段已结算锁定');return stage
-def validate_lineup(d,kind,seats,complete,historical=False):
+def validate_lineup(d,kind,seats,complete,historical=False,stage_id=None):
     require(isinstance(seats,list) and len(seats)==4,'每场必须有四个座次')
     player_ids=[];team_ids=[];out=[]
     for seat in seats:
@@ -58,16 +58,16 @@ def validate_lineup(d,kind,seats,complete,historical=False):
         else: require(not tid,'个人赛不能设置队伍')
         if pid:
             p=find(d['players'],pid);require(historical or p['active'],'选手已停用')
-            require(historical or kind!='team' or p['teamId']==tid,'选手不属于所选队伍')
+            require(historical or kind!='team' or (p.get('bondStages',{}).get(stage_id) if p.get('bond') else p['teamId'])==tid,'选手不属于所选队伍')
             player_ids.append(pid)
         else: require(not complete,'请补齐四名出战选手')
-        out.append(dict(playerId=pid or None,teamId=tid or None))
+        out.append(dict(playerId=pid or None,teamId=tid or None,**({'bond':True} if pid and p.get('bond') else {})))
     require(len(set(player_ids))==len(player_ids),'同一选手不能重复出场')
     require(kind!='team' or len(set(team_ids))==4,'团体赛每桌需要四支不同队伍')
     return out
 def result(d,kind,m,body):
     validate_qualification(d,kind,m['stageId'],m['seats'])
-    seats=validate_lineup(d,kind,m['seats'],True,historical=m['state']=='published')
+    seats=validate_lineup(d,kind,m['seats'],True,historical=m['state']=='published',stage_id=m['stageId'])
     values=body.get('scores',[])
     if isinstance(values,list) and len(values)==4 and all(type(v) is int for v in values) and sum(values)==m['rule']['start']*4//100:
         values=[v*100 for v in values]
@@ -102,6 +102,16 @@ def apply(d,kind,action,b):
     if action in ['team-update','player-update']:
         from .roster import update_roster
         return update_roster(d,kind,action,b)
+    elif action=='bond-player':
+        require(kind=='team','羁绊选手仅适用于团队赛')
+        stage=live_stage(d,b.get('stageId'));team=find(d['teams'],b.get('teamId'))
+        require(team['active'] and team['id'] in eligible_ids(d,kind,stage['id']),'队伍未获得本阶段参赛资格')
+        if b.get('id'):
+            p=find(d['players'],b['id']);require(p.get('bond'),'请选择羁绊选手')
+            require(stage['id'] not in p.get('bondStages',{}),'该选手已报名此阶段；不能改写已登记的代表队伍')
+        else:
+            d=apply(d,kind,'player',dict(name=b.get('name')));p=d['players'][-1];p['bond']=True
+        p.setdefault('bondStages',{})[stage['id']]=team['id']
     elif action=='team':
         require(kind=='team','个人赛不设置队伍')
         name=label(b.get('name'));require(not any(x['name']==name for x in d['teams']),'队伍名称重复')
@@ -138,7 +148,7 @@ def apply(d,kind,action,b):
         except ValueError: raise Invalid('比赛时间无效')
         number=integer(b.get('number'),'桌号',1,1000)
         require(not any(m['date']==day and m['time']==time and m['number']==number and m['state']!='cancelled' for m in d['matches']),'同一开赛时间桌号重复')
-        d['matches'].append(dict(id=uid(),stageId=stage['id'],date=day,time=time,number=number,table=str(number),seats=validate_lineup(d,kind,b.get('seats'),False),rule=copy.deepcopy(d['rules'][-1]),state='draft',lineupPublished=False,penalties=[],yakuman=[]))
+        d['matches'].append(dict(id=uid(),stageId=stage['id'],date=day,time=time,number=number,table=str(number),seats=validate_lineup(d,kind,b.get('seats'),False,stage_id=stage['id']),rule=copy.deepcopy(d['rules'][-1]),state='draft',lineupPublished=False,penalties=[],yakuman=[]))
     elif action in ['lineup','score','publish','correct','cancel']:
         m=find(d['matches'],b.get('id'));live_stage(d,m['stageId'])
         if action=='correct':
@@ -147,7 +157,7 @@ def apply(d,kind,action,b):
         else:
             require(m['state']=='draft','已发布或取消的记录不可直接修改')
             if action=='lineup':
-                seats=validate_lineup(d,kind,b.get('seats'),True)
+                seats=validate_lineup(d,kind,b.get('seats'),True,stage_id=m['stageId'])
                 validate_qualification(d,kind,m['stageId'],seats)
                 require(not m['penalties'] and not m['yakuman'],'请先处理原有罚分和役满事件')
                 m.update(seats=seats,lineupPublished=True)

@@ -109,3 +109,11 @@ class PairingTests(TestCase):
         self.assertEqual(len(changed['stages']),2);self.assertTrue(changed['stages'][0]['locked'])
         self.assertEqual(changed['stages'][1]['id'],p['target'])
         with self.assertRaises(Invalid):settlement_preview(d,'personal',dict(source=d['stages'][0]['id'],targetName='预选'))
+
+    def test_save_result_publishes_atomically(self):
+        d=commit(self.d,'personal',preview(self.d,'personal',self.b));mid=d['matches'][0]['id']
+        with self.assertRaises(Invalid):apply(d,'personal','save-result',dict(id=mid,scores=[400]*4))
+        self.assertEqual(d['matches'][0]['state'],'draft')
+        updated=apply(d,'personal','save-result',dict(id=mid,scores=[400,300,200,100]))
+        self.assertEqual(updated['matches'][0]['state'],'published')
+        self.assertEqual(len(updated['matches']),2)

@@ -99,6 +99,11 @@ def result(d,kind,m,body):
 def apply(d,kind,action,b):
     require(not d.get('archive'),'赛事已归档，比赛数据不可修改')
     d=copy.deepcopy(d)
+    if action=='save-result':
+        m=find(d['matches'],b.get('id'))
+        if m['state']=='published':return apply(d,kind,'correct',b)
+        d=apply(d,kind,'score',b)
+        return apply(d,kind,'publish',{'id':m['id']})
     if action in ['team-update','player-update']:
         from .roster import update_roster
         return update_roster(d,kind,action,b)

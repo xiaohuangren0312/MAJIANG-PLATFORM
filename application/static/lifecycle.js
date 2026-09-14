@@ -12,7 +12,7 @@ function bindQualificationChoices(){
 }
 function bindAdvancementChoices(){
  const select=$('#preview-form [name="source"]'),holder=$('#advancement-choices');if(!select||!holder)return;
- const update=()=>{holder.innerHTML=qualificationChoices(select.value,true).map(x=>`<label><input type="checkbox" name="ids" value="${esc(x.id)}" checked>${esc(x.name)}</label>`).join('')||'<p>该阶段尚无可结转的已发布成绩。</p>';};select.onchange=update;update();
+ const update=()=>{const cutoff=event.document.stages.find(s=>s.id===select.value)?.advanceCount;if(cutoff){holder.textContent='按阶段竞技排名前 '+cutoff+' 名自动选择，名单将在结算预览中展示。';return}holder.innerHTML=qualificationChoices(select.value,true).map(x=>`<label><input type="checkbox" name="ids" value="${esc(x.id)}" checked>${esc(x.name)}</label>`).join('')||'<p>该阶段尚无可结转的已发布成绩。</p>';};select.onchange=update;update();
 }
 function standingsTable(p){return `<div class="table-scroll"><table><thead><tr><th>名次</th><th>${p.kind==='team'?'队伍':'选手'}</th><th>最终竞技分</th><th>阶段净分</th><th>带入分</th></tr></thead><tbody>${p.rows.map(r=>`<tr><td>${r.rank}</td><td>${esc(r.name)}</td><td>${pt(r.total)}</td><td>${pt(r.raw)}</td><td>${pt(r.carry)}</td></tr>`).join('')}</tbody></table></div>`}
 function lifecycle(){

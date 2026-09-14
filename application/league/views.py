@@ -78,7 +78,7 @@ def events(request):
     if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以创建赛事')
     require(type(b.get('isTest',False)) is bool,'测试赛事标记错误')
     with transaction.atomic():
-        e=Event.objects.create(name=label(b.get('name')),kind=kind,is_test=b.get('isTest',False),document=initial());e.editors.add(request.user)
+        e=Event.objects.create(name=label(b.get('name')),kind=kind,is_test=b.get('isTest',False),document=apply(initial(),kind,'stage',{'name':'常规赛'}));e.editors.add(request.user)
         Audit.objects.create(event=e,actor=request.user,revision=1,action='create',before={},after=e.document)
     return JsonResponse(summary(e),status=201)
 
@@ -141,7 +141,9 @@ def event_detail(request,id):
         signed=signing.loads(b.get('token'),salt='settlement',max_age=1800)
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'预览已过期，请重新生成')
         p=signed['preview']
-        settlement_preview(old,e.kind,dict(source=p['source'],target=p['target'],numerator=p['numerator'],denominator=p['denominator'],ids=[r['id'] for r in p['rows']]))
+        check=copy.deepcopy(old)
+        if p.get('createdStage'):check['stages'].append(p['createdStage'])
+        settlement_preview(check,e.kind,dict(source=p['source'],target=p['target'],numerator=p['numerator'],denominator=p['denominator'],roundingMode=p.get('roundingMode','ceil'),ids=[r['id'] for r in p['rows']]))
         new=settle(old,p,b.get('overrides',{}))
     elif action=='archive-commit':
         signed=signing.loads(b.get('token'),salt='archive-preview',max_age=1800)

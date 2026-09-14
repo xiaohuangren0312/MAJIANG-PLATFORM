@@ -113,6 +113,10 @@ def apply(d,kind,action,b):
         from .roster import next_number
         number=label(b.get('number') or next_number(d['players']));require(not any(x['number']==number for x in d['players']),'报名编号重复')
         d['players'].append(dict(id=uid(),name=label(b.get('name')),number=number,teamId=tid,active=True,bio=''))
+    elif action=='stage-update':
+        stage=live_stage(d,b.get('id'));name=label(b.get('name',stage['name']))
+        require(not any(x['id']!=stage['id'] and x['name']==name for x in d['stages']),'阶段名称重复')
+        stage.update(name=name,advanceCount=integer(b.get('advanceCount',stage.get('advanceCount',0)),'晋级名次',0,10000))
     elif action=='stage':
         d['stages'].append(dict(id=uid(),name=label(b.get('name')),locked=False))
     elif action=='rule':

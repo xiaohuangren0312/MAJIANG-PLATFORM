@@ -29,7 +29,8 @@ class LifecycleTests(TestCase):
         return r.json()
     def setup_event(self,kind='team',test=True):
         self.create(kind,test)
-        for name in ['预选赛','决赛']:self.command('stage',name=name)
+        self.command('stage-update',id=self.state['document']['stages'][0]['id'],name='预选赛')
+        self.command('stage',name='决赛')
         if kind=='team':
             for i in range(5):self.command('team',name='队伍'+str(i))
         for i in range(5):

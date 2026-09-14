@@ -1,7 +1,7 @@
 from .domain import optional_note
 import copy
 from fractions import Fraction
-from .domain import require,find,integer,label,eligible_ids
+from .domain import require,find,integer,label,eligible_ids,uid
 
 def statistics(d,stage='all',competitive=False,kind='player'):
     matches=sorted([m for m in d['matches'] if m['state']=='published' and (stage=='all' or m['stageId']==stage)],key=lambda m:(m['date'],m['time'],m['number']))
@@ -37,11 +37,20 @@ def _public_event(event):
         if published:
             results.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],pairingRound=m.get('pairingRound'),table=m['table'],number=m['number'],ruleName=m['rule']['name'],ruleVersion=m['rule']['version'],seats=copy.deepcopy(m['seats']),penalties=copy.deepcopy(m['penalties']),yakuman=copy.deepcopy(m['yakuman'])))
     stats={stage:{metric:{kind:statistics(d,stage,metric=='competitive',kind) for kind in ['player','team']} for metric in ['raw','competitive']} for stage in ['all']+[s['id'] for s in d['stages']]}
-    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name']) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl')} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
+    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name'],advanceCount=s.get('advanceCount',0)) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl')} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
 
 def settlement_preview(d,kind,b):
     require(not d.get('archive'),'赛事已归档')
-    source=find(d['stages'],b.get('source'));target=find(d['stages'],b.get('target'))
+    source=find(d['stages'],b.get('source'))
+    if b.get('targetName'):
+        require(d['stages'][-1]['id']==source['id'],'已有后续阶段，请先处理该阶段')
+        name=label(b['targetName']);require(not any(x['name']==name for x in d['stages']),'阶段名称重复')
+        target=dict(id=uid(),name=name,locked=False,advanceCount=integer(b.get('nextAdvanceCount',0),'下一阶段晋级名次',0,10000))
+        virtual=copy.deepcopy(d);virtual['stages'].append(target)
+        args=dict(b,target=target['id']);args.pop('targetName')
+        p=settlement_preview(virtual,kind,args);p['createdStage']=target
+        return p
+    target=find(d['stages'],b.get('target'))
     require(d['stages'].index(target)==d['stages'].index(source)+1,'请选择紧邻的下一阶段')
     require(not source['locked'] and not target['locked'],'阶段已锁定')
     require(not any(m['state']=='draft' for m in d['matches'] if m['stageId']==source['id']),'源阶段还有未发布或未取消的对局')
@@ -52,7 +61,8 @@ def settlement_preview(d,kind,b):
     entity_kind='team' if kind=='team' else 'player'
     eligible=eligible_ids(d,kind,source['id'])
     candidates=[r for r in statistics(d,source['id'],True,entity_kind) if r['id'] in eligible]
-    ids=b.get('ids');require(isinstance(ids,list) and len(ids)>0 and len(ids)==len(set(ids)),'请选择不重复的晋级对象')
+    count=source.get('advanceCount',0)
+    ids=[r['id'] for r in candidates if r['rank']<=count and r['games']>0] if count else b.get('ids');require(isinstance(ids,list) and len(ids)>0 and len(ids)==len(set(ids)),'请选择不重复的晋级对象')
     require(len(ids)>=4,'下一阶段至少需要四个晋级对象')
     key='teamId' if kind=='team' else 'playerId'
     require(all(s.get(key) in ids for m in d['matches'] if m['stageId']==target['id'] and m['state']!='cancelled' for s in m['seats']),'目标阶段已有未晋级对象的赛程，请先取消')
@@ -60,14 +70,15 @@ def settlement_preview(d,kind,b):
     for id in ids:
         r=find(candidates,id);require(r['games']>0,'不能结转无成绩对象')
         value=Fraction(r['total']*numerator,denominator)
-        # Round half away from zero, explicitly reported to the reviewer.
-        rounded=(1 if value>=0 else -1)*((abs(value.numerator)*2+value.denominator)//(2*value.denominator))
+        mode=b.get('roundingMode','ceil');require(mode in ['ceil','nearest','floor'],'取整方式错误')
+        rounded= -(-value.numerator//value.denominator) if mode=='ceil' else value.numerator//value.denominator if mode=='floor' else (1 if value>=0 else -1)*((abs(value.numerator)*2+value.denominator)//(2*value.denominator))
         rows.append(dict(id=id,name=r['name'],source=r['total'],exact=str(value),suggested=rounded))
-    return dict(source=source['id'],target=target['id'],kind=entity_kind,numerator=numerator,denominator=denominator,rounding='四舍五入到0.1PT，中点远离零',rows=rows)
+    return dict(source=source['id'],target=target['id'],kind=entity_kind,numerator=numerator,denominator=denominator,roundingMode=mode,rounding={'ceil':'向上取整到0.1PT（负数趋向正无穷）','nearest':'四舍五入到0.1PT，中点远离零','floor':'向下取整到0.1PT'}[mode],rows=rows)
 
 def settle(d,preview,overrides):
     require(not d.get('archive'),'赛事已归档')
     d=copy.deepcopy(d); rows={};reasons={}
+    if preview.get('createdStage'):d['stages'].append(copy.deepcopy(preview['createdStage']))
     require(isinstance(overrides,dict),'覆盖值格式错误')
     require(set(overrides)<=set(r['id'] for r in preview['rows']),'覆盖对象不属于预览')
     for r in preview['rows']:

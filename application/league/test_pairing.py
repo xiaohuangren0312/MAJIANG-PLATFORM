@@ -97,3 +97,15 @@ class PairingTests(TestCase):
         d=apply(d,'personal','score',dict(id=mid,scores=[350,350,200,100]))
         self.assertEqual([s['score'] for s in d['matches'][0]['seats']],[35000,35000,20000,10000])
         with self.assertRaisesRegex(Invalid,'当前总分'):apply(d,'personal','score',dict(id=mid,scores=[35000]*4))
+
+    def test_create_next_stage_only_on_settlement_and_auto_qualify(self):
+        from .projection import settlement_preview,settle
+        d=self.publish(commit(self.d,'personal',preview(self.d,'personal',self.b)))
+        d=apply(d,'personal','stage-update',dict(id=d['stages'][0]['id'],name='预选',advanceCount=4))
+        p=settlement_preview(d,'personal',dict(source=d['stages'][0]['id'],targetName='决赛'))
+        self.assertEqual(len(d['stages']),1);self.assertEqual(len(p['rows']),4)
+        self.assertEqual(p['createdStage']['name'],'决赛');self.assertEqual(p['roundingMode'],'ceil')
+        changed=settle(d,p,{})
+        self.assertEqual(len(changed['stages']),2);self.assertTrue(changed['stages'][0]['locked'])
+        self.assertEqual(changed['stages'][1]['id'],p['target'])
+        with self.assertRaises(Invalid):settlement_preview(d,'personal',dict(source=d['stages'][0]['id'],targetName='预选'))

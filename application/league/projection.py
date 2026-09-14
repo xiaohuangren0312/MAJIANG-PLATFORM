@@ -25,7 +25,7 @@ def statistics(d,stage='all',competitive=False,kind='player'):
     for i,r in enumerate(rows):r['rank']=rows[i-1]['rank'] if i and rows[i-1]['total']==r['total'] else i+1
     return rows
 
-def public_event(event):
+def _public_event(event):
     if event.document.get('archive'):return copy.deepcopy(event.document['archive']['publicPayload'])
     if event.document.get('historySnapshot'):
         payload=copy.deepcopy(event.document.get('historyCurrent',event.document['historySnapshot']));payload['name']=event.name
@@ -37,7 +37,7 @@ def public_event(event):
         if published:
             results.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],pairingRound=m.get('pairingRound'),table=m['table'],number=m['number'],ruleName=m['rule']['name'],ruleVersion=m['rule']['version'],seats=copy.deepcopy(m['seats']),penalties=copy.deepcopy(m['penalties']),yakuman=copy.deepcopy(m['yakuman'])))
     stats={stage:{metric:{kind:statistics(d,stage,metric=='competitive',kind) for kind in ['player','team']} for metric in ['raw','competitive']} for stage in ['all']+[s['id'] for s in d['stages']]}
-    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name']) for s in d['stages']],teams=[{k:t[k] for k in ['id','name','color']} for t in d['teams']],players=[{k:p[k] for k in ['id','name','teamId','bio']} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
+    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name']) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl')} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
 
 def settlement_preview(d,kind,b):
     require(not d.get('archive'),'赛事已归档')
@@ -93,3 +93,8 @@ def rank_metrics(payload):
                     t=cache[key]
                     for field in ['places','rankedGames','avgRank','topRate','topTwo','avoidLast']:row[field]=t[field]
     return payload
+
+
+def public_event(event):
+    from .match_resources import project
+    return project(_public_event(event),event.document)

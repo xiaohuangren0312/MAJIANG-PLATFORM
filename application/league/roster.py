@@ -14,6 +14,7 @@ def update_roster(d,kind,action,b):
     if is_team:
         require(not any(x['id']!=row['id'] and x['name']==name for x in rows),'队伍名称重复')
         color=b.get('color',row['color']);require(isinstance(color,str) and re.fullmatch(r'#[0-9a-fA-F]{6}',color),'代表色必须为六位十六进制颜色')
+        require(not any(t['id']!=row['id'] and t['color'].lower()==color.lower() for t in rows),'该颜色已被其他队伍使用，请选择不同颜色')
         if not active: require(not pending,'该队伍仍有待赛对局，请先取消或调整赛程')
         row.update(name=name,color=color,active=active)
     else:
@@ -31,3 +32,21 @@ def update_roster(d,kind,action,b):
             row.setdefault('membershipHistory',[]).append(dict(fromTeamId=row['teamId'],toTeamId=tid,effectiveAt=datetime.datetime.now(datetime.timezone.utc).isoformat(),reason=reason))
         row.update(name=name,number=number,teamId=tid,active=active,bio=bio)
     return d
+
+
+def next_number(players):
+    used={str(p['number']) for p in players}
+    n=max([int(v) for v in used if v.isdecimal()]+[0])+1
+    while str(n) in used:n+=1
+    return str(n)
+
+def next_color(teams):
+    used={t['color'].lower() for t in teams}
+    for color in ['#ba3c30','#315b9b','#26745a','#a77a24','#785194','#d06b38','#478e99','#935467']:
+        if color not in used:return color
+    import colorsys
+    for i in range(10000):
+        rgb=colorsys.hsv_to_rgb((i*0.61803398875)%1,0.62,0.68)
+        color='#'+''.join(f'{round(x*255):02x}' for x in rgb)
+        if color not in used:return color
+    raise ValueError('没有可分配的队伍颜色')

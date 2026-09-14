@@ -84,3 +84,16 @@ class PairingTests(TestCase):
         self.assertEqual(t['topRate'],1)
         payload['statistics']={'all':{'raw':{'player':[{'id':'0','total':350}]}}}
         self.assertEqual(rank_metrics(payload)['statistics']['all']['raw']['player'][0]['total'],350)
+
+    def test_auto_numbers_colors_and_short_scores(self):
+        d=initial()
+        for i in range(10):d=apply(d,'team','team',{'name':str(i)})
+        self.assertEqual(len({t['color'] for t in d['teams']}),10)
+        for i in range(4):d=apply(d,'team','player',dict(name=str(i),teamId=d['teams'][i]['id']))
+        self.assertEqual([p['number'] for p in d['players']],['1','2','3','4'])
+        with self.assertRaises(Invalid):apply(d,'team','team-update',dict(id=d['teams'][0]['id'],color=d['teams'][1]['color']))
+        with self.assertRaises(Invalid):apply(d,'team','player-update',dict(id=d['players'][0]['id'],number='2'))
+        d=commit(self.d,'personal',preview(self.d,'personal',self.b));mid=d['matches'][0]['id']
+        d=apply(d,'personal','score',dict(id=mid,scores=[350,350,200,100]))
+        self.assertEqual([s['score'] for s in d['matches'][0]['seats']],[35000,35000,20000,10000])
+        with self.assertRaisesRegex(Invalid,'当前总分'):apply(d,'personal','score',dict(id=mid,scores=[35000]*4))

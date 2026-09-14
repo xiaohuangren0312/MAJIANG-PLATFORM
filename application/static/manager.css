@@ -5,3 +5,5 @@
 #score-form fieldset{border:0;margin:0;padding:0;min-width:0}.score-event{border:1px solid var(--line);border-radius:9px;padding:16px;margin:12px 0;background:#faf7f0}#score-dirty{color:var(--red)}
 
 aside > a{display:block;margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;text-decoration:none;background:#fffdf8}
+
+#message:not(:empty){background:#eaf4ee;border:1px solid #38704b;color:#205331;box-shadow:0 4px 18px #0002}#message.error:not(:empty){background:#fff0ee;color:#8b1f19;border:2px solid #ba3c30;border-left-width:7px;font-weight:600} [role=alert]:not(:empty){color:#a12620} .positive{color:#ba3c30}.negative{color:#26745a}

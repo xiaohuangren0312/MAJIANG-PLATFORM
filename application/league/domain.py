@@ -22,7 +22,7 @@ def initial():
 def score(rule,values):
     require(len(values)==4,'必须录入四人成绩')
     for n in values: integer(n,'终局点数',-10000000,10000000)
-    require(sum(values)==rule['start']*4,'四人点数总和不符，请先结清供托')
+    require(sum(values)==rule['start']*4,f"当前总分 {sum(values):,}，应为 {rule['start']*4:,}（简写 {rule['start']*4//100:,}），差额 {rule['start']*4-sum(values):+,}；请检查输入或未结供托")
     require(all(n%100==0 for n in values),'终局点数必须为100点的整数倍')
     ordered=sorted(values,reverse=True); result=[]
     for i,n in enumerate(values):
@@ -68,7 +68,10 @@ def validate_lineup(d,kind,seats,complete,historical=False):
 def result(d,kind,m,body):
     validate_qualification(d,kind,m['stageId'],m['seats'])
     seats=validate_lineup(d,kind,m['seats'],True,historical=m['state']=='published')
-    calculated=score(m['rule'],body.get('scores',[]))
+    values=body.get('scores',[])
+    if isinstance(values,list) and len(values)==4 and all(type(v) is int for v in values) and sum(values)==m['rule']['start']*4//100:
+        values=[v*100 for v in values]
+    calculated=score(m['rule'],values)
     for s,c in zip(seats,calculated): s.update(c)
     penalties=body.get('penalties',[]);yakuman=body.get('yakuman',[])
     require(isinstance(penalties,list) and isinstance(yakuman,list),'事件格式不正确')
@@ -102,11 +105,13 @@ def apply(d,kind,action,b):
     elif action=='team':
         require(kind=='team','个人赛不设置队伍')
         name=label(b.get('name'));require(not any(x['name']==name for x in d['teams']),'队伍名称重复')
-        d['teams'].append(dict(id=uid(),name=name,color='#ba3c30',active=True))
+        from .roster import next_color
+        d['teams'].append(dict(id=uid(),name=name,color=next_color(d['teams']),active=True))
     elif action=='player':
         tid=b.get('teamId') or None
         if tid: require(kind=='team','个人赛不设置队伍');find(d['teams'],tid)
-        number=label(b.get('number'));require(not any(x['number']==number for x in d['players']),'报名编号重复')
+        from .roster import next_number
+        number=label(b.get('number') or next_number(d['players']));require(not any(x['number']==number for x in d['players']),'报名编号重复')
         d['players'].append(dict(id=uid(),name=label(b.get('name')),number=number,teamId=tid,active=True,bio=''))
     elif action=='stage':
         d['stages'].append(dict(id=uid(),name=label(b.get('name')),locked=False))

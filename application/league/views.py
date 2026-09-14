@@ -147,6 +147,9 @@ def event_detail(request,id):
         signed=signing.loads(b.get('token'),salt='archive-preview',max_age=1800)
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'归档预览已过期，请重新预览')
         new=archive_event(e,b.get('reason'),request.user.username)
+    elif action=='match-resources':
+        from .match_resources import update
+        new=update(old,b)
     elif action=='visibility':
         require(type(b.get('public')) is bool,'公开状态错误');new=old;e.public=b['public']
     else:

@@ -17,6 +17,7 @@ def actions_for(event,user):
     if event.document.get('archive'):actions={'visibility'}
     if user.is_superuser and event.is_test and event.document.get('archive') and not event.document.get('historySnapshot'):
         actions=actions|{'cleanup-preview','cleanup-commit'}
+    actions=actions|{'match-resources'}
     return sorted(actions|({'grant'} if role=='superadmin' else set()))
 def authorize(event,user,action):
     if action not in actions_for(event,user):raise PermissionDenied('当前账号无权执行此操作')

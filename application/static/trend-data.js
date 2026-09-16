@@ -24,3 +24,13 @@ function rankMovements(t,kind,stage,rows){
  return Object.fromEntries(rows.map(r=>[r.id,{before:rank(before,r.id),after:rank(rows,r.id),change:rank(before,r.id)-rank(rows,r.id),label}]));
 }
 if(typeof module!=='undefined')module.exports={scoreTimeline,rankMovements};
+
+// Qualification always uses the complete competitive board, independent of display filters.
+function qualificationMap(t,kind,stage){
+ const count=t.stages.find(s=>s.id===stage)?.advanceCount||0;
+ if(!count||stage==='all'||(t.type==='team'?'team':'player')!==kind)return null;
+ const rows=t.statistics[stage]?.competitive?.[kind]||[];
+ if(!rows.length)return null;
+ return {count,rows:Object.fromEntries(rows.map(r=>[r.id,{rank:1+rows.filter(x=>x.total>r.total).length,qualified:r.games>0&&1+rows.filter(x=>x.total>r.total).length<=count}]))};
+}
+if(typeof module!=='undefined')module.exports.qualificationMap=qualificationMap;

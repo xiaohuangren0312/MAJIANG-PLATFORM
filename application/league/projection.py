@@ -94,6 +94,8 @@ def rank_metrics(payload):
     """Recompute only rank metrics; preserve historical PT and source snapshots."""
     from .history_correction import totals
     payload=copy.deepcopy(payload)
+    from .history_bonds import mark
+    payload=mark(payload)
     for collection in ['results','schedule']:
         for m in payload.get(collection,[]):
             if payload.get('id') in ['s2','s3'] and m.get('stageId') in ['semi','final']:

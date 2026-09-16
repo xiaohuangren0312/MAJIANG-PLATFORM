@@ -36,6 +36,9 @@ def preview(document,body):
             if value:find(new[collection],value)
             # Unknown is allowed; mappings are match-specific and do not transfer the roster.
             s[field]=value or None
+        if s['playerId']:
+            bonded=find(new['players'],s['playerId']).get('bondStages',{}).get(match['stageId'])
+            require(not bonded or bonded==s['teamId'],'该选手本阶段羁绊代表队伍不匹配')
         if s['playerId']:player_ids.append(s['playerId'])
         if s['teamId']:team_ids.append(s['teamId'])
         for field in ['points','teamPoints']:

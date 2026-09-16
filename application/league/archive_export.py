@@ -63,6 +63,9 @@ def history_csv(event):
     for t in p['teams']:row(t['id'],t['name'])
     row();row('选手名单');row('选手ID','姓名','当前队伍')
     for x in p['players']:row(x['id'],x['name'],teams.get(x.get('teamId')))
+    row();row('羁绊阶段登记');row('选手ID','姓名','阶段','代表队伍')
+    for x in p['players']:
+        for sid,tid in x.get('bondStages',{}).items():row(x['id'],x['name'],stages.get(sid),teams.get(tid))
     row();row('各阶段排行榜');row('阶段','积分口径','对象类型','名次','姓名','积分PT','场数','一位','二位','三位','四位','平均顺位')
     for stage,metrics in p.get('statistics',{}).items():
         for metric,kinds in metrics.items():

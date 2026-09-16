@@ -177,6 +177,9 @@ def event_detail(request,id):
     elif action=='rule-select':
         from .models import RuleTemplate
         t=get_object_or_404(RuleTemplate,pk=b.get('templateId'));new=apply(old,e.kind,'rule',t.rule)
+    elif action=='history-bond-register':
+        from .history_bonds import register
+        new=register(old,b)
     elif action=='history-stage-update':
         from .history_stages import update
         new=update(old,b)

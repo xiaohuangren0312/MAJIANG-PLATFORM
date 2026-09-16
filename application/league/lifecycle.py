@@ -28,6 +28,8 @@ def archive_event(event,reason,actor):
     payload.update(archived=True,archivedAt=at,finalStandings=copy.deepcopy(preview))
     for stage in d['stages']:stage['locked']=True
     d['archive']=dict(at=at,actor=actor,reason=optional_note(reason),standings=preview,publicPayload=payload)
+    from .archive_export import csv_text
+    d['archive']['csvExport']=csv_text(d,event.name,event.kind)
     return d
 
 def cleanup_preview(event):

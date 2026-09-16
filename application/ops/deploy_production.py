@@ -14,7 +14,7 @@ def write(path,text,user='majiang-prod',mode=0o600):
     path.write_text(text);owner(path,user,mode)
 def asuser(user,*args,**kw):return run('runuser','-u',user,'--',*args,**kw)
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--revision',required=True);a=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--revision',required=True);ap.add_argument('--offline',action='store_true');a=ap.parse_args()
     assert os.geteuid()==0, 'root required for service management'
     uuid=subprocess.check_output(['findmnt','-n','-o','UUID','/data'],text=True).strip()
     assert uuid=='b270c63c-c47e-445e-9058-ad3ea94db996', 'unexpected data mount'
@@ -53,7 +53,8 @@ def main():
     venv=ROOT/'venv'
     if not (venv/'bin/python').exists():asuser('majiang-prod','/usr/bin/python3.14','-m','venv',str(venv))
     env=os.environ.copy();env.update(HQL_ENV_ROOT=str(ROOT),TMPDIR=str(ROOT/'tmp'),PYTHONPYCACHEPREFIX=str(ROOT/'cache/pycache'),PIP_CACHE_DIR=str(ROOT/'cache/pip'))
-    asuser('majiang-prod',str(venv/'bin/pip'),'install','-r',str(release/'application/requirements.lock'),env=env)
+    install_options=['--no-index','--find-links',str(ROOT/'cache/wheels')] if a.offline else []
+    asuser('majiang-prod',str(venv/'bin/pip'),'install',*install_options,'-r',str(release/'application/requirements.lock'),env=env)
     asuser('majiang-prod',bin+'pg_dump','-h',str(ROOT/'data/pg-run'),'-p','5434','-d','hql_prod','-Fc','-f',str(ROOT/'backups'/('before-release-'+sha[:12]+'-'+str(int(time.time()))+'.dump')))
     for args in [('check',),('migrate','--noinput'),('collectstatic','--noinput')]:
         asuser('majiang-prod',str(venv/'bin/python'),'manage.py',*args,cwd=release/'application',env=env)

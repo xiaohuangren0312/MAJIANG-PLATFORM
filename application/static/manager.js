@@ -28,6 +28,7 @@ function renderHistoryEvent(){
  const tabs={overview:'赛事概览',roster:'队伍与选手',schedule:'赛程与战果',rules:'计分规则',resources:'解说与资料',lifecycle:'归档与导出',...(can('grant')?{access:'赛事授权'}:{})};
  $('#nav').innerHTML=Object.entries(tabs).map(([id,name])=>`<button data-history-page="${id}" class="${page===id?'active':''}">${name}</button>`).join('');document.querySelectorAll('[data-history-page]').forEach(b=>b.onclick=()=>{page=b.dataset.historyPage;render()});
  if(page==='resources'){resources();return}
+ if(page==='overview'){historyOverview();return}
  if(page==='roster'){historyRoster();return}
  if(page==='lifecycle'){$('#content').innerHTML=`<h1>历史赛事归档与导出</h1><div class="card"><h2>${esc(event.name)}</h2><p>原表快照保留。下载当前有效历史数据，包含已确认的更正、阶段排名、名单与逐场成绩。未知字段保持未知。</p><a href="/api/events/${event.id}/archive.csv" download>下载历史赛事表格（CSV / Excel）</a><p>当前版本：${event.revision}。每次下载反映当前更正结果，不会重新结算或锁定历史赛事。</p></div>`;return}
  if(page==='rules'&&can('rule')){rules();return}
@@ -61,3 +62,10 @@ form('brand-form',async f=>{const csrf=document.cookie.split('; ').find(x=>x.sta
 
 function openResources(id){resourceMatchId=id;page='resources';opened=null;render()}
 function bindResourceLinks(){document.querySelectorAll('[data-resource-match]').forEach(button=>button.onclick=()=>openResources(button.dataset.resourceMatch))}
+
+function historyOverview(){
+ const p=event.document.historyCurrent||event.document.historySnapshot;
+ $('#content').innerHTML=`<div class="eyebrow">HISTORICAL TOURNAMENT</div><h1>${esc(event.name)}</h1><p>${p.teams.length} 支队伍 · ${p.players.length} 名选手 · ${p.results.length} 场明细 · ${event.public?'已公开':'历史赛事草稿'}</p><div class="actions"><button id="history-visibility">${event.public?'设为不公开':'核对完成后公开赛事'}</button><a href="/#home?event=${encodeURIComponent(p.id)}" target="_blank">查看观众端 ↗</a>${accountAdmin?'<a href="/manage/history/">历史核对</a>':''}</div><section class="card"><h2>阶段管理</h2><p>修改阶段名称和晋级名次，0表示不设晋级线。历史成绩、已发生的晋级及原表带入保持不变，晋级线只标示当前排名范围。</p><p>历史草稿修改后仅管理端可见；公开赛事后展示端使用更正资料。</p>${p.stages.map(s=>`<form data-history-stage-edit="${esc(s.id)}"><div class="grid"><label>阶段名称<input name="name" value="${esc(s.name)}" required maxlength="120"></label><label>晋级至前几名<input name="advanceCount" type="number" min="0" max="10000" step="1" value="${s.advanceCount||0}" required></label></div><button ${can('history-stage-update')?'':'disabled'}>保存阶段设置</button></form>`).join('')}</section>`;
+ click('#history-visibility',()=>command('visibility',{public:!event.public}));
+ document.querySelectorAll('[data-history-stage-edit]').forEach(f=>f.onsubmit=async e=>{e.preventDefault();const button=f.querySelector('button');button.disabled=true;try{const values=new FormData(f);await command('history-stage-update',{id:f.dataset.historyStageEdit,name:values.get('name'),advanceCount:Number(values.get('advanceCount'))});notice('阶段设置已保存，历史积分与带入保持不变')}catch(err){notice(err.message,true)}finally{button.disabled=false}});
+}

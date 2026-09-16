@@ -31,7 +31,9 @@ def context(d,kind,b):
     first=not published
     players.sort(key=lambda p:((0 if first else -rows[p['id']]['total']),number_key(p['number']),p['id']))
     ranking=[dict(id=p['id'],name=p['name'],number=p['number'],points=rows[p['id']]['total'],games=rows[p['id']]['games'],order=i+1) for i,p in enumerate(players)]
-    return dict(stageId=stage['id'],stageName=stage['name'],date=day,time=time,startTable=start,round=next(iter(counts))+1,method='number' if first else 'high-high',ranking=ranking,rule=copy.deepcopy(d['rules'][-1]))
+    commentators=b.get('commentators',[]);require(isinstance(commentators,list) and len(commentators)<=10,'最多10位解说员')
+    commentators=[label(x) for x in commentators]
+    return dict(commentators=commentators,stageId=stage['id'],stageName=stage['name'],date=day,time=time,startTable=start,round=next(iter(counts))+1,method='number' if first else 'high-high',ranking=ranking,rule=copy.deepcopy(d['rules'][-1]))
 
 def preview(d,kind,b):
     p=context(d,kind,b);tables=[]
@@ -56,7 +58,7 @@ def commit(d,kind,p,tables=None,reason=''):
     reason=str(reason or "").strip()[:120]
     result=copy.deepcopy(d);round_id=uid();match_ids=[]
     for row in selected:
-        result=apply(result,kind,'match',dict(stageId=p['stageId'],date=p['date'],time=p['time'],number=row['number'],seats=[dict(playerId=x,teamId=None) for x in row['players']]))
+        result=apply(result,kind,'match',dict(stageId=p['stageId'],date=p['date'],time=p['time'],number=row['number'],commentators=p.get('commentators',[]),seats=[dict(playerId=x,teamId=None) for x in row['players']]))
         m=result['matches'][-1];m.update(lineupPublished=True,pairingRoundId=round_id,pairingRound=p['round'])
         match_ids.append(m['id'])
     result.setdefault('pairingRounds',[]).append(dict(id=round_id,stageId=p['stageId'],round=p['round'],basis=copy.deepcopy(p),tables=selected,manualAdjustment=changed,reason=reason if changed else '',matchIds=match_ids))

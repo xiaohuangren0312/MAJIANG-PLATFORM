@@ -154,6 +154,9 @@ def apply(d,kind,action,b):
         number=integer(b.get('number'),'桌号',1,1000)
         require(not any(m['date']==day and m['time']==time and m['number']==number and m['state']!='cancelled' for m in d['matches']),'同一开赛时间桌号重复')
         d['matches'].append(dict(id=uid(),stageId=stage['id'],date=day,time=time,number=number,table=str(number),seats=validate_lineup(d,kind,b.get('seats'),False,stage_id=stage['id']),rule=copy.deepcopy(d['rules'][-1]),state='draft',lineupPublished=False,penalties=[],yakuman=[]))
+        if b.get('commentators'):
+            from .match_resources import update
+            d=update(d,dict(id=d['matches'][-1]['id'],commentators=b['commentators']))
     elif action in ['lineup','score','publish','correct','cancel']:
         m=find(d['matches'],b.get('id'));live_stage(d,m['stageId'])
         if action=='correct':

@@ -117,3 +117,10 @@ class PairingTests(TestCase):
         updated=apply(d,'personal','save-result',dict(id=mid,scores=[400,300,200,100]))
         self.assertEqual(updated['matches'][0]['state'],'published')
         self.assertEqual(len(updated['matches']),2)
+
+    def test_pairing_commentators_are_previewed_and_saved(self):
+        p=preview(self.d,'personal',dict(self.b,commentators=['解说甲','解说乙']))
+        self.assertEqual(p['commentators'],['解说甲','解说乙'])
+        d=commit(self.d,'personal',p)
+        for m in d['matches']:self.assertEqual(d['matchResources'][m['id']]['commentators'],p['commentators'])
+        with self.assertRaises(Invalid):preview(self.d,'personal',dict(self.b,commentators='错误类型'))

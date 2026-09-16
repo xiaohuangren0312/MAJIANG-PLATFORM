@@ -177,6 +177,9 @@ def event_detail(request,id):
     elif action=='rule-select':
         from .models import RuleTemplate
         t=get_object_or_404(RuleTemplate,pk=b.get('templateId'));new=apply(old,e.kind,'rule',t.rule)
+    elif action=='history-roster':
+        from .history_roster import update
+        new=update(old,b)
     elif action=='match-resources':
         from .match_resources import update
         new=update(old,b)

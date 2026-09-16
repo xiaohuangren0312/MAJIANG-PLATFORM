@@ -11,7 +11,7 @@ def actions_for(event,user):
     # History rule editing is an existing event administrator business function.
     # No users, memberships, global roles or production permissions are changed.
     if event.document.get('historySnapshot') and (user.is_superuser or event.editors.filter(pk=user.pk).exists()):
-        actions=actions|{'rule','rule-select','history-image'}
+        actions=actions|{'rule','rule-select','history-image','history-roster'}
     if event.kind=='personal' and not event.document.get('historySnapshot'):
         actions=actions|{'pairing-preview','pairing-commit'}
     if event.document.get('archive'):actions={'visibility'}

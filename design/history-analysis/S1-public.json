@@ -10,42 +10,90 @@
     {
       "id": "t3",
       "name": "网商路男模队",
-      "color": "#82463e"
+      "color": "#82463e",
+      "coach": {
+        "name": "洛知秋",
+        "playerId": "p2",
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t4",
       "name": "杭州第一深情",
-      "color": "#465875"
+      "color": "#465875",
+      "coach": {
+        "name": "Tom",
+        "playerId": "p35",
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t5",
       "name": "毛茸茸特工队",
-      "color": "#ad853b"
+      "color": "#ad853b",
+      "coach": {
+        "name": "咖啡",
+        "playerId": "p25",
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t6",
       "name": "二元精品店",
-      "color": "#70608e"
+      "color": "#70608e",
+      "coach": {
+        "name": "dyz",
+        "playerId": "p5",
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t7",
       "name": "高祖游龙",
-      "color": "#3e7774"
+      "color": "#3e7774",
+      "coach": {
+        "name": "麻神",
+        "playerId": null,
+        "playing": false,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t8",
       "name": "都到锅里来",
-      "color": "#8c5974"
+      "color": "#8c5974",
+      "coach": {
+        "name": "孤高",
+        "playerId": "p14",
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t9",
       "name": "宝宝巴士",
-      "color": "#576b40"
+      "color": "#576b40",
+      "coach": {
+        "name": "The帅",
+        "playerId": null,
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     },
     {
       "id": "t10",
       "name": "科学麻将战队",
-      "color": "#a26631"
+      "color": "#a26631",
+      "coach": {
+        "name": "沈浪",
+        "playerId": "p40",
+        "playing": true,
+        "source": "战队名单 教练栏"
+      }
     }
   ],
   "players": [
@@ -9192,20 +9240,20 @@
       "number": 9,
       "entries": [
         {
-          "teamId": "t6",
-          "points": 238
-        },
-        {
-          "teamId": "t9",
-          "points": 433
+          "teamId": "t5",
+          "points": -743
         },
         {
           "teamId": "t7",
           "points": 72
         },
         {
-          "teamId": "t5",
-          "points": -743
+          "teamId": "t6",
+          "points": 238
+        },
+        {
+          "teamId": "t9",
+          "points": 433
         }
       ],
       "detailAvailable": true

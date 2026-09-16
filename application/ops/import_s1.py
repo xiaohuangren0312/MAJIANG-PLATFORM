@@ -17,6 +17,10 @@ def build(cells):
         people[p['name'].casefold()]=p;players.append(p)
     # User confirmed this alias on 2026-09-16; retain source name on each seat.
     people['鹤轩逸']=people['鹤']
+    for team in teams:
+        row=next(r for r in range(32,40) if v('战队名单','B'+str(r))==team['name'])
+        coach=v('战队名单','C'+str(row));person=people.get(str(coach).casefold())
+        team['coach']=dict(name=coach,playerId=person['id'] if person else None,playing=coach!='麻神',source='战队名单 教练栏')
     results=[];schedule=[];rule=initial()['rules'][0]
     def add(stage,day,number,names,scores,pts,source):
         calculated=score(rule,scores);seats=[]

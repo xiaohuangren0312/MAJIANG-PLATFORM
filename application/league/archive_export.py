@@ -42,9 +42,37 @@ def download(request,id):
     e=get_object_or_404(Event,pk=id)
     if not(request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists()):raise Http404
     a=e.document.get('archive')
-    if not a:raise Http404
-    content=a.get('csvExport') or csv_text(e.document,e.name,e.kind)
+    if e.document.get('historySnapshot'):content=history_csv(e)
+    elif a:content=a.get('csvExport') or csv_text(e.document,e.name,e.kind)
+    else:raise Http404
     response=HttpResponse(content.encode('utf-8-sig'),content_type='text/csv; charset=utf-8')
     response['Content-Disposition']=f'attachment; filename="tournament-{e.id}.csv"'
     response['Cache-Control']='private, no-store'
     return response
+
+
+def history_csv(event):
+    from .projection import public_event
+    p=public_event(event);out=io.StringIO(newline='');w=csv.writer(out)
+    def row(*values):
+        w.writerow(['未知' if v is None else "'"+v if isinstance(v,str) and v.lstrip().startswith(('=','+','-','@')) else v for v in values])
+    def pt(v):return v/10 if v is not None else None
+    teams={t['id']:t['name'] for t in p['teams']};players={x['id']:x['name'] for x in p['players']};stages={s['id']:s['name'] for s in p['stages']}
+    row('历史赛事',event.name);row('版本',event.revision);row('说明','导出当前有效更正结果；未知字段不推造，原表快照保留');row()
+    row('队伍名单');row('队伍ID','名称')
+    for t in p['teams']:row(t['id'],t['name'])
+    row();row('选手名单');row('选手ID','姓名','当前队伍')
+    for x in p['players']:row(x['id'],x['name'],teams.get(x.get('teamId')))
+    row();row('各阶段排行榜');row('阶段','积分口径','对象类型','名次','姓名','积分PT','场数','一位','二位','三位','四位','平均顺位')
+    for stage,metrics in p.get('statistics',{}).items():
+        for metric,kinds in metrics.items():
+            for kind,rows in kinds.items():
+                for r in rows:row(stages.get(stage,'全赛事'),{'raw':'原始累计','competitive':'竞技分'}.get(metric,metric),'队伍' if kind=='team' else '选手',r.get('rank'),r['name'],pt(r.get('total')),r.get('games'),*r.get('places',[None]*4),r.get('avgRank'))
+    row();row('逐场战果');row('ID','阶段','日期','时间','场次','座次','队伍','选手','终局点数','顺位','个人PT','队伍PT','来源')
+    for m in p['results']:
+        for i,s in enumerate(m['seats']):row(m['id'],stages.get(m['stageId']),m.get('date'),m.get('time'),m.get('number'),i+1,teams.get(s.get('teamId')),players.get(s.get('playerId')),s.get('score'),s.get('rank'),pt(s.get('points')),pt(s.get('teamPoints')),m.get('source',''))
+    row();row('赛程');row('ID','阶段','日期','时间','状态')
+    for m in p.get('schedule',[]):row(m['id'],stages.get(m['stageId']),m.get('date'),m.get('time'),m.get('state'))
+    row();row('历史更正记录');row('对局ID','操作人','时间','备注')
+    for c in event.document.get('historyCorrections',[]):row(c['id'],c.get('actor'),c.get('at'),c.get('reason',''))
+    return out.getvalue()

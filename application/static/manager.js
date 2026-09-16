@@ -25,10 +25,11 @@ $('#events').onchange=()=>{opened=null;preview=null;load($('#events').value).cat
 
 function renderHistoryEvent(){
  const p=event.document.historyCurrent||event.document.historySnapshot;
- const tabs={overview:'赛事概览',roster:'队伍与选手',schedule:'赛程与战果',rules:'计分规则',resources:'解说与资料',...(can('grant')?{access:'赛事授权'}:{})};
+ const tabs={overview:'赛事概览',roster:'队伍与选手',schedule:'赛程与战果',rules:'计分规则',resources:'解说与资料',lifecycle:'归档与导出',...(can('grant')?{access:'赛事授权'}:{})};
  $('#nav').innerHTML=Object.entries(tabs).map(([id,name])=>`<button data-history-page="${id}" class="${page===id?'active':''}">${name}</button>`).join('');document.querySelectorAll('[data-history-page]').forEach(b=>b.onclick=()=>{page=b.dataset.historyPage;render()});
  if(page==='resources'){resources();return}
  if(page==='roster'){historyRoster();return}
+ if(page==='lifecycle'){$('#content').innerHTML=`<h1>历史赛事归档与导出</h1><div class="card"><h2>${esc(event.name)}</h2><p>原表快照保留。下载当前有效历史数据，包含已确认的更正、阶段排名、名单与逐场成绩。未知字段保持未知。</p><a href="/api/events/${event.id}/archive.csv" download>下载历史赛事表格（CSV / Excel）</a><p>当前版本：${event.revision}。每次下载反映当前更正结果，不会重新结算或锁定历史赛事。</p></div>`;return}
  if(page==='rules'&&can('rule')){rules();return}
  if(page==='access'&&can('grant')){access();return}
  $('#content').innerHTML=`<div class="eyebrow">HISTORICAL TOURNAMENT</div><h1>${esc(event.name)}</h1><p><span class="tag">${event.public?'已公开':'历史赛事草稿'}</span> · 原表快照</p><p>阶段、名单、赛果与原表统计完整保留。历史缺失项显示未知；支持补齐本场选手/队伍及更正原表PT。更正需预览确认；原表与历史带入分保留。</p><div class="actions"><button id="visibility">${event.public?'设为不公开':'核对完成后公开赛事'}</button>${accountAdmin?'<a href="/manage/history/">前往历史核对</a>':''}<a href="/#home?event=${encodeURIComponent(p.id)}" target="_blank">查看当前公开历史档案 ↗</a></div><div class="card"><p>${p.teams.length} 支队伍 · ${p.players.length} 名选手 · ${p.results.length} 场明细</p><label>阶段筛选<select id="history-stage"><option value="">全部阶段</option>${options(p.stages)}</select></label></div><label><input type="checkbox" id="history-missing">仅看存在未记录信息的对局</label><div id="history-results"></div>`;

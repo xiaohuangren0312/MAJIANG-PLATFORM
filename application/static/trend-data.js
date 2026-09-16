@@ -34,3 +34,14 @@ function qualificationMap(t,kind,stage){
  return {count,rows:Object.fromEntries(rows.map(r=>[r.id,{rank:1+rows.filter(x=>x.total>r.total).length,qualified:r.games>0&&1+rows.filter(x=>x.total>r.total).length<=count}]))};
 }
 if(typeof module!=='undefined')module.exports.qualificationMap=qualificationMap;
+
+function scoreSeries(t,kind,id,stage='all',metric='raw'){
+ const competitive=metric==='competitive'&&stage!=='all';
+ const row=t.statistics[stage]?.[competitive?'competitive':'raw']?.[kind]?.find(r=>r.id===id);
+ const carry=competitive?(row?.carry??0):0;
+ let total=carry;
+ const points=scoreTimeline(t,kind,id,stage).map(p=>{total=p.delta==null||total==null?null:total+p.delta;return {...p,total}});
+ const expected=row?.total??null;
+ return {points,carry,competitive,expected,total,difference:expected==null||total==null?null:expected-total};
+}
+if(typeof module!=='undefined')module.exports.scoreSeries=scoreSeries;

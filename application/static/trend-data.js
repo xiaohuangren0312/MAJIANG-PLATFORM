@@ -6,3 +6,21 @@ function scoreTimeline(t,kind,id,stage='all'){
  return [...days.values()].sort((a,b)=>a.label.localeCompare(b.label)).map(d=>({label:d.label,date:d.label,played:[...d.parts.values()].some(x=>x.played),delta:[...d.parts.values()].some(x=>x.missing)?null:[...d.parts.values()].reduce((n,x)=>n+x.delta,0)}));
 }
 if(typeof module!=='undefined')module.exports={scoreTimeline};
+
+function rankMovements(t,kind,stage,rows){
+ const matches=t.results.filter(m=>stage==='all'||m.stageId===stage).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||'')||a.number-b.number);
+ const deltas=new Map();let label='';
+ if(kind==='team'){
+  for(const row of rows){const last=scoreTimeline(t,kind,row.id,stage).at(-1);if(last){label=last.date;deltas.set(row.id,last.delta)}}
+ }else{
+  const last=matches.at(-1);if(!last)return {};
+  label=last.date+' '+(last.time||'');
+  const batch=matches.filter(m=>m.date===last.date&&(last.pairingRound?m.pairingRound===last.pairingRound&&m.stageId===last.stageId:last.time?m.time===last.time:m.id===last.id));
+  for(const m of batch)for(const seat of m.seats){if(!seat.playerId)continue;const prior=deltas.has(seat.playerId)?deltas.get(seat.playerId):0;deltas.set(seat.playerId,seat.points==null||prior===null?null:prior+seat.points)}
+ }
+ if(!label||rows.some(r=>deltas.get(r.id)===null||!Number.isFinite(r.total)))return {};
+ const before=rows.map(r=>({id:r.id,total:r.total-(deltas.get(r.id)||0)}));
+ const rank=(list,id)=>1+list.filter(r=>r.total>list.find(x=>x.id===id).total).length;
+ return Object.fromEntries(rows.map(r=>[r.id,{before:rank(before,r.id),after:rank(rows,r.id),change:rank(before,r.id)-rank(rows,r.id),label}]));
+}
+if(typeof module!=='undefined')module.exports={scoreTimeline,rankMovements};

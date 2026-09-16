@@ -19,3 +19,16 @@ class PasteTests(TestCase):
   rule=dict(start=25000,**{'return':30000},bonuses=[500,100,-100,-300])
   self.assertIn([35000,35000,20000,10000],inverse(rule,[350,350,-200,-500]))
   self.assertEqual(inverse(rule,[600,100,-200,-500]),[[40000,30000,20000,10000]])
+
+ def test_history_inverse_is_read_only_and_rejects_invalid_total(self):
+  from django.contrib.auth import get_user_model
+  from .models import Event
+  user=get_user_model().objects.create_user('inverse-admin',is_superuser=True);self.client.force_login(user)
+  d=fixture();d['historySnapshot']={'results':[{'id':'historical','seats':[{'points':p} for p in [600,100,-200,-500]],'penalties':[]}]}
+  e=Event.objects.create(name='历史反算测试',kind='team',document=d)
+  url=f'/api/events/{e.id}/';body={'action':'history-inverse','revision':1,'id':'historical'}
+  r=self.client.post(url,body,content_type='application/json');self.assertEqual(r.status_code,200,r.content)
+  self.assertEqual(r.json()['candidates'],[[40000,30000,20000,10000]])
+  e.refresh_from_db();self.assertEqual(e.document,d);self.assertEqual(e.revision,1)
+  e.document['historySnapshot']['results'][0]['seats'][0]['points']=601;e.save()
+  self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,400)

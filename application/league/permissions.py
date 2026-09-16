@@ -7,11 +7,11 @@ def role_for(event,user):
     raise PermissionDenied('未获得该赛事管理授权')
 def actions_for(event,user):
     role=role_for(event,user)
-    actions={'visibility','history-preview','history-correct'} if event.document.get('historySnapshot') else ACTIONS
+    actions={'visibility','history-inverse','history-preview','history-correct'} if event.document.get('historySnapshot') else ACTIONS
     # History rule editing is an existing event administrator business function.
     # No users, memberships, global roles or production permissions are changed.
     if event.document.get('historySnapshot') and (user.is_superuser or event.editors.filter(pk=user.pk).exists()):
-        actions=actions|{'rule'}
+        actions=actions|{'rule','history-image'}
     if event.kind=='personal' and not event.document.get('historySnapshot'):
         actions=actions|{'pairing-preview','pairing-commit'}
     if event.document.get('archive'):actions={'visibility'}

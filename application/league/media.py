@@ -29,11 +29,14 @@ def _upload(request,id):
         require(False,'图片无法读取，请换一张图片')
     with transaction.atomic():
         e=get_object_or_404(Event.objects.select_for_update(),pk=id)
-        authorize(e,request.user,kind+'-update')
+        authorize(e,request.user,'history-image' if e.document.get('historySnapshot') else kind+'-update')
         require(str(e.revision)==request.POST.get('revision'),'赛事已更新，请刷新后上传')
         before=copy.deepcopy(e.document);d=copy.deepcopy(before)
         require(not d.get('archive'),'赛事已归档')
-        row=find(d['teams' if kind=='team' else 'players'],request.POST.get('entityId'))
+        source=d
+        if d.get('historySnapshot'):
+            d['historyCurrent']=copy.deepcopy(d.get('historyCurrent',d['historySnapshot']));source=d['historyCurrent']
+        row=find(source['teams' if kind=='team' else 'players'],request.POST.get('entityId'))
         folder=settings.ENV_ROOT/'uploads'/'roster'/str(e.id);folder.mkdir(parents=True,exist_ok=True)
         name=uuid.uuid4().hex+'.png';path=folder/name;path.write_bytes(output.getvalue());path.chmod(0o640)
         row['imageUrl']=f'/media/roster/{e.id}/{name}'

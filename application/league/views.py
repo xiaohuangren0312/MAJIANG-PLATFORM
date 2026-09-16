@@ -89,6 +89,17 @@ def event_detail(request,id):
     require(request.method=='POST','请求方法不支持');b=body(request)
     if b.get('revision')!=e.revision:return JsonResponse({'error':'数据已被修改，请刷新后重试'},status=409)
     action=b.get('action');authorize(e,request.user,action);old=e.document;old_public=e.public;grant_user=None
+    if action=='history-inverse':
+        from .history_correction import effective
+        from .paste_scores import inverse
+        from .domain import find
+        m=find(effective(old)['results'],b.get('id'))
+        points=[s.get('points') if s.get('points') is not None else s.get('teamPoints') for s in m['seats']]
+        require(all(type(v) is int for v in points),'本场PT不完整，无法反算')
+        require(not m.get('penalties'),'本场存在罚分记录，不能按无罚分反算')
+        candidates=inverse(dict(start=25000,**{'return':30000},bonuses=[500,100,-100,-300]),points)
+        require(candidates,f'这四个PT合计为{sum(points)/10:g}，无法按无罚分ML规则还原，请核对原表；未修改任何数据')
+        return JsonResponse({'candidates':candidates})
     if action=='paste-preview':
         from .paste_scores import preview as paste_preview
         p=paste_preview(old,e.kind,b)

@@ -7,3 +7,5 @@
 aside > a{display:block;margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;text-decoration:none;background:#fffdf8}
 
 #message:not(:empty){background:#eaf4ee;border:1px solid #38704b;color:#205331;box-shadow:0 4px 18px #0002}#message.error:not(:empty){background:#fff0ee;color:#8b1f19;border:2px solid #ba3c30;border-left-width:7px;font-weight:600} [role=alert]:not(:empty){color:#a12620} .positive{color:#ba3c30}.negative{color:#26745a}
+
+.roster-identity{display:inline-flex;align-items:center;gap:10px}.roster-picture{width:40px;height:40px;flex:0 0 40px;border-radius:50%;object-fit:cover}.roster-picture.team-picture{border-radius:8px;object-fit:contain}.roster-placeholder{display:inline-flex;align-items:center;justify-content:center;background:#e9e4db;color:#777064;font-size:13px}.team-picture.roster-placeholder{color:#fff}

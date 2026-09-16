@@ -89,6 +89,11 @@ def event_detail(request,id):
     require(request.method=='POST','请求方法不支持');b=body(request)
     if b.get('revision')!=e.revision:return JsonResponse({'error':'数据已被修改，请刷新后重试'},status=409)
     action=b.get('action');authorize(e,request.user,action);old=e.document;old_public=e.public;grant_user=None
+    if action=='paste-preview':
+        from .paste_scores import preview as paste_preview
+        p=paste_preview(old,e.kind,b)
+        token=signing.dumps(dict(event=str(e.id),revision=e.revision,body={k:b[k] for k in ['id','text','mode'] if k in b}),salt='paste-scores')
+        return JsonResponse({'preview':p,'token':token})
     if action=='pairing-preview':
         from .pairing import preview as pairing_preview
         p=pairing_preview(old,e.kind,b);p['sourceRevision']=e.revision
@@ -149,6 +154,11 @@ def event_detail(request,id):
         signed=signing.loads(b.get('token'),salt='archive-preview',max_age=1800)
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'归档预览已过期，请重新预览')
         new=archive_event(e,b.get('reason'),request.user.username)
+    elif action=='paste-commit':
+        from .paste_scores import commit as paste_commit
+        signed=signing.loads(b.get('token'),salt='paste-scores',max_age=1800)
+        require(signed['event']==str(e.id) and signed['revision']==e.revision,'预览已过期，请重新解析')
+        new=paste_commit(old,e.kind,signed['body'],b.get('candidate',0))
     elif action=='match-resources':
         from .match_resources import update
         new=update(old,b)

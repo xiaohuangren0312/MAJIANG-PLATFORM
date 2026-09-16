@@ -17,6 +17,18 @@ class HistoryRosterTests(SimpleTestCase):
         for metrics in current['statistics'].values():
             for kinds in metrics.values():
                 self.assertEqual(next(r for r in kinds['player'] if r['id']==p['id'])['name'],'改名选手')
+    def test_export_includes_current_number_and_source_coach(self):
+        import csv,io
+        from .archive_export import history_csv
+        p=self.payload['players'][0]
+        d=update(self.document,dict(kind='player',id=p['id'],name='更名导出',number='101'))
+        event=Event(name='导出验收',kind='team',document=d)
+        rows=list(csv.reader(io.StringIO(history_csv(event))))
+        self.assertIn(['选手ID','姓名','当前队伍','报名编号'],rows)
+        self.assertEqual(next(r for r in rows if r and r[0]==p['id'])[3],'101')
+        team=next(t for t in self.payload['teams'] if t.get('coach',{}).get('playing') is False)
+        self.assertIn([team['id'],team['name'],'麻神','全职教练'],rows)
+
     def test_duplicate_and_foreign_identity_rejected(self):
         p=self.payload['players'][0]
         for body in [dict(kind='player',id=p['id'],name=self.payload['players'][1]['name']),dict(kind='team',id=p['id'],name='错类型'),dict(kind='player',id='foreign',name='跨赛事')]:

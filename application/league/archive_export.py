@@ -59,10 +59,10 @@ def history_csv(event):
     def pt(v):return v/10 if v is not None else None
     teams={t['id']:t['name'] for t in p['teams']};players={x['id']:x['name'] for x in p['players']};stages={s['id']:s['name'] for s in p['stages']}
     row('历史赛事',event.name);row('版本',event.revision);row('说明','导出当前有效更正结果；未知字段不推造，原表快照保留');row()
-    row('队伍名单');row('队伍ID','名称')
-    for t in p['teams']:row(t['id'],t['name'])
-    row();row('选手名单');row('选手ID','姓名','当前队伍')
-    for x in p['players']:row(x['id'],x['name'],teams.get(x.get('teamId')))
+    row('队伍名单');row('队伍ID','名称','教练','教练身份')
+    for t in p['teams']:row(t['id'],t['name'],t.get('coach',{}).get('name'),'全职教练' if t.get('coach',{}).get('playing') is False else '参赛教练' if t.get('coach',{}).get('playing') is True else None)
+    row();row('选手名单');row('选手ID','姓名','当前队伍','报名编号')
+    for x in p['players']:row(x['id'],x['name'],teams.get(x.get('teamId')),x.get('number'))
     row();row('羁绊阶段登记');row('选手ID','姓名','阶段','代表队伍')
     for x in p['players']:
         for sid,tid in x.get('bondStages',{}).items():row(x['id'],x['name'],stages.get(sid),teams.get(tid))

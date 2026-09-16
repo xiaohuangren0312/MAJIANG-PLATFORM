@@ -232,7 +232,7 @@ def index(request):return render(request,'public.html')
 
 @require_GET
 def health(request):
-    Event.objects.exists();return JsonResponse({'status':'ok','environment':'development'})
+    Event.objects.exists();return JsonResponse({'status':'ok','environment':settings.ENV_ROOT.name})
 
 
 @api

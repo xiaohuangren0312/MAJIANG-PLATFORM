@@ -1,7 +1,7 @@
 import copy,json
 from pathlib import Path
 from django.test import SimpleTestCase
-from .history_roster import update
+from .history_roster import update, add_player
 from .domain import Invalid
 
 class HistoryRosterTests(SimpleTestCase):
@@ -59,3 +59,48 @@ class HistoryRosterApiTests(TestCase):
         self.assertEqual(Audit.objects.filter(event=event,action='history-roster').count(),1)
         self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,409)
         self.assertEqual(Audit.objects.filter(event=event).count(),1)
+
+
+    def test_add_endpoint_records_audit_and_rejects_duplicate(self):
+        admin=get_user_model().objects.create_user('history-add-admin',is_superuser=True)
+        payload=json.loads((Path(__file__).parents[2]/'design/history-analysis/S1-public.json').read_text())
+        d=initial();d['historySnapshot']=payload
+        event=Event.objects.create(name='历史补录测试',kind='team',document=d)
+        self.client.force_login(admin);url=f'/api/events/{event.id}/'
+        body=dict(action='history-player-add',revision=1,name='新增选手')
+        self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,200)
+        event.refresh_from_db();self.assertEqual(len(event.document['historyCurrent']['players']),50)
+        self.assertEqual(event.document['historySnapshot'],payload)
+        self.assertEqual(Audit.objects.get(event=event).action,'history-player-add')
+        body['revision']=2
+        self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,400)
+        event.refresh_from_db();self.assertEqual(event.revision,2)
+
+
+class HistoryPlayerAddTests(SimpleTestCase):
+    def setUp(self):
+        self.source=json.loads((Path(__file__).parents[2]/'design/history-analysis/S1-public.json').read_text())
+        self.d={'historySnapshot':self.source}
+    def test_number_and_scores_preserved(self):
+        original=copy.deepcopy(self.d)
+        d=add_player(self.d,dict(name='补录甲',teamId=self.source['teams'][0]['id']))
+        p=d['historyCurrent']['players'][-1];self.assertEqual(p['number'],'50')
+        self.assertEqual(self.d,original);self.assertEqual(d['historySnapshot'],self.source)
+        for key in ['statistics','results','schedule','snapshots']:self.assertEqual(d['historyCurrent'][key],self.source[key])
+        d=update(d,dict(kind='player',id=p['id'],name='补录甲',number='900'))
+        d=add_player(d,dict(name='补录乙'));self.assertEqual(d['historyCurrent']['players'][-1]['number'],'901')
+        self.assertIsNone(d['historyCurrent']['players'][-1]['teamId'])
+    def test_invalid_identity_and_team_rejected(self):
+        for body in [dict(name=self.source['players'][0]['name'].upper()),dict(name=''),dict(name='新增',teamId='foreign')]:
+            with self.assertRaises(Invalid):add_player(self.d,body)
+        with self.assertRaises(Invalid):add_player(dict(self.d,archive={'locked':True}),dict(name='新增'))
+    def test_correction_can_link_new_player_without_reassigning_team(self):
+        from .history_correction import preview
+        doc=initial();doc['historySnapshot']=copy.deepcopy(self.source)
+        match=doc['historySnapshot']['results'][0];match['seats'][0]['playerId']=None
+        d=add_player(doc,dict(name='漏录选手',teamId=match['seats'][0]['teamId']))
+        pid=d['historyCurrent']['players'][-1]['id'];seats=copy.deepcopy(match['seats']);seats[0]['playerId']=pid
+        result,new=preview(d,dict(id=match['id'],seats=seats,scoreMode='keep-pt'))
+        self.assertEqual(new['results'][0]['seats'][0]['teamId'],match['seats'][0]['teamId'])
+        row=next(r for r in new['statistics']['all']['raw']['player'] if r['id']==pid)
+        self.assertEqual(row['total'],seats[0]['points']);self.assertEqual(row['games'],1)

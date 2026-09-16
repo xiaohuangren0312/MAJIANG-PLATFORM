@@ -51,3 +51,5 @@ function historyRoster(){
 }
 
 async function loadRuleLibrary(){try{const r=await api('/api/rule-templates/');if(!$('#rule-library'))return;$('#rule-library').innerHTML=`<h2>可复用规则库</h2><p>选择方案后生成本赛事规则版本，仅影响之后新建的对局；其他赛事及已有成绩保持不变。</p><form id="select-rule-template"><select name="templateId" required><option value="">选择规则方案</option>${options(r.templates)}</select><button ${r.templates.length?'':'disabled'}>应用到本赛事</button></form>`;form('select-rule-template',f=>command('rule-select',{templateId:f.get('templateId')}))}catch(e){notice(e.message,true)}}
+
+form('brand-form',async f=>{const csrf=document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=')[1];const r=await fetch('/api/brand/logo/',{method:'POST',headers:{'X-CSRFToken':csrf},body:f});const result=await r.json();if(!r.ok)throw Error(result.error||'上传失败');document.querySelectorAll('img[src^="/brand/logo"]').forEach(img=>img.src='/brand/logo?v='+Date.now());notice('品牌Logo已更新，管理端与展示端统一使用')});

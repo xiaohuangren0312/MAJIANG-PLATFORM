@@ -202,7 +202,7 @@ def event_detail(request,id):
 @require_GET
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
-    require_names={'pairing.js','lifecycle.js','public.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
+    require_names={'pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
     if name not in require_names:raise Http404
     path=settings.BASE_DIR/'static'/name
     response=FileResponse(path.open('rb'),content_type='text/javascript' if name.endswith('.js') else 'text/css')

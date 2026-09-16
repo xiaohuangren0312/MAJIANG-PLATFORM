@@ -72,3 +72,11 @@ class EventCleanup(models.Model):
     backup_sha256=models.CharField(max_length=64)
     counts=models.JSONField(default=dict)
     created_at=models.DateTimeField(auto_now_add=True)
+
+
+class RuleTemplate(models.Model):
+    id=models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    name=models.CharField(max_length=120,unique=True)
+    rule=models.JSONField()
+    creator=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT)
+    created_at=models.DateTimeField(auto_now_add=True)

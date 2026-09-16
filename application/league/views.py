@@ -78,7 +78,11 @@ def events(request):
     if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以创建赛事')
     require(type(b.get('isTest',False)) is bool,'测试赛事标记错误')
     with transaction.atomic():
-        e=Event.objects.create(name=label(b.get('name')),kind=kind,is_test=b.get('isTest',False),document=apply(initial(),kind,'stage',{'name':'常规赛'}));e.editors.add(request.user)
+        d=apply(initial(),kind,'stage',{'name':'常规赛'})
+        if b.get('ruleTemplateId'):
+            from .models import RuleTemplate
+            t=get_object_or_404(RuleTemplate,pk=b['ruleTemplateId']);d=apply(d,kind,'rule',t.rule)
+        e=Event.objects.create(name=label(b.get('name')),kind=kind,is_test=b.get('isTest',False),document=d);e.editors.add(request.user)
         Audit.objects.create(event=e,actor=request.user,revision=1,action='create',before={},after=e.document)
     return JsonResponse(summary(e),status=201)
 
@@ -170,6 +174,9 @@ def event_detail(request,id):
         signed=signing.loads(b.get('token'),salt='paste-scores',max_age=1800)
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'预览已过期，请重新解析')
         new=paste_commit(old,e.kind,signed['body'],b.get('candidate',0))
+    elif action=='rule-select':
+        from .models import RuleTemplate
+        t=get_object_or_404(RuleTemplate,pk=b.get('templateId'));new=apply(old,e.kind,'rule',t.rule)
     elif action=='match-resources':
         from .match_resources import update
         new=update(old,b)
@@ -323,3 +330,19 @@ def import_history(request,key):
         HistoryImport.objects.create(archive=archive,event=e,fingerprint=digest)
         Audit.objects.create(event=e,actor=request.user,revision=1,action='history-import',reason=reason,before={},after={'document':d,'review':review.decisions if review and review.fingerprint==digest else {}})
     return JsonResponse({'id':str(e.id),'existing':False},status=201)
+
+
+@api
+def rule_templates(request):
+    from .models import RuleTemplate
+    permitted=request.user.is_superuser or Event.objects.filter(editors=request.user).exists()
+    if not permitted:raise PermissionDenied('仅赛事管理员可使用规则库')
+    if request.method=='GET':return JsonResponse({'templates':[dict(id=str(t.id),name=t.name,rule=t.rule) for t in RuleTemplate.objects.order_by('name')]})
+    require(request.method=='POST','请求方法不支持')
+    b=body(request);rule=apply(initial(),'personal','rule',b)['rules'][-1]
+    require(not RuleTemplate.objects.filter(name=rule['name']).exists(),'规则库已存在同名方案，请使用新名称')
+    from django.db import IntegrityError
+    try:
+        with transaction.atomic():t=RuleTemplate.objects.create(name=rule['name'],rule=rule,creator=request.user)
+    except IntegrityError:raise Invalid('规则库已存在同名方案')
+    return JsonResponse({'id':str(t.id),'name':t.name},status=201)

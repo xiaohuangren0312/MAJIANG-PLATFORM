@@ -13,7 +13,7 @@ def normalize(payload):
         for m in rows:
             # Old 1/2 and 3/4 identify two rounds on the same physical table.
             m.setdefault('sourceTable',m.get('table'))
-            m['table']={'1':'A','2':'A','3':'B','4':'B','A':'A','B':'A','C':'B','D':'B'}.get(str(m.get('sourceTable')),m.get('table'))
+            m['table']={'1':'A','2':'A','3':'B','4':'B','A':'A','B':'A','C':'B','D':'B'}.get(str(m.get('sourceTable')),'AB'[((m.get('number',1)-1)%4)//2])
             teams=tuple(sorted(s.get('teamId') or '' for s in m.get('players',[])))
             groups[teams].append(m)
         # Correct round times only when a complete same-day pairing proves them.

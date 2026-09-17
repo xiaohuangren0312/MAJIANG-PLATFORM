@@ -19,3 +19,9 @@ class HistoricalTableTests(SimpleTestCase):
     def test_incomplete_day_does_not_invent_dates_or_round_times(self):
         p=self.fixture();p['schedule']=p['schedule'][:1];before=copy.deepcopy(p['schedule'][0]);normalize(p)
         self.assertEqual(p['schedule'][0]['date'],before['date']);self.assertEqual(p['schedule'][0]['time'],before['time'])
+
+    def test_legacy_placeholder_uses_original_match_slot_not_extra_table(self):
+        p=self.fixture();p['schedule']=p['schedule'][:1]
+        p['schedule'][0].update(table='历史记录',number=103)
+        normalize(p);self.assertEqual(p['schedule'][0]['table'],'B')
+        old=copy.deepcopy(p);normalize(p);self.assertEqual(p,old)

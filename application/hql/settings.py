@@ -5,10 +5,10 @@ ENV_ROOT=Path(os.environ.get('HQL_ENV_ROOT','/data/majiang/dev'))
 SECRET_KEY=(ENV_ROOT/'config/django-secret').read_text().strip()
 DEBUG=False
 ALLOWED_HOSTS=[host.strip() for host in os.environ.get('HQL_ALLOWED_HOSTS','127.0.0.1,localhost,testserver').split(',') if host.strip()]
-INSTALLED_APPS=['django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.staticfiles','league']
+INSTALLED_APPS=['django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.staticfiles','league','team_draft']
 MIDDLEWARE=['django.middleware.security.SecurityMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.middleware.common.CommonMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF='hql.urls'
-TEMPLATES=[{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.template.context_processors.csrf']}}]
+TEMPLATES=[{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates',BASE_DIR/'team_draft'/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.template.context_processors.csrf']}}]
 # Explicit backend selection: missing PostgreSQL config must never fall back.
 DB_BACKEND=os.environ.get('HQL_DB_BACKEND',(ENV_ROOT/'config/db-backend').read_text().strip() if (ENV_ROOT/'config/db-backend').exists() else 'sqlite')
 if DB_BACKEND=='postgresql':

@@ -49,7 +49,11 @@ def signin(request):
         else:
             user=authenticate(request,username=name,password=request.POST.get('password',''))
             if user:
-                LoginAttempt.objects.filter(key=key).delete();login(request,user);return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/')
+                LoginAttempt.objects.filter(key=key).delete();login(request,user)
+                from django.utils.http import url_has_allowed_host_and_scheme
+                destination=request.GET.get('next','')
+                if destination and url_has_allowed_host_and_scheme(destination,allowed_hosts={request.get_host()},require_https=request.is_secure()):return redirect(destination)
+                return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/')
             if attempt.updated_at<timezone.now()-datetime.timedelta(minutes=15):attempt.failures=0
             attempt.failures+=1;attempt.save();error='用户名或密码不正确'
     return render(request,'login.html',{'error':error})

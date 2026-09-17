@@ -36,6 +36,7 @@ def cleanup_preview(event):
     require(event.is_test,'仅允许清理创建时标记的测试赛事')
     require(not event.document.get('historySnapshot') and not HistoryImport.objects.filter(event=event).exists(),'历史导入赛事不可清理')
     require(bool(event.document.get('archive')),'请先结束并归档测试赛事')
+    require(not event.draft_activities.exists(),'赛事仍关联选人活动，请先在选人活动页面结束并解除关联；选人审计会保留')
     d=event.document
     return dict(eventId=str(event.pk),name=event.name,counts=dict(teams=len(d['teams']),players=len(d['players']),matches=len(d['matches']),audits=Audit.objects.filter(event=event).count()),public=event.public)
 

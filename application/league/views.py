@@ -93,7 +93,7 @@ def events(request):
 @api
 def event_detail(request,id):
     e=get_object_or_404(allowed(request.user),pk=id)
-    if request.method=='GET':return JsonResponse({**summary(e,request.user),'document':e.document})
+    if request.method=='GET':return JsonResponse({**summary(e,request.user),'document':e.document,**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
     require(request.method=='POST','请求方法不支持');b=body(request)
     if b.get('revision')!=e.revision:return JsonResponse({'error':'数据已被修改，请刷新后重试'},status=409)
     action=b.get('action');authorize(e,request.user,action);old=e.document;old_public=e.public;grant_user=None

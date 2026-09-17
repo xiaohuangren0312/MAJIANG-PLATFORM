@@ -100,6 +100,8 @@ def rank_metrics(payload):
         for m in payload.get(collection,[]):
             if payload.get('id') in ['s2','s3'] and m.get('stageId') in ['semi','final']:
                 m['time']='19:30' if m.get('number',1)%2 else '21:00'
+    from .history_schedule import normalize
+    payload=normalize(payload)
     for stage,metrics in payload.get('statistics',{}).items():
         cache={}
         for kinds in metrics.values():

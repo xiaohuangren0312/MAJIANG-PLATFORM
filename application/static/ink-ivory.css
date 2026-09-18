@@ -39,3 +39,8 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 /* Results end with seat winds; scheduled fixtures emphasize four equal team columns. */
 .match-card .result-seat{flex:0 0 26px;align-self:center;margin-left:2px}.match-card .scoreline{gap:10px}.match-card .result-player{line-height:1.6}
 @media(max-width:640px){.match-card .scoreline{gap:8px}}
+
+/* Event identity banner; schedule presentation remains unchanged. */
+.event-banner[hidden]{display:none}.event-banner{background:#f7f4ed url('/assets/event-ink.png') center 55% / cover no-repeat;border-bottom:1px solid var(--line)}.event-banner-inner{max-width:1200px;min-height:202px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:32px;padding:30px 0;box-sizing:border-box}.event-banner-copy{max-width:78%;min-width:0}.event-banner h2{margin:0;color:#252321;font-family:'Noto Serif CJK SC','Songti SC','SimSun',serif;font-size:clamp(28px,3.4vw,48px);line-height:1.4;letter-spacing:2px;overflow-wrap:anywhere}.event-banner h2 span{color:#913a2d;font-size:1.22em;white-space:nowrap}.event-banner p{margin:12px 0 0;font-size:10px;letter-spacing:4px;color:#514b45;line-height:1.8}.event-banner-seal{color:#252321;background:#a64a38;font-family:serif;font-size:24px;padding:2px 6px;line-height:1.2;margin-right:28px;transform:rotate(-4deg)}
+@media(max-width:1280px){.event-banner-inner{margin:0 24px}}
+@media(max-width:640px){.event-banner{background-position:60% center}.event-banner-inner{min-height:134px;margin:0;padding:24px 18px;gap:12px}.event-banner-copy{max-width:90%}.event-banner h2{font-size:25px;letter-spacing:1px;line-height:1.45}.event-banner p{font-size:8px;letter-spacing:1.8px;margin-top:8px}.event-banner-seal{display:none}}

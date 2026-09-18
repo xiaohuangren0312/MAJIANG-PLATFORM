@@ -35,3 +35,5 @@ Event managers administer their own unarchived events and may create restricted 
 ## Delivery UI and temporary historical backfill (2026-09-18)
 
 All seasons use the same delivery management components. Keep S1/S2/S3 source reconciliation, missing-result supplementation and PT inverse tools in the root-only /manage/history-backfill/ workspace. Gate its pages, scripts and APIs with HISTORY_BACKFILL_ENABLED; retiring the workspace must not remove data or affect normal management/public views/exports. Do not reintroduce temporary backfill controls into normal event pages.
+
+- Keep management pages concise as well as public pages: omit workflow essays, implementation details and data-source commentary. Retain field labels, actual records, short input-format hints, validation errors and concrete destructive-action impact previews.

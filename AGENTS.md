@@ -21,3 +21,9 @@
 
 - This is a personal tournament management backend. Prefer few steps, useful defaults and minimal typing. Operation reasons must be optional; simplify older mandatory-reason flows when updating them.
 - Preserve automatic validation of scores, totals, roster membership, qualification, tournament isolation and revision conflicts. Automatically record actor, time and changes.
+
+## Release workflow (user update 2026-09-18)
+
+- Develop and validate every change directly in the authoritative dev checkout. Dev is the integration source.
+- Release a verified dev revision to the isolated production release directory when requested or needed for an authorized release. Routine dev edits do not automatically trigger a production deployment.
+- Production is a release target, not a second independently developed code line. This supersedes the earlier expectation to publish every edit immediately to both environments.

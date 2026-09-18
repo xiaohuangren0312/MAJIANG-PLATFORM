@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const {teamBoardContext:context,scoreSeries}=require('../static/trend-data.js');
+const t={teams:[{id:'a'},{id:'b'},{id:'c'}],stages:[{id:'r',name:'常规赛'},{id:'f',name:'决赛'}],currentStage:'f',results:[{date:'2026-01-01',stageId:'f',number:1,seats:[{teamId:'a',teamPoints:-8},{teamId:'b',teamPoints:20}]}],schedule:[],statistics:{all:{raw:{team:[{id:'c',total:10000},{id:'a',total:992},{id:'b',total:0}]}},r:{competitive:{team:[{id:'a',total:1000},{id:'b',total:-20},{id:'c',total:10000}]}},f:{competitive:{team:[{id:'a',name:'A',carry:137,total:129,games:1},{id:'b',name:'B',carry:-11,total:9,games:1}]},raw:{team:[{id:'a',total:-8,games:1},{id:'b',total:20,games:1}]}}}};
+const before=JSON.stringify(t),live=context(t);
+assert.equal(live.stage,'f');assert.equal(live.metric,'competitive');assert.deepEqual(live.rows.map(r=>r.total),[129,9]);
+assert.equal(live.eliminated[0].id,'c');assert.equal(live.eliminated[0].stageName,'常规赛');
+assert.equal(context(t,'all','raw').rows[0].total,10000);assert.equal(context(t,'all','competitive').stage,'f');
+assert.equal(context(t,'r').metric,'competitive');assert.equal(context(t,'r','raw').metric,'raw');
+const series=scoreSeries(t,'team','a',live.stage,live.metric);assert.equal(series.carry,137);assert.equal(series.total,129);assert.equal(series.difference,0);
+assert.equal(scoreSeries(t,'team','b',live.stage,live.metric).total,9);
+assert.equal(context({...t,archived:true}).finished,true);assert.equal(live.finished,false);
+const pending=structuredClone(t);pending.results=[];pending.statistics.f.competitive.team[0]={id:'a',carry:137,total:137,games:0};assert.equal(context(pending).rows[0].total,137);
+assert.equal(JSON.stringify(t),before);console.log('Live standings: actual override/negative carry, penalties, eliminated separation, pre-play carry, cumulative mode, finished state and source immutability passed');

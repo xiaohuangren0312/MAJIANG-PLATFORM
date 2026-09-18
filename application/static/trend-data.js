@@ -45,3 +45,24 @@ function scoreSeries(t,kind,id,stage='all',metric='raw'){
  return {points,carry,competitive,expected,total,difference:expected==null||total==null?null:expected-total};
 }
 if(typeof module!=='undefined')module.exports.scoreSeries=scoreSeries;
+
+// Live standings use persisted stage settlement values; never recompute a ratio here.
+function teamBoardContext(t,requested='live',requestedMetric){
+ const ids=(t.stages||[]).map(s=>s.id);
+ const current=ids.includes(t.currentStage)?t.currentStage:[...ids].reverse().find(id=>(t.statistics[id]?.competitive?.team||[]).length)||ids[0];
+ const live=requested==='live'||(requested==='all'&&requestedMetric==='competitive');
+ const stage=live?current:requested;
+ const metric=live?'competitive':stage==='all'?'raw':requestedMetric||'competitive';
+ const rows=t.statistics[stage]?.[metric]?.team||[];
+ const active=new Set(rows.map(r=>r.id)),earlier=ids.slice(0,ids.indexOf(stage)),eliminated=[];
+ if(live)for(const team of t.teams||[]){
+  if(active.has(team.id))continue;
+  for(const id of [...earlier].reverse()){
+   const row=t.statistics[id]?.competitive?.team?.find(r=>r.id===team.id);
+   if(row){eliminated.push({...row,stageId:id,stageName:t.stages.find(s=>s.id===id).name});break;}
+  }
+ }
+ const finished=Boolean(t.archived||(t.historical&&current===ids.at(-1)&&(t.schedule||[]).length&&(t.schedule||[]).every(m=>m.state==='completed'||m.state==='cancelled')));
+ return {stage,metric,rows,live,eliminated,finished};
+}
+if(typeof module!=='undefined')module.exports.teamBoardContext=teamBoardContext;

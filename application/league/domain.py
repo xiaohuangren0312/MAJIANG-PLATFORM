@@ -99,6 +99,10 @@ def result(d,kind,m,body):
 def apply(d,kind,action,b):
     require(not d.get('archive'),'赛事已归档，比赛数据不可修改')
     d=copy.deepcopy(d)
+    if action=='random-seats':
+        from .seat_draw import draw
+        draw(d,find(d['matches'],b.get('id')))
+        return d
     if action in ['match-delete','match-update','stage-delete','rule-delete']:
         from .event_elements import mutate
         return mutate(d,kind,action,b)

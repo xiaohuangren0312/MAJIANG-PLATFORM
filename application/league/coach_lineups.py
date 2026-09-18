@@ -104,6 +104,8 @@ def detail(request,id):
             entry['publishAt']=value.isoformat()
         if was_public:entry={'mode':'custom','publishAt':now.isoformat()}
         m.setdefault('coachLineups',{})[tid]=entry
+    from .seat_draw import draw
+    for mid in {mid for mid,tid in seen}:draw(d,find(d['matches'],mid),automatic=True)
     e.revision+=1;e.save(update_fields=['document','revision'])
     Audit.objects.create(event=e,actor=request.user,revision=e.revision,action='coach-lineup',before={'document':old},after={'document':d})
     response=JsonResponse(projection(e,request.user));response['Cache-Control']='no-store';return response

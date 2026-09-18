@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 ROLES={'admin':'子赛事管理员'}
-ACTIONS={'match-delete','match-update','stage-delete','rule-delete','team-delete','player-delete','team','bond-player','player','team-update','player-update','stage','stage-update','rule-select','rule','match','lineup','score','paste-preview','paste-commit','save-result','publish','correct','cancel','visibility','settlement-preview','settlement-commit','archive-preview','archive-commit'}
+ACTIONS={'random-seats','match-delete','match-update','stage-delete','rule-delete','team-delete','player-delete','team','bond-player','player','team-update','player-update','stage','stage-update','rule-select','rule','match','lineup','score','paste-preview','paste-commit','save-result','publish','correct','cancel','visibility','settlement-preview','settlement-commit','archive-preview','archive-commit'}
 def role_for(event,user):
     if user.is_superuser:return 'superadmin'
     if event.editors.filter(pk=user.pk).exists():return 'admin'

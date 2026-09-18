@@ -66,3 +66,13 @@ function teamBoardContext(t,requested='live',requestedMetric){
  return {stage,metric,rows,live,eliminated,finished};
 }
 if(typeof module!=='undefined')module.exports.teamBoardContext=teamBoardContext;
+
+function nextMatchDay(t,today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())){
+ const schedule=t.schedule||[];
+ if(t.archived||(t.historical&&schedule.length&&schedule.every(m=>['completed','cancelled'].includes(m.state))))return {state:'finished',matches:[]};
+ const pending=schedule.filter(m=>m.state==='scheduled'&&m.date>=today).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+ if(!pending.length)return {state:'empty',matches:[]};
+ const date=pending[0].date;
+ return {state:date===today?'today':'next',date,matches:schedule.filter(m=>m.date===date&&m.state!=='cancelled').slice().sort((a,b)=>(a.time||'').localeCompare(b.time||'')||String(a.table||'').localeCompare(String(b.table||''))||(a.number||0)-(b.number||0))};
+}
+if(typeof module!=='undefined')module.exports.nextMatchDay=nextMatchDay;

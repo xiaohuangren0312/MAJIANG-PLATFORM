@@ -31,7 +31,7 @@ function qualificationMap(t,kind,stage){
  if(!count||stage==='all'||(t.type==='team'?'team':'player')!==kind)return null;
  const rows=t.statistics[stage]?.competitive?.[kind]||[];
  if(!rows.length)return null;
- return {count,rows:Object.fromEntries(rows.map(r=>[r.id,{rank:1+rows.filter(x=>x.total>r.total).length,qualified:r.games>0&&1+rows.filter(x=>x.total>r.total).length<=count}]))};
+ return {count,rows:Object.fromEntries(rows.map(r=>[r.id,{pending:!r.games,rank:1+rows.filter(x=>x.total>r.total).length,qualified:r.games>0&&1+rows.filter(x=>x.total>r.total).length<=count}]))};
 }
 if(typeof module!=='undefined')module.exports.qualificationMap=qualificationMap;
 

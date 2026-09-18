@@ -5,3 +5,8 @@ assert.deepEqual(Object.values(q(t,'player','regular').rows).map(r=>r.qualified)
 assert.equal(q(t,'team','regular'),null);assert.equal(q(t,'player','all'),null);assert.equal(q({...t,type:'team'},'player','regular'),null);
 assert.equal(q({...t,stages:[{id:'regular',advanceCount:0}]},'player','regular'),null);
 console.log('Qualification tie, no-games, event-kind and unset-cutoff checks passed');
+
+assert.equal(q(t,'player','regular').rows.d.pending,true);
+assert.equal(q(t,'player','regular').rows.a.pending,false);
+const zero={...t,statistics:{regular:{competitive:{player:[{id:'a',total:0,games:0},{id:'b',total:0,games:0}]}}}};
+assert(Object.values(q(zero,'player','regular').rows).every(r=>r.rank===1&&r.pending));

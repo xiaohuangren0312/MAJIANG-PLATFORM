@@ -19,11 +19,13 @@ def event_manager(event, user):
 def manager(activity, user):
     if not user.is_authenticated or not user.is_active: return False
     if activity.event_id: return event_manager(activity.event, user)
-    return user.is_superuser or activity.creator_id == user.pk
+    return user.is_superuser or (activity.creator_id == user.pk and Event.objects.filter(editors=user).exists())
 
 
 def own_team(activity, user):
     if not user.is_authenticated or not user.is_active: return None
+    if activity.event_id and (activity.event.document.get('archive') or activity.event.document.get('archiveRevision')):return None
+    if activity.event_id and activity.event.document.get('coachAccounts',{}).get(str(user.pk),{}).get('active') is False:return None
     return next((r['teamId'] for r in activity.document.get('teams', []) if r['coachUserId'] == user.pk), None)
 
 
@@ -37,7 +39,7 @@ def snapshot(activity):
 
 def eligible_event(event, user):
     if not event_manager(event, user): raise PermissionDenied('未获得关联赛事管理授权')
-    require(event.kind == 'team' and not event.document.get('archive') and not event.document.get('historySnapshot'), '请选择未归档的普通团体赛事')
+    require(event.kind == 'team' and not event.document.get('archive') and not event.document.get('archiveRevision') and not event.document.get('historySnapshot'), '请选择未归档的普通团体赛事')
     require(not any(m.get('state') != 'cancelled' for m in event.document.get('matches', [])), '请关联尚未安排比赛的赛事')
 
 
@@ -60,6 +62,11 @@ def mutate(activity_id, user, revision, action, payload):
     else: authorize(activity,user);tid=None
     if activity.event_id:
         activity.event=Event.objects.select_for_update().get(pk=activity.event_id)
+        if action in {'nominate','bid','pass'}:
+            tid=own_team(activity,user);require(tid is not None,'当前账号不是本活动启用的教练')
+        else:authorize(activity,user)
+    if activity.event_id:
+        require(user.is_superuser or not (activity.event.document.get('archive') or activity.event.document.get('archiveRevision')), '赛事已归档，只有总管理员可以修改')
     before=snapshot(activity)
     require(activity.status != 'complete' or action in {'publish','unlink'}, '活动已结束，选人记录只读')
     if action in {'finish','undo','unlink','publish'}:

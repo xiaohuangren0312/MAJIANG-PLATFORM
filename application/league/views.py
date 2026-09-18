@@ -24,6 +24,10 @@ from .domain import initial,apply,Invalid,require,label
 from .projection import public_event,settlement_preview,settle
 from .lifecycle import archive_preview,archive_event,cleanup_preview,cleanup_event
 
+def coach_account(user):
+    from team_draft.models import DraftActivity
+    return Event.objects.filter(document__coachAccounts__has_key=str(user.pk)).exists() or DraftActivity.objects.filter(document__teams__contains=[{'coachUserId':user.pk}]).exists()
+
 def allowed(user):
     return Event.objects.all() if user.is_superuser else Event.objects.filter(editors=user)
 def api(fn):
@@ -36,7 +40,7 @@ def api(fn):
     return wrapper
 def body(request):
     value=json.loads(request.body);require(isinstance(value,dict),'请求必须为对象');return value
-def summary(e,user=None):return dict(id=str(e.id),name=e.name,kind=e.kind,public=e.public,revision=e.revision,isTest=e.is_test,archived=bool(e.document.get('archive')),**({'role':role_for(e,user),'actions':actions_for(e,user)} if user else {}))
+def summary(e,user=None):return dict(id=str(e.id),name=e.name,kind=e.kind,public=e.public,revision=e.revision,isTest=e.is_test,archived=bool(e.document.get('archive') or e.document.get('archiveRevision')),**({'role':role_for(e,user),'actions':actions_for(e,user)} if user else {}))
 
 @ensure_csrf_cookie
 def signin(request):
@@ -53,7 +57,7 @@ def signin(request):
                 from django.utils.http import url_has_allowed_host_and_scheme
                 destination=request.GET.get('next','')
                 if destination and url_has_allowed_host_and_scheme(destination,allowed_hosts={request.get_host()},require_https=request.is_secure()):return redirect(destination)
-                return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/')
+                return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/draft/' if coach_account(user) else '/')
             if attempt.updated_at<timezone.now()-datetime.timedelta(minutes=15):attempt.failures=0
             attempt.failures+=1;attempt.save();error='用户名或密码不正确'
     return render(request,'login.html',{'error':error})
@@ -91,13 +95,25 @@ def events(request):
     return JsonResponse(summary(e),status=201)
 
 @api
+@transaction.atomic
 def event_detail(request,id):
     e=get_object_or_404(allowed(request.user),pk=id)
     if request.method=='GET':return JsonResponse({**summary(e,request.user),'document':e.document,**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
     require(request.method=='POST','请求方法不支持');b=body(request)
     if b.get('revision')!=e.revision:return JsonResponse({'error':'数据已被修改，请刷新后重试'},status=409)
     action=b.get('action');authorize(e,request.user,action);old=e.document;old_public=e.public;grant_user=None
-    if action=='history-inverse':
+    if action in ['team-delete','player-delete','history-roster-delete','coach-manage']:
+        linked_activities=list(e.draft_activities.select_for_update())
+        fresh=Event.objects.select_for_update().get(pk=e.pk)
+        authorize(fresh,request.user,action)
+        if fresh.revision!=e.revision:return JsonResponse({'error':'数据已更新，请刷新后重试'},status=409)
+    if action in ['team-delete','player-delete','history-roster-delete']:
+        from .roster_delete import referenced
+        require(not any(referenced(a.document,b.get('id')) for a in linked_activities),'名单仍被选人大会引用，请先处理关联活动')
+    if action=='archive-reopen':
+        new=copy.deepcopy(old);new['archiveRevision']=new.pop('archive')
+        if new.get('stages'):new['stages'][-1]['locked']=False
+    elif action=='history-inverse':
         from .history_correction import effective
         from .paste_scores import inverse
         from .domain import find
@@ -139,7 +155,9 @@ def event_detail(request,id):
         preview=settlement_preview(old,e.kind,b)
         token=signing.dumps(dict(event=str(e.id),revision=e.revision,preview=preview),salt='settlement')
         return JsonResponse({'preview':preview,'token':token})
-    if action=='grant':
+    if action=='archive-reopen':
+        pass
+    elif action=='grant':
         username=label(b.get('username'));reason=optional_note(b.get('reason'));role=b.get('role')
         require(role in ['admin','revoke'],'授权角色错误')
         grant_user=get_user_model().objects.filter(username=username,is_active=True).first()
@@ -172,7 +190,7 @@ def event_detail(request,id):
     elif action=='archive-commit':
         signed=signing.loads(b.get('token'),salt='archive-preview',max_age=1800)
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'归档预览已过期，请重新预览')
-        new=archive_event(e,b.get('reason'),request.user.username)
+        new=archive_event(e,b.get('reason'),request.user.username);new.pop('archiveRevision',None)
     elif action=='paste-commit':
         from .paste_scores import commit as paste_commit
         signed=signing.loads(b.get('token'),salt='paste-scores',max_age=1800)
@@ -190,6 +208,18 @@ def event_detail(request,id):
     elif action=='history-player-add':
         from .history_roster import add_player
         new=add_player(old,b)
+    elif action=='coach-manage':
+        new=copy.deepcopy(old);entry=new.get('coachAccounts',{}).get(str(b.get('userId')))
+        require(entry is not None,'该教练账号不属于本赛事')
+        if b.get('remove') is True:
+            require(not any(any(str(t.get('coachUserId'))==str(b.get('userId')) for t in a.document.get('teams',[])) for a in linked_activities),'教练仍关联选人大会，请先处理关联或停用')
+            new['coachAccounts'].pop(str(b['userId']))
+        else:
+            require(type(b.get('active')) is bool,'账号状态错误')
+            entry['active']=b['active']
+    elif action=='history-roster-delete':
+        from .roster_delete import delete_roster
+        new=delete_roster(old,b.get('kind'),b.get('id'))
     elif action=='history-roster':
         from .history_roster import update
         new=update(old,b)
@@ -242,24 +272,43 @@ def health(request):
 @api
 @require_GET
 def access_list(request,id):
-    e=get_object_or_404(allowed(request.user),pk=id);authorize(e,request.user,'grant')
-    return JsonResponse({'members':[{'username':u.username,'role':role_for(e,u),'active':u.is_active,'platformAdmin':u.is_superuser} for u in e.editors.all()]})
+    e=get_object_or_404(allowed(request.user),pk=id)
+    if not request.user.is_superuser:authorize(e,request.user,'coach-manage')
+    return JsonResponse({'coaches':[dict(userId=k,**v) for k,v in e.document.get('coachAccounts',{}).items()],'members':[{'username':u.username,'role':role_for(e,u),'active':u.is_active,'platformAdmin':u.is_superuser} for u in e.editors.all()]})
 
 @api
 @require_POST
 def create_account(request):
-    if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以创建账号')
-    b=body(request);username=label(b.get('username'));password=b.get('password','1234@qwer')
+    b=body(request);role=b.get('role','viewer');require(role in ['viewer','coach','admin'],'账号角色错误')
+    e=None
+    if b.get('eventId'):
+        e=get_object_or_404(allowed(request.user),pk=b['eventId'])
+    if not request.user.is_superuser:
+        if role!='coach' or e is None:raise PermissionDenied('赛事管理员只能为自己的未归档赛事创建教练账号')
+        authorize(e,request.user,'coach-manage')
+    if role in ['coach','admin']:require(e is not None,'请选择账号所属赛事')
+    username=label(b.get('username'));password=b.get('password','1234@qwer')
     require(isinstance(password,str),'请填写初始密码')
     User=get_user_model();require(not User.objects.filter(username=username).exists(),'用户名已存在')
     user=User(username=username,is_staff=False,is_superuser=False)
     try:
         user.full_clean(exclude=['password'])
-        # User-approved initial password for new ordinary accounts only.
         if password!='1234@qwer':validate_password(password,user)
-    except ValidationError as e:raise Invalid('；'.join(e.messages))
-    user.set_password(password);user.save()
-    return JsonResponse({'username':user.username},status=201)
+    except ValidationError as error:raise Invalid('；'.join(error.messages))
+    with transaction.atomic():
+        if e:
+            e=Event.objects.select_for_update().get(pk=e.pk)
+            if not request.user.is_superuser:authorize(e,request.user,'coach-manage')
+            require(b.get('revision')==e.revision,'赛事已更新，请刷新后重试')
+        user.set_password(password);user.save()
+        if e:
+            before=copy.deepcopy(e.document)
+            if role=='coach':e.document.setdefault('coachAccounts',{})[str(user.pk)]={'username':user.username,'active':True}
+            if role=='admin':
+                e.editors.add(user);e.document.setdefault('accessRoles',{})[str(user.pk)]='admin'
+            e.revision+=1;e.save(update_fields=['document','revision'])
+            Audit.objects.create(event=e,actor=request.user,revision=e.revision,action='account-create',before={'document':before},after={'document':e.document,'username':user.username,'role':role})
+    return JsonResponse({'username':user.username,'role':role},status=201)
 
 
 @login_required
@@ -276,8 +325,9 @@ def account(request):
         user=form.save();update_session_auth_hash(request,user)
         return redirect('/account/?changed=1')
     managed=allowed(request.user)
-    role='总管理员' if request.user.is_superuser else '子赛事管理员' if managed.exists() else '普通账号'
-    response=render(request,'account.html',{'password_form':form,'account_role':role,'managed_events':managed,'can_manage':request.user.is_superuser or managed.exists(),'changed':request.GET.get('changed')=='1'})
+    is_coach=coach_account(request.user)
+    role='总管理员' if request.user.is_superuser else '赛事管理员' if managed.exists() else '教练' if is_coach else '观众'
+    response=render(request,'account.html',{'password_form':form,'account_role':role,'is_coach':is_coach,'managed_events':managed,'can_manage':request.user.is_superuser or managed.exists(),'changed':request.GET.get('changed')=='1'})
     response['Cache-Control']='no-store'
     return response
 

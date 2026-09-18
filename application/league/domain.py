@@ -99,6 +99,12 @@ def result(d,kind,m,body):
 def apply(d,kind,action,b):
     require(not d.get('archive'),'赛事已归档，比赛数据不可修改')
     d=copy.deepcopy(d)
+    if action in ['match-delete','match-update','stage-delete','rule-delete']:
+        from .event_elements import mutate
+        return mutate(d,kind,action,b)
+    if action in ['team-delete','player-delete']:
+        from .roster_delete import delete_roster
+        return delete_roster(d,action.split('-')[0],b.get('id'))
     if action=='save-result':
         m=find(d['matches'],b.get('id'))
         if m['state']=='published':return apply(d,kind,'correct',b)
@@ -139,7 +145,7 @@ def apply(d,kind,action,b):
         require(start%100==ret%100==0,'点数必须为100的倍数')
         bonuses=b.get('bonuses');require(isinstance(bonuses,list) and len(bonuses)==4,'需要四个最终顺位分')
         for n in bonuses: integer(n,'顺位分（0.1PT）',-100000,100000)
-        d['rules'].append(dict(id=uid(),version=len(d['rules'])+1,name=label(b.get('name')),start=start,return_=ret,bonuses=bonuses))
+        d['rules'].append(dict(id=uid(),version=max(x.get('version',0) for x in d['rules'])+1,name=label(b.get('name')),start=start,return_=ret,bonuses=bonuses))
         d['rules'][-1]['return']=d['rules'][-1].pop('return_')
     elif action=='match':
         stage=live_stage(d,b.get('stageId'));day=b.get('date')

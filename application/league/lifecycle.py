@@ -23,6 +23,7 @@ def archive_preview(event):
     return dict(stageId=final['id'],stageName=final['name'],kind=kind,rows=rows,matches=sum(m['state']=='published' for m in d['matches']),personalOverall=statistics(d,'all',False,'player'))
 
 def archive_event(event,reason,actor):
+    event=copy.copy(event);event.document=copy.deepcopy(event.document);event.document.pop('archiveRevision',None)
     preview=archive_preview(event);d=copy.deepcopy(event.document)
     payload=public_event(event);at=timezone.now().isoformat()
     payload.update(archived=True,archivedAt=at,finalStandings=copy.deepcopy(preview))

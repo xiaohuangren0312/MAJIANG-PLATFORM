@@ -29,11 +29,12 @@ class HistoryStageApiTests(TestCase):
     def test_permission_revision_audit_and_projection(self):
         user=get_user_model().objects.create_user('stage-manager');other=get_user_model().objects.create_user('stage-other')
         d=initial();d['historySnapshot']=source();event=Event.objects.create(name='历史阶段测试',kind='team',document=d);event.editors.add(user)
+        before_projection=public_event(event)
         url=f'/api/events/{event.id}/';body=dict(action='history-stage-update',revision=1,id='regular',name='预选赛',advanceCount=5)
         self.client.force_login(other);self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,404)
         self.client.force_login(user);self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,200)
         event.refresh_from_db();p=public_event(event)
         self.assertEqual((p['stages'][0]['name'],p['stages'][0]['advanceCount']),('预选赛',5))
-        self.assertEqual(p['results'],d['historySnapshot']['results']);self.assertEqual(event.document['historySnapshot'],d['historySnapshot'])
+        self.assertEqual(p['results'],before_projection['results']);self.assertEqual(event.document['historySnapshot'],d['historySnapshot'])
         self.assertEqual(Audit.objects.get(event=event).action,'history-stage-update')
         self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,409)

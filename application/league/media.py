@@ -32,7 +32,7 @@ def _upload(request,id):
         authorize(e,request.user,'history-image' if e.document.get('historySnapshot') else kind+'-update')
         require(str(e.revision)==request.POST.get('revision'),'赛事已更新，请刷新后上传')
         before=copy.deepcopy(e.document);d=copy.deepcopy(before)
-        require(not d.get('archive'),'赛事已归档')
+        require(not d.get('archive'),'请先开启归档修订')
         source=d
         if d.get('historySnapshot'):
             d['historyCurrent']=copy.deepcopy(d.get('historyCurrent',d['historySnapshot']));source=d['historyCurrent']

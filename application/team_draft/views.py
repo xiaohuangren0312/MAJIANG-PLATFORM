@@ -62,6 +62,10 @@ def detail(request,id):
                 if row.get('coachUsername'):
                     account=get_user_model().objects.filter(username=row['coachUsername'],is_active=True).first()
                     require(account is not None,'教练账号不存在或已停用')
+                    if not request.user.is_superuser:
+                        registered=activity.event.document.get('coachAccounts',{}).get(str(account.pk)) if activity.event_id else None
+                        existing=any(t.get('coachUserId')==account.pk for t in activity.document.get('teams',[]))
+                        require((registered and registered.get('active')) or existing,'请选择本赛事创建的教练账号')
                     row['coachUserId']=account.pk
         if action=='link':get_object_or_404(Event,pk=data.get('eventId'))
         activity=mutate(id,request.user,data.get('revision'),action,data)

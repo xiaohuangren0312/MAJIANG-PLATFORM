@@ -27,3 +27,7 @@
 - Develop and validate every change directly in the authoritative dev checkout. Dev is the integration source.
 - Release a verified dev revision to the isolated production release directory when requested or needed for an authorized release. Routine dev edits do not automatically trigger a production deployment.
 - Production is a release target, not a second independently developed code line. This supersedes the earlier expectation to publish every edit immediately to both environments.
+
+## Role policy (user update 2026-09-18)
+
+Event managers administer their own unarchived events and may create restricted coach accounts scoped to those events. Coaches only gain assigned team-draft actions beyond public viewing. Viewers cannot perform business writes. Only the total administrator creates/assigns event managers and revises archived events. Preserve score/reference/settlement/revision validation for every role. Archived revisions must retain the last published snapshot until explicitly finalized.

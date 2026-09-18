@@ -41,7 +41,7 @@ def csv_text(document,name,kind):
 def download(request,id):
     e=get_object_or_404(Event,pk=id)
     if not(request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists()):raise Http404
-    a=e.document.get('archive')
+    a=e.document.get('archive') or e.document.get('archiveRevision')
     if e.document.get('historySnapshot'):content=history_csv(e)
     elif a:content=a.get('csvExport') or csv_text(e.document,e.name,e.kind)
     else:raise Http404

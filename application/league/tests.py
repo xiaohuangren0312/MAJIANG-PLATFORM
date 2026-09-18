@@ -294,7 +294,7 @@ class AccountTests(TestCase):
     def test_normal_account_entry_and_csrf(self):
         self.assertEqual(self.client.get('/account/').status_code,302)
         self.client.force_login(self.user);r=self.client.get('/account/')
-        self.assertContains(r,'普通账号');self.assertNotContains(r,'进入管理端')
+        self.assertContains(r,'观众');self.assertNotContains(r,'进入管理端')
         self.assertEqual(r['Cache-Control'],'no-store')
         secured=Client(enforce_csrf_checks=True);secured.force_login(self.user)
         self.assertEqual(secured.post('/account/',self.payload()).status_code,403)
@@ -302,7 +302,7 @@ class AccountTests(TestCase):
         e=Event.objects.create(name='可管理赛事',kind='team',document=fixture());e.editors.add(self.user)
         Event.objects.create(name='不得泄露赛事',kind='team',document=fixture())
         self.client.force_login(self.user);r=self.client.get('/account/')
-        self.assertContains(r,'子赛事管理员');self.assertContains(r,'可管理赛事');self.assertNotContains(r,'不得泄露赛事')
+        self.assertContains(r,'赛事管理员');self.assertContains(r,'可管理赛事');self.assertNotContains(r,'不得泄露赛事')
     def test_public_page_login_entry(self):
         self.assertContains(self.client.get('/'),'登录')
         self.client.force_login(self.user);self.assertContains(self.client.get('/'),'我的账号')

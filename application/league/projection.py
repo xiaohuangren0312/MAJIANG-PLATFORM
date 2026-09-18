@@ -26,6 +26,7 @@ def statistics(d,stage='all',competitive=False,kind='player'):
     return rows
 
 def _public_event(event):
+    if event.document.get('archiveRevision'):return copy.deepcopy(event.document['archiveRevision']['publicPayload'])
     if event.document.get('archive'):return copy.deepcopy(event.document['archive']['publicPayload'])
     if event.document.get('historySnapshot'):
         payload=copy.deepcopy(event.document.get('historyCurrent',event.document['historySnapshot']));payload['name']=event.name

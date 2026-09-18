@@ -50,9 +50,9 @@ if(typeof module!=='undefined')module.exports.scoreSeries=scoreSeries;
 function teamBoardContext(t,requested='live',requestedMetric){
  const ids=(t.stages||[]).map(s=>s.id);
  const current=ids.includes(t.currentStage)?t.currentStage:[...ids].reverse().find(id=>(t.statistics[id]?.competitive?.team||[]).length)||ids[0];
- const live=requested==='live'||(requested==='all'&&requestedMetric==='competitive');
+ const live=requested==='live'||requested==='all';
  const stage=live?current:requested;
- const metric=live?'competitive':stage==='all'?'raw':requestedMetric||'competitive';
+ const metric='competitive';
  const rows=t.statistics[stage]?.[metric]?.team||[];
  const active=new Set(rows.map(r=>r.id)),earlier=ids.slice(0,ids.indexOf(stage)),eliminated=[];
  if(live)for(const team of t.teams||[]){

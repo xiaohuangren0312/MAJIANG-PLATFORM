@@ -4,8 +4,8 @@ const t={teams:[{id:'a'},{id:'b'},{id:'c'}],stages:[{id:'r',name:'常规赛'},{i
 const before=JSON.stringify(t),live=context(t);
 assert.equal(live.stage,'f');assert.equal(live.metric,'competitive');assert.deepEqual(live.rows.map(r=>r.total),[129,9]);
 assert.equal(live.eliminated[0].id,'c');assert.equal(live.eliminated[0].stageName,'常规赛');
-assert.equal(context(t,'all','raw').rows[0].total,10000);assert.equal(context(t,'all','competitive').stage,'f');
-assert.equal(context(t,'r').metric,'competitive');assert.equal(context(t,'r','raw').metric,'raw');
+assert.equal(context(t,'all','raw').rows[0].total,129);assert.equal(context(t,'all','competitive').stage,'f');
+assert.equal(context(t,'r').metric,'competitive');assert.equal(context(t,'r','raw').metric,'competitive');
 const series=scoreSeries(t,'team','a',live.stage,live.metric);assert.equal(series.carry,137);assert.equal(series.total,129);assert.equal(series.difference,0);
 assert.equal(scoreSeries(t,'team','b',live.stage,live.metric).total,9);
 assert.equal(context({...t,archived:true}).finished,true);assert.equal(live.finished,false);

@@ -17,6 +17,7 @@ function resultCard(m){const seats=[...m.seats].sort((a,b)=>a.rank-b.rank);retur
 function render(){
  const fragment=location.hash.slice(1)||'home',parts=fragment.split('?');route=parts[0];params=new URLSearchParams(parts[1]||'');tournament=data.tournaments.find(t=>t.id===params.get('event'))||data.tournaments[0];
  if(!tournament){$('content').innerHTML=empty('暂时没有公开赛事');return}
+ const brandImage=document.querySelector('.brand img');if(brandImage){brandImage.src=tournament.logoUrl||'/brand/logo';brandImage.alt=tournament.name+' Logo'}
  const active=route==='result'?'results':route==='team'?'teams':route==='player'?'players':route;
  ['desktop-nav','mobile-nav'].forEach(id=>$(id).innerHTML=Object.entries(navs).filter(([key])=>key!=='teams'||tournament.type==='team').map(([key,label])=>`<a href="${href(key)}" class="${active===key?'active':''}">${label}</a>`).join(''));
  document.querySelector('.brand').href=href('home');$('event-select').innerHTML=opts(data.tournaments,tournament.id);$('context-info').textContent=`${tournament.season} 赛季 · ${tournament.type==='team'?'团体赛':'个人赛'} · ${tournament.archived?'已归档':tournament.historical?'历史赛事':'进行中'}`;

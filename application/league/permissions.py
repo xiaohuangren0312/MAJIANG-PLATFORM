@@ -17,10 +17,10 @@ def actions_for(event,user,backfill=False):
         actions=actions|{'history-inverse','history-preview','history-correct','history-player-add','history-bond-register'}
     if event.kind=='personal' and not event.document.get('historySnapshot'):
         actions=actions|{'pairing-preview','pairing-commit'}
-    actions=actions|{'coach-manage'}
+    actions=actions|{'coach-manage','event-logo'}
     if event.document.get('archive') or event.document.get('archiveRevision'):
         if not user.is_superuser:return []
-        if event.document.get('archive'):actions={'visibility','archive-reopen','coach-manage'}
+        if event.document.get('archive'):actions={'visibility','archive-reopen','coach-manage','event-logo'}
     if user.is_superuser and event.is_test and event.document.get('archive') and not event.document.get('historySnapshot'):
         actions=actions|{'cleanup-preview','cleanup-commit'}
     if not event.document.get('archive'):actions=actions|{'match-resources'}

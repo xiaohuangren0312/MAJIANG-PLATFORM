@@ -18,7 +18,7 @@ def upload(request):
     return api(_upload)(request)
 
 def _upload(request):
-    if not request.user.is_superuser:raise PermissionDenied('仅总管理员可更换品牌Logo')
+    if not request.user.is_superuser:raise PermissionDenied('仅总管理员可更换默认Logo')
     require(request.method=='POST','请上传图片')
     file=request.FILES.get('image');require(file is not None and file.size<=5*1024*1024,'请选择5MB以内的PNG、JPEG或WebP图片')
     try:

@@ -68,7 +68,7 @@ class HistoryImportTests(HistoryReviewTests):
         self.client.post(self.url,self.request_body(),content_type='application/json')
         self.assertEqual(self.client.post(url,cmd,content_type='application/json').status_code,200)
         self.assertFalse(HistoricalArchive.objects.get(pk='fixture').public)
-        data=self.client.get('/data.json').json()['tournaments'];self.assertEqual(len(data),1);self.assertEqual(data[0],self.payload)
+        data=self.client.get('/data.json').json()['tournaments'];self.assertEqual(len(data),1);self.assertEqual(data[0].pop('logoUrl'),f'/brand/events/{e.pk}/logo');self.assertEqual(data[0],self.payload)
         self.assertEqual(self.client.post(url,{'revision':2,'action':'visibility','public':False},content_type='application/json').status_code,200)
         self.assertEqual(self.client.get('/data.json').json()['tournaments'],[])
     def test_history_mutations_blocked(self):

@@ -198,3 +198,7 @@ reconciliation版本2记录确认依据。S2/S3当前待核对项均为0，但�
 ## 统一管理与临时补录（2026-09-18）
 
 S1/S2/S3 使用正式管理页共用组件。补录工作区 `/manage/history-backfill/` 仅总管理员可用；补录完成后设置 `HQL_HISTORY_BACKFILL_ENABLED=0` 并重启即可关闭入口与写接口，已补录数据与正式管理保留。详见 `design/HISTORY-BACKFILL-WORKSPACE.md`。
+
+## 默认与赛事 Logo（2026-09-18）
+
+默认 Logo 仅总管理员可设置。赛事管理员在“赛事概览 → 赛事 Logo”上传自己赛事的独立 Logo，支持恢复默认；归档后的修改仍仅总管理员可用。管理与观众端优先显示当前赛事 Logo，没有则回退默认（默认未上传则显示雀字占位）。文件存储于各环境 uploads/events/<event-id>/，采用随机文件名、图片校验、revision 与 Audit；不修改其他赛事或积分数据。

@@ -51,3 +51,5 @@ form[data-stage-edit]>.grid{grid-template-columns:minmax(180px,2fr) minmax(140px
 #select-rule-template{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:12px;align-items:center}#select-rule-template>.form-actions{border:0;margin:0;padding:0;width:auto}#select-rule-template>select{margin:0}
 .table-scroll td:last-child:has(.row-actions){width:1%;text-align:right}.table-scroll td{vertical-align:middle}
 @media(max-width:600px){main .ui-button,dialog .ui-button,.roster-row-actions button,td button{min-height:44px}.form-actions{gap:8px}.form-actions>button{flex:1 1 120px}.form-actions>.danger:not(.primary){margin-right:0}.row-actions>button{flex:0 0 auto}form[data-stage-edit]>.grid,#select-rule-template{grid-template-columns:1fr}.page-actions{gap:8px}.page-actions>button{flex:1 1 auto}}
+
+.event-logo-preview{display:flex;align-items:center;gap:16px;margin:16px 0}.event-logo-preview img{object-fit:contain;border:1px solid var(--line);border-radius:10px;background:white;padding:6px}

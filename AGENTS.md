@@ -30,7 +30,7 @@
 
 ## Role policy (user update 2026-09-18)
 
-Event managers administer their own unarchived events and may create restricted coach accounts scoped to those events. Coaches only gain assigned team-draft actions beyond public viewing. Viewers cannot perform business writes. Only the total administrator creates/assigns event managers and revises archived events. Preserve score/reference/settlement/revision validation for every role. Archived revisions must retain the last published snapshot until explicitly finalized.
+Event managers administer their own unarchived events and may create restricted coach accounts scoped to those events. Coaches gain assigned team-draft actions and their own team’s upcoming match-day lineup scheduling beyond public viewing. Pending lineups must stay private until their scheduled publication time. Viewers cannot perform business writes. Only the total administrator creates/assigns event managers and revises archived events. Preserve score/reference/settlement/revision validation for every role. Archived revisions must retain the last published snapshot until explicitly finalized.
 
 ## Delivery UI and temporary historical backfill (2026-09-18)
 

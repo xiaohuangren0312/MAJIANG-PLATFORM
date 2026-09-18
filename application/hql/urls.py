@@ -8,3 +8,6 @@ if settings.HISTORY_BACKFILL_ENABLED:
     urlpatterns += [path('manage/history-backfill/',history_backfill.page),path('manage/history-backfill/review/',views.history_page),path('api/history-backfill/events/',history_backfill.events),path('api/history-backfill/events/<uuid:id>/',history_backfill.detail)]
 
 urlpatterns += [path('brand/events/<uuid:id>/logo',event_brand.logo),path('api/events/<uuid:id>/logo/',event_brand.upload)]
+
+from league import coach_lineups
+urlpatterns += [path('coach/lineups/',coach_lineups.page),path('api/coach/lineups/',coach_lineups.events),path('api/coach/lineups/<uuid:id>/',coach_lineups.detail)]

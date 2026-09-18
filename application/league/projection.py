@@ -34,7 +34,9 @@ def _public_event(event):
     d=event.document;results=[];schedule=[]
     for m in sorted(d['matches'],key=lambda m:(m['date'],m['time'],m['number'])):
         published=m['state']=='published'
-        schedule.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],table=m['table'],number=m['number'],pairingRound=m.get('pairingRound'),lineupPublished=m['lineupPublished'],players=[dict(playerId=s['playerId'] if m['lineupPublished'] or published else None,teamId=s['teamId']) for s in m['seats']],state='completed' if published else 'cancelled' if m['state']=='cancelled' else 'scheduled',resultId=m['id'] if published else None))
+        from .coach_lineups import visible
+        disclosed=[visible(d,m,s) for s in m['seats']]
+        schedule.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],table=m['table'],number=m['number'],pairingRound=m.get('pairingRound'),lineupPublished=all(disclosed),players=[dict(playerId=s['playerId'] if shown else None,teamId=s['teamId'],lineupPublished=shown) for s,shown in zip(m['seats'],disclosed)],state='completed' if published else 'cancelled' if m['state']=='cancelled' else 'scheduled',resultId=m['id'] if published else None))
         if published:
             results.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],pairingRound=m.get('pairingRound'),table=m['table'],number=m['number'],ruleName=m['rule']['name'],ruleVersion=m['rule']['version'],seats=copy.deepcopy(m['seats']),penalties=copy.deepcopy(m['penalties']),yakuman=copy.deepcopy(m['yakuman'])))
     stats={stage:{metric:{kind:statistics(d,stage,metric=='competitive',kind) for kind in ['player','team']} for metric in ['raw','competitive']} for stage in ['all']+[s['id'] for s in d['stages']]}

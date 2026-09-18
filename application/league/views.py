@@ -57,7 +57,7 @@ def signin(request):
                 from django.utils.http import url_has_allowed_host_and_scheme
                 destination=request.GET.get('next','')
                 if destination and url_has_allowed_host_and_scheme(destination,allowed_hosts={request.get_host()},require_https=request.is_secure()):return redirect(destination)
-                return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/draft/' if coach_account(user) else '/')
+                return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/coach/lineups/' if coach_account(user) else '/')
             if attempt.updated_at<timezone.now()-datetime.timedelta(minutes=15):attempt.failures=0
             attempt.failures+=1;attempt.save();error='用户名或密码不正确'
     return render(request,'login.html',{'error':error})
@@ -217,8 +217,17 @@ def event_detail(request,id):
             require(not any(any(str(t.get('coachUserId'))==str(b.get('userId')) for t in a.document.get('teams',[])) for a in linked_activities),'教练仍关联选人大会，请先处理关联或停用')
             new['coachAccounts'].pop(str(b['userId']))
         else:
-            require(type(b.get('active')) is bool,'账号状态错误')
-            entry['active']=b['active']
+            if 'teamId' in b:
+                from .domain import find
+                tid=b.get('teamId') or None
+                if tid:
+                    from .management_projection import document_for
+                    require(e.kind=='team','个人赛不能绑定教练队伍')
+                    find(document_for(e)['teams'],tid)
+                entry['teamId']=tid
+            if 'active' in b:
+                require(type(b['active']) is bool,'账号状态错误')
+                entry['active']=b['active']
     elif action=='history-roster-delete':
         from .roster_delete import delete_roster
         new=delete_roster(old,b.get('kind'),b.get('id'))
@@ -263,7 +272,7 @@ def event_detail(request,id):
 @require_GET
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
-    require_names={'manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
+    require_names={'coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
     require_names.add('history-backfill.js')
@@ -314,7 +323,14 @@ def create_account(request):
         user.set_password(password);user.save()
         if e:
             before=copy.deepcopy(e.document)
-            if role=='coach':e.document.setdefault('coachAccounts',{})[str(user.pk)]={'username':user.username,'active':True}
+            if role=='coach':
+                entry={'username':user.username,'active':True}
+                if b.get('teamId'):
+                    from .domain import find
+                    from .management_projection import document_for
+                    require(e.kind=='team','个人赛不能绑定教练队伍')
+                    find(document_for(e)['teams'],b['teamId']);entry['teamId']=b['teamId']
+                e.document.setdefault('coachAccounts',{})[str(user.pk)]=entry
             if role=='admin':
                 e.editors.add(user);e.document.setdefault('accessRoles',{})[str(user.pk)]='admin'
             e.revision+=1;e.save(update_fields=['document','revision'])

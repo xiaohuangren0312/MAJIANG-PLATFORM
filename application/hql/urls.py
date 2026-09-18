@@ -11,3 +11,6 @@ urlpatterns += [path('brand/events/<uuid:id>/logo',event_brand.logo),path('api/e
 
 from league import coach_lineups
 urlpatterns += [path('coach/lineups/',coach_lineups.page),path('api/coach/lineups/',coach_lineups.events),path('api/coach/lineups/<uuid:id>/',coach_lineups.detail)]
+
+from league import coach_profile
+urlpatterns += [path('coach/profile/',coach_profile.page),path('api/coach/profile/',coach_profile.events),path('api/coach/profile/<uuid:id>/',coach_profile.detail)]

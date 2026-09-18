@@ -29,7 +29,8 @@ def _upload(request,id):
         require(False,'图片无法读取，请换一张图片')
     with transaction.atomic():
         e=get_object_or_404(Event.objects.select_for_update(),pk=id)
-        authorize(e,request.user,'history-image' if e.document.get('historySnapshot') else kind+'-update')
+        from .coach_profile import permitted
+        permitted(e,request.user,kind,request.POST.get('entityId'))
         require(str(e.revision)==request.POST.get('revision'),'赛事已更新，请刷新后上传')
         before=copy.deepcopy(e.document);d=copy.deepcopy(before)
         require(not d.get('archive'),'请先开启归档修订')
@@ -51,7 +52,17 @@ def serve(request,id,name):
     import re
     if not re.fullmatch(r'[0-9a-f]{32}\.png',name):raise Http404
     e=get_object_or_404(Event,pk=id)
-    if not e.public and not(request.user.is_authenticated and (request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists())):raise Http404
+    if not e.public and not(request.user.is_authenticated and (request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists())):
+        if not request.user.is_authenticated:raise Http404
+        from .coach_profile import permitted,source
+        from django.core.exceptions import PermissionDenied
+        allowed=False
+        for kind,key in [('team','teams'),('player','players')]:
+            for row in source(e).get(key,[]):
+                if row.get('imageUrl')!=f'/media/roster/{e.pk}/{name}':continue
+                try:permitted(e,request.user,kind,row['id']);allowed=True
+                except PermissionDenied:pass
+        if not allowed:raise Http404
     path=settings.ENV_ROOT/'uploads'/'roster'/str(id)/name
     if not path.is_file():raise Http404
     response=FileResponse(path.open('rb'),content_type='image/png');response['Cache-Control']='private, no-cache';return response

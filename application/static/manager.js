@@ -21,6 +21,7 @@ function form(id,handler){const f=$('#'+id);if(f)f.onsubmit=async e=>{e.preventD
 function click(selector,fn){const el=$(selector);if(el)el.onclick=async()=>{try{await fn()}catch(e){notice(e.message,true)}}}
 function render(){
  if(!Object.hasOwn(pages,page))page='overview';
+ $('#content').dataset.layoutPage=page;
  if(event&&({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[page])&&!can({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[page]))page='overview';
  $('#nav').innerHTML=Object.entries(pages).filter(([k])=>!event||!({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[k])||can({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[k])).map(([k,v])=>`<button data-page="${k}" class="${page===k?'active':''}">${v}</button>`).join('');document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=b.dataset.page;opened=null;preview=null;render()});
  if(!event){$('#content').innerHTML='<h1>暂无可管理赛事</h1><p>总管理员可以创建赛事；其他账号请联系赛事管理员授权。</p>';return}

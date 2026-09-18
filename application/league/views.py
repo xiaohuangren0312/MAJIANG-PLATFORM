@@ -275,10 +275,10 @@ def asset(request,name):
     require_names={'coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
-    require_names.update({'history-backfill.js','event-ink.png'})
+    require_names.update({'history-backfill.js','event-ink.png','matchday-landscape.png'})
     if name not in require_names:raise Http404
     path=settings.BASE_DIR/'static'/name
-    response=FileResponse(path.open('rb'),content_type='image/png' if name=='event-ink.png' else 'text/javascript' if name.endswith('.js') else 'text/css')
+    response=FileResponse(path.open('rb'),content_type='image/png' if name in {'event-ink.png','matchday-landscape.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
     response['Cache-Control']='no-cache';return response
 
 @require_GET

@@ -78,7 +78,7 @@ class HistoryRosterApiTests(TestCase):
         payload=json.loads((Path(__file__).parents[2]/'design/history-analysis/S1-public.json').read_text())
         d=initial();d['historySnapshot']=payload
         event=Event.objects.create(name='历史补录测试',kind='team',document=d)
-        self.client.force_login(admin);url=f'/api/events/{event.id}/'
+        self.client.force_login(admin);url=f'/api/history-backfill/events/{event.id}/'
         body=dict(action='history-player-add',revision=1,name='新增选手')
         self.assertEqual(self.client.post(url,body,content_type='application/json').status_code,200)
         event.refresh_from_db();self.assertEqual(len(event.document['historyCurrent']['players']),50)

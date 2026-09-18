@@ -31,3 +31,7 @@
 ## Role policy (user update 2026-09-18)
 
 Event managers administer their own unarchived events and may create restricted coach accounts scoped to those events. Coaches only gain assigned team-draft actions beyond public viewing. Viewers cannot perform business writes. Only the total administrator creates/assigns event managers and revises archived events. Preserve score/reference/settlement/revision validation for every role. Archived revisions must retain the last published snapshot until explicitly finalized.
+
+## Delivery UI and temporary historical backfill (2026-09-18)
+
+All seasons use the same delivery management components. Keep S1/S2/S3 source reconciliation, missing-result supplementation and PT inverse tools in the root-only /manage/history-backfill/ workspace. Gate its pages, scripts and APIs with HISTORY_BACKFILL_ENABLED; retiring the workspace must not remove data or affect normal management/public views/exports. Do not reintroduce temporary backfill controls into normal event pages.

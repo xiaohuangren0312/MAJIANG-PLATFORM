@@ -10,14 +10,14 @@ class HistoryCorrectionTests(TestCase):
         self.admin=get_user_model().objects.create_user(username='root',is_superuser=True)
         self.child=get_user_model().objects.create_user(username='child')
         self.other=get_user_model().objects.create_user(username='other')
-        self.payload={'id':'s-test','name':'历史赛事','type':'team','stages':[{'id':'regular','name':'常规赛'},{'id':'final','name':'决赛'}],'players':[{'id':'p'+str(i),'name':'选手'+str(i),'teamId':'t'+str(i)} for i in range(1,6)],'teams':[{'id':'t'+str(i),'name':'队伍'+str(i)} for i in range(1,6)],'results':[{'id':'r1','stageId':'regular','date':'2026-01-01','number':1,'seats':[{'playerId':'p'+str(i),'teamId':'t'+str(i),'score':None,'rank':None,'base':None,'penalty':None,'points':v,'teamPoints':v} for i,v in enumerate([500,100,-100,-500],1)],'penalties':[],'yakuman':[]}],'schedule':[{'id':'r1','resultId':'r1','players':[]}],'statistics':{},'snapshots':[{'name':'决赛','rows':[{'name':'队伍1','total':999,'carry':250}]}]}
+        self.payload={'id':'s1','name':'历史赛事','type':'team','stages':[{'id':'regular','name':'常规赛'},{'id':'final','name':'决赛'}],'players':[{'id':'p'+str(i),'name':'选手'+str(i),'teamId':'t'+str(i)} for i in range(1,6)],'teams':[{'id':'t'+str(i),'name':'队伍'+str(i)} for i in range(1,6)],'results':[{'id':'r1','stageId':'regular','date':'2026-01-01','number':1,'seats':[{'playerId':'p'+str(i),'teamId':'t'+str(i),'score':None,'rank':None,'base':None,'penalty':None,'points':v,'teamPoints':v} for i,v in enumerate([500,100,-100,-500],1)],'penalties':[],'yakuman':[]}],'schedule':[{'id':'r1','resultId':'r1','players':[]}],'statistics':{},'snapshots':[{'name':'决赛','rows':[{'name':'队伍1','total':999,'carry':250}]}]}
         for stage in ['all','regular','final']:
             self.payload['statistics'][stage]={}
             for metric in ['raw','competitive']:
                 self.payload['statistics'][stage][metric]={kind:[dict(id=('p' if kind=='player' else 't')+str(i),name='对象'+str(i),total=v+(250 if stage=='final' else 0),raw=v,carry=250 if stage=='final' else 0,rank=i) for i,v in enumerate([500,100,-100,-500,0],1)] for kind in ['player','team']}
         self.doc=initial();self.doc['historySnapshot']=copy.deepcopy(self.payload)
         self.e=Event.objects.create(name='历史赛事',kind='team',document=self.doc);self.e.editors.add(self.child)
-        self.url=f'/api/events/{self.e.id}/';self.client.force_login(self.child)
+        self.url=f'/api/history-backfill/events/{self.e.id}/';self.client.force_login(self.admin)
     def body(self):
         seats=copy.deepcopy(self.payload['results'][0]['seats']);seats[0]['points']=600;seats[0]['teamPoints']=650
         return dict(id='r1',reason='按原始成绩单更正',seats=seats)
@@ -48,11 +48,13 @@ class HistoryCorrectionTests(TestCase):
         self.assertEqual(self.client.post(self.url,b,content_type='application/json').status_code,409)
     def test_permission_and_wrong_event(self):
         self.client.force_login(self.other)
-        self.assertEqual(self.client.post(self.url,dict(action='history-preview',revision=1,**self.body()),content_type='application/json').status_code,404)
+        self.assertEqual(self.client.post(self.url,dict(action='history-preview',revision=1,**self.body()),content_type='application/json').status_code,403)
         self.client.force_login(self.child)
+        self.assertEqual(self.client.post(self.url,dict(action='history-preview',revision=1,**self.body()),content_type='application/json').status_code,403)
+        self.client.force_login(self.admin)
         res=self.client.post(self.url,dict(action='history-preview',revision=1,**self.body()),content_type='application/json').json()
         second=Event.objects.create(name='另一个',kind='team',document=self.doc);second.editors.add(self.child)
-        self.assertEqual(self.client.post(f'/api/events/{second.id}/',dict(action='history-correct',revision=1,token=res['token'],acknowledgeCarry=True),content_type='application/json').status_code,400)
+        self.assertEqual(self.client.post(f'/api/history-backfill/events/{second.id}/',dict(action='history-correct',revision=1,token=res['token'],acknowledgeCarry=True),content_type='application/json').status_code,400)
     def test_invalid_mapping_blank_and_duplicate(self):
         for field,value in [('playerId','outside'),('playerId','p2'),('teamId','t2'),('points',None),('points',1.5)]:
             b=self.body();b['seats'][0][field]=value

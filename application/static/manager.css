@@ -29,3 +29,5 @@ form[data-stage-edit]+form[data-stage-edit]{border-top:1px solid var(--line);pad
 @media(max-width:480px){h1{font-size:24px}.four,.roster-create-panels{grid-template-columns:1fr}button,a.button,.actions>a{min-height:44px}form>button{margin-right:6px}aside>a{margin:8px 0 0;display:flex}dialog{padding:20px;width:calc(100vw - 20px)}.actions{gap:8px}td button{min-height:40px}}
 
 .roster-row-actions{display:inline-flex;gap:8px;align-items:center;flex-shrink:0}.roster-row-actions button{margin:0;min-height:34px;padding:6px 10px;font-size:12px}form[data-history-image]>.roster-row-actions{float:right;margin:4px 0 8px 8px}form[data-history-image]>strong{max-width:100%}.roster-team .roster-identity{min-width:0}.roster-team .roster-identity>span{overflow-wrap:anywhere}@media(max-width:600px){.roster-team{flex-wrap:wrap}.roster-team>.roster-row-actions{margin-left:auto}.roster-row-actions button{min-height:44px}form[data-history-image]>.roster-row-actions{float:none;display:flex;margin:10px 0}}
+
+.grid.single-column{grid-template-columns:minmax(0,1fr)}

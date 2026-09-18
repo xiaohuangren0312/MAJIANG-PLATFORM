@@ -39,3 +39,6 @@ SECURE_CONTENT_TYPE_NOSNIFF=True
 DATA_UPLOAD_MAX_MEMORY_SIZE=2*1024*1024
 AUTH_PASSWORD_VALIDATORS=[{'NAME':'django.contrib.auth.password_validation.MinimumLengthValidator','OPTIONS':{'min_length':12}}]
 LOGGING={'version':1,'disable_existing_loggers':False,'handlers':{'file':{'class':'logging.FileHandler','filename':str(ENV_ROOT/'logs/application.log')}},'root':{'handlers':['file'],'level':'WARNING'}}
+
+# Temporary administrative workspace. Set to 0 to retire its page, tools and write APIs.
+HISTORY_BACKFILL_ENABLED=os.environ.get('HQL_HISTORY_BACKFILL_ENABLED','1')=='1'

@@ -11,6 +11,7 @@ class HistoryRuleTests(TestCase):
     def rule_body(self):
         return dict(action='rule',revision=1,name='自定义规则',start=25000,**{'return':25000},bonuses=[300,100,-100,-300],reason='历史规则依据')
     def test_member_create_no_score_change_and_audit(self):
+        self.client.force_login(self.child);self.url=f'/api/events/{self.e.id}/'
         old=copy.deepcopy(self.e.document)
         r=self.client.post(self.url,self.rule_body(),content_type='application/json');self.assertEqual(r.status_code,200)
         self.e.refresh_from_db();self.assertEqual(self.e.document['historySnapshot'],old['historySnapshot'])
@@ -18,12 +19,14 @@ class HistoryRuleTests(TestCase):
         self.assertEqual(self.e.document['rules'][0],old['rules'][0])
         self.assertEqual(Audit.objects.get(event=self.e).reason,'历史规则依据')
     def test_ordinary_and_cross_event_denied(self):
+        self.url=f'/api/events/{self.e.id}/'
         self.client.force_login(self.other)
         self.assertEqual(self.client.post(self.url,self.rule_body(),content_type='application/json').status_code,404)
         self.client.force_login(self.child)
         other=Event.objects.create(name='隔离赛事',kind='team',document=self.doc)
         self.assertEqual(self.client.post(f'/api/events/{other.id}/',self.rule_body(),content_type='application/json').status_code,404)
     def test_revoked_member_denied(self):
+        self.client.force_login(self.child);self.url=f'/api/events/{self.e.id}/'
         self.e.editors.remove(self.child)
         self.assertEqual(self.client.post(self.url,self.rule_body(),content_type='application/json').status_code,404)
     def test_reason_optional_and_revision_conflict(self):

@@ -24,9 +24,9 @@ class PasteTests(TestCase):
   from django.contrib.auth import get_user_model
   from .models import Event
   user=get_user_model().objects.create_user('inverse-admin',is_superuser=True);self.client.force_login(user)
-  d=fixture();d['historySnapshot']={'results':[{'id':'historical','seats':[{'points':p} for p in [600,100,-200,-500]],'penalties':[]}]}
+  d=fixture();d['historySnapshot']={'id':'s1','results':[{'id':'historical','seats':[{'points':p} for p in [600,100,-200,-500]],'penalties':[]}]}
   e=Event.objects.create(name='历史反算测试',kind='team',document=d)
-  url=f'/api/events/{e.id}/';body={'action':'history-inverse','revision':1,'id':'historical'}
+  url=f'/api/history-backfill/events/{e.id}/';body={'action':'history-inverse','revision':1,'id':'historical'}
   r=self.client.post(url,body,content_type='application/json');self.assertEqual(r.status_code,200,r.content)
   self.assertEqual(r.json()['candidates'],[[40000,30000,20000,10000]])
   e.refresh_from_db();self.assertEqual(e.document,d);self.assertEqual(e.revision,1)

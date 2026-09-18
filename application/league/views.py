@@ -69,7 +69,7 @@ def signout(request):logout(request);return redirect('/login/')
 @ensure_csrf_cookie
 def manage(request):
     if not request.user.is_superuser and not allowed(request.user).exists():return redirect('/')
-    return render(request,'manage.html')
+    return render(request,'manage.html',{'history_backfill_enabled':settings.HISTORY_BACKFILL_ENABLED})
 
 @require_GET
 def public_data(request):
@@ -98,10 +98,12 @@ def events(request):
 @transaction.atomic
 def event_detail(request,id):
     e=get_object_or_404(allowed(request.user),pk=id)
-    if request.method=='GET':return JsonResponse({**summary(e,request.user),'document':e.document,**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
+    if request.method=='GET':
+        from .management_projection import document_for
+        return JsonResponse({**summary(e,request.user),'document':e.document,'managementDocument':document_for(e),'completed':bool(e.document.get('historySnapshot')),**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
     require(request.method=='POST','请求方法不支持');b=body(request)
     if b.get('revision')!=e.revision:return JsonResponse({'error':'数据已被修改，请刷新后重试'},status=409)
-    action=b.get('action');authorize(e,request.user,action);old=e.document;old_public=e.public;grant_user=None
+    action=b.get('action');authorize(e,request.user,action,backfill=getattr(request,'history_backfill',False));old=e.document;old_public=e.public;grant_user=None
     if action in ['team-delete','player-delete','history-roster-delete','coach-manage']:
         linked_activities=list(e.draft_activities.select_for_update())
         fresh=Event.objects.select_for_update().get(pk=e.pk)
@@ -220,6 +222,12 @@ def event_detail(request,id):
     elif action=='history-roster-delete':
         from .roster_delete import delete_roster
         new=delete_roster(old,b.get('kind'),b.get('id'))
+    elif old.get('historySnapshot') and action in ['team-update','player-update']:
+        from .management_projection import update_identity
+        new=update_identity(old,dict(b,kind=action.split('-')[0]))
+    elif old.get('historySnapshot') and action=='stage-update':
+        from .history_stages import update
+        new=update(old,b)
     elif action=='history-roster':
         from .history_roster import update
         new=update(old,b)
@@ -256,6 +264,9 @@ def event_detail(request,id):
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
     require_names={'pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
+    if name in {'history-editor.js','history-review.js','history-backfill.js'}:
+        if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
+    require_names.add('history-backfill.js')
     if name not in require_names:raise Http404
     path=settings.BASE_DIR/'static'/name
     response=FileResponse(path.open('rb'),content_type='text/javascript' if name.endswith('.js') else 'text/css')
@@ -335,11 +346,14 @@ def account(request):
 @login_required
 @ensure_csrf_cookie
 def history_page(request):
+    if not settings.HISTORY_BACKFILL_ENABLED:raise Http404
     if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以核对历史导入')
+    if request.path=='/manage/history/':return redirect('/manage/history-backfill/')
     return render(request,'history-review.html')
 
 @api
 def history_reviews(request,key=None):
+    if not settings.HISTORY_BACKFILL_ENABLED:raise Http404
     from .models import HistoryReview,HistoryReviewAudit
     from .history_review import fingerprint,report
     if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以核对历史导入')
@@ -377,6 +391,7 @@ def history_reviews(request,key=None):
 @api
 @require_POST
 def import_history(request,key):
+    if not settings.HISTORY_BACKFILL_ENABLED:raise Http404
     from .models import HistoryImport,HistoryReview
     from .history_review import fingerprint,report
     if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以导入历史赛事')

@@ -225,3 +225,5 @@ body>.manage-header .manage-account button{border:0;min-height:36px;padding:6px 
 .match-settings>div,.match-settings>section{padding:0 22px 22px}
 @media(max-width:850px){.management-page #content:has(#score-form) #lineup-form>.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.management-page #score-form .four{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.management-page #score-form .seat{padding:12px}.management-page #score-form .seat input{font-size:18px}.score-mode-switch>button{flex:1;min-width:0}}
+
+header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height:38px;margin:0;padding:7px 10px;border:1px solid #bfb3a0;border-radius:6px;background:#fffdf8;color:#272522;font:500 12px/1.5 system-ui;cursor:pointer}header .portal-switch option{background:#fffdf8;color:#272522}@media(max-width:600px){header .portal-switch{width:88px;flex-basis:88px;padding:7px 6px}.manage-account{flex-wrap:wrap}.public-account-actions{flex-wrap:wrap;justify-content:flex-end}.manage-header .manage-account{gap:10px}}

@@ -95,3 +95,12 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 
 /* Shared row sizing keeps the home ranking and spotlight edges aligned. */
 .home-columns>section{display:flex;flex-direction:column;min-width:0}.home-columns>section>.section-head{flex:0 0 auto}.home-columns>section>.card,.home-columns>section>.spotlight,.home-columns>section>.empty{flex:1 0 auto;margin-bottom:0}
+
+/* Fill the aligned spotlight with a stronger portrait and anchored score. */
+.home-columns .spotlight{display:flex!important;flex-direction:column;padding:26px 28px}
+.home-columns .spotlight .identity{margin:16px 0 10px!important;gap:18px}
+.home-columns .spotlight .avatar{width:84px;height:84px;flex-basis:84px}
+.home-columns .spotlight h3{font-size:30px;line-height:1.3}
+.home-columns .spotlight .number{margin-top:auto;padding-top:18px;font-size:46px;line-height:1.2}
+.home-columns .spotlight p{font-size:12px}
+@media(max-width:600px){.home-columns .spotlight{padding:24px;min-height:270px}.home-columns .spotlight .avatar{width:72px;height:72px;flex-basis:72px}.home-columns .spotlight h3{font-size:26px}.home-columns .spotlight .number{font-size:40px}}

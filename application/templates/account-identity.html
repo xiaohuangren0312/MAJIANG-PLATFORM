@@ -16,7 +16,8 @@ header .account-menu>summary.account-identity>small{border:0;padding:0;margin:0;
 header .account-menu[open]>summary,header .account-menu>summary:hover{background:#9a88751a}
 header .account-dropdown{position:absolute;right:0;top:calc(100% + 9px);width:180px;max-width:calc(100vw - 32px);padding:7px;border:1px solid #ded6c9;border-radius:10px;background:#fffdf8;color:#272522;box-shadow:0 12px 36px #211b1926;z-index:100}
 header .account-dropdown>a,header .account-dropdown form>button{display:flex;width:100%;min-height:40px;align-items:center;justify-content:flex-start;margin:0;padding:10px 12px;box-sizing:border-box;font:500 13px/1.4 system-ui;color:#39312a;background:transparent;border:0;border-radius:6px;text-decoration:none;cursor:pointer}
-header .account-dropdown>a:hover,header .account-dropdown form>button:hover{background:#f0eae0}
+header .account-menu .account-dropdown>a:hover,header .account-menu .account-dropdown>a:focus-visible{background:#f0eae0;color:#39312a}
+header .account-menu .account-dropdown>a[aria-current=page]:hover{color:#a6372b}
 header .account-dropdown>a[aria-current=page]{background:#eee8df;color:#a6372b;font-weight:650}
 header .account-dropdown form{margin:0;padding:0}
 header .account-menu .account-dropdown form>button{color:#a6372b;background:transparent;opacity:1}

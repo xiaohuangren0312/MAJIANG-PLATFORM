@@ -84,3 +84,5 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 .filters label.checkbox input[type=checkbox]{width:16px;height:16px;min-height:0;flex:0 0 16px;margin:0;padding:0;accent-color:#ba3c30}
 .filters>button{height:42px;align-self:end;margin:0}
 @media(max-width:640px){.filters label.checkbox{min-height:42px;padding:0;justify-content:flex-start}.filters label:has(#search){grid-column:1/-1}}
+
+.site-header .brand.brand-wide .brand-tile{width:156px;height:68px;object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0}.site-header .brand.brand-wide>span{display:none}@media(max-width:600px){.site-header .brand.brand-wide .brand-tile{width:124px;height:54px}}

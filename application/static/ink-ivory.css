@@ -65,3 +65,16 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 .detail-hero.team-profile-art{position:relative;overflow:hidden;align-items:center}.team-profile-art>div{flex:1;min-width:0;position:relative;z-index:1}.team-profile-art:after{content:'';display:block;align-self:stretch;flex:0 0 34%;min-height:120px;background:url('/assets/team-profile-art.png') right center / auto 100% no-repeat;pointer-events:none}.team-profile-art h1,.team-profile-art p{overflow-wrap:anywhere}@media(max-width:640px){.detail-hero.team-profile-art{gap:14px;padding:20px 16px}.team-profile-art:after{flex-basis:20%;min-height:90px;opacity:.7}.team-profile-art>.team-mark{width:48px;min-width:48px;height:60px}}
 
 .team-profile-art:after{mix-blend-mode:multiply;mask-image:linear-gradient(to right,transparent,#000 35%);background-size:auto 150%}
+
+/* Player spotlight: quiet ink landscape, clear portrait and score. */
+.spotlight{position:relative;isolation:isolate;overflow:hidden;min-height:250px;background:#f0ebe2;padding:28px;border-color:#ddd3c4}
+.spotlight:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#f0ebe2 0%,#f0ebe2e8 48%,#f0ebe238 100%),url('/assets/team-profile-art.png') right center/auto 100% no-repeat;opacity:.65}
+.spotlight:after{content:"";position:absolute;right:22px;top:24px;width:30px;height:3px;background:#b83c30;opacity:.7}
+.spotlight .identity{gap:16px;align-items:center;margin:20px 0 12px!important}
+.spotlight .avatar{width:68px;height:68px;flex:0 0 68px;border:3px solid #fffaf1;box-shadow:0 3px 12px #34281b14;background:#ded6c8;color:#8c7c66}
+.spotlight .spotlight-default svg{width:100%;height:100%;fill:currentColor}
+.spotlight h3{margin:0;font-size:25px;overflow-wrap:anywhere}
+.spotlight p{color:#776957;max-width:85%;line-height:1.8}
+.spotlight .number{margin-top:18px;font-size:38px;font-variant-numeric:tabular-nums;color:#a6372b}
+.spotlight .number small{color:#877966;font-weight:500;margin-left:3px}
+@media(max-width:600px){.spotlight{padding:24px;min-height:240px}.spotlight .avatar{width:60px;height:60px;flex-basis:60px}.spotlight h3{font-size:22px}}

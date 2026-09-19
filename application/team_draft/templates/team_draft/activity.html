@@ -63,4 +63,4 @@ window.addEventListener('offline',()=>{$('connection').textContent='连接中断
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
 (async()=>{await load(true);timer=setInterval(()=>load(),2000)})();
 
-</script></body></html>
+</script>{% include 'site-credit.html' %}</body></html>

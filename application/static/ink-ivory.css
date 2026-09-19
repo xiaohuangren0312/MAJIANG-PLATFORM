@@ -135,3 +135,6 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 [data-result-card]{cursor:pointer}[data-result-card]:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 
 header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height:38px;margin:0;padding:7px 10px;border:1px solid #bfb3a0;border-radius:6px;background:#fffdf8;color:#272522;font:500 12px/1.5 system-ui;cursor:pointer}header .portal-switch option{background:#fffdf8;color:#272522}@media(max-width:600px){header .portal-switch{width:88px;flex-basis:88px;padding:7px 6px}.manage-account{flex-wrap:wrap}.public-account-actions{flex-wrap:wrap;justify-content:flex-end}.manage-header .manage-account{gap:10px}}
+
+/* Uploaded team artwork keeps its original silhouette. */
+img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0}

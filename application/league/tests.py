@@ -305,7 +305,7 @@ class AccountTests(TestCase):
         self.assertContains(r,'赛事管理员');self.assertContains(r,'可管理赛事');self.assertNotContains(r,'不得泄露赛事')
     def test_public_page_login_entry(self):
         self.assertContains(self.client.get('/'),'登录')
-        self.client.force_login(self.user);self.assertContains(self.client.get('/'),'我的账号')
+        self.client.force_login(self.user);self.assertContains(self.client.get('/'),'<a href="/account/">账号设置</a>',html=True)
 
 
 class DefaultPasswordTests(TestCase):

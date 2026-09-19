@@ -104,3 +104,5 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 .home-columns .spotlight .number{margin-top:auto;padding-top:18px;font-size:46px;line-height:1.2}
 .home-columns .spotlight p{font-size:12px}
 @media(max-width:600px){.home-columns .spotlight{padding:24px;min-height:270px}.home-columns .spotlight .avatar{width:72px;height:72px;flex-basis:72px}.home-columns .spotlight h3{font-size:26px}.home-columns .spotlight .number{font-size:40px}}
+
+.schedule-contender .lineup-assignment{display:block;margin-top:4px;font-size:10px;font-weight:400;color:#938779}.schedule-contender .lineup-assignment.assigned{color:#73604a}

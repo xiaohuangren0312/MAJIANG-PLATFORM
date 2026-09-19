@@ -235,3 +235,10 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .workspace-links>a:hover{background:#e2dbce}.workspace-links>a[aria-current=page]{background:#272522;color:#fffdf8;font-weight:600}
 .coach-menu-heading{font-size:15px;font-weight:650;margin:0 14px 18px}.coach-workspace>main{max-width:1280px}.manage-header>.manage-account{margin-left:auto}
 @media(max-width:850px){.workspace>aside .workspace-links{grid-column:1/-1;display:flex;flex-wrap:wrap;margin:4px 0 0;padding-top:10px;gap:4px}.workspace-links>small{display:none}.workspace-links>a{padding:9px 12px;min-height:40px;font-size:12px}.coach-menu-heading{grid-column:1/-1;margin:0 0 4px}.coach-workspace>aside .workspace-links{border:0;padding:0}}
+
+/* Today is evaluated in Asia/Shanghai, independent of browser timezone. */
+.management-page #content[data-layout-page=schedule] tr.schedule-today{background:#fcf0e9}
+.management-page #content[data-layout-page=schedule] tr.schedule-today:hover{background:#fae9df}
+.management-page tr.schedule-today>td:first-child{box-shadow:inset 3px 0 #ba3c30}
+.schedule-today-badge{display:inline-block;margin-right:8px;padding:2px 7px;border-radius:4px;background:#ba3c30;color:#fff;font-size:11px;font-weight:600;vertical-align:middle}
+@media(max-width:850px){.management-page #content[data-layout-page=schedule] tr.schedule-today{border-left:3px solid #ba3c30;background:#fcf0e9}.management-page tr.schedule-today>td:first-child{box-shadow:none}}

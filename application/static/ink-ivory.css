@@ -122,3 +122,6 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 .home-fixture>.home-fixture-result{grid-column:3;grid-row:1;justify-self:end;font-size:12px;color:#756655;white-space:nowrap;border-bottom:1px solid #cbbdac;padding:5px 0}
 .home-fixture>.note{grid-row:2;margin:0}
 @media(max-width:760px){.home-next-matchday .home-fixture{grid-template-columns:minmax(0,1fr) auto;gap:14px;min-height:0}.home-fixture>.home-fixture-head{grid-column:1;grid-row:1;flex-wrap:wrap;justify-content:flex-start}.home-fixture>.home-fixture-lineup{grid-column:1/-1;grid-row:2;min-height:0}.home-fixture>.home-fixture-result{grid-column:2;grid-row:1}.home-fixture>.note{grid-row:3}}
+
+.public-account-actions{display:flex;align-items:center;gap:16px;min-width:0}.manage-direct-link{white-space:nowrap;font-size:13px;padding:8px 12px;border:1px solid #cfc5b5;border-radius:6px;color:#40372d}.manage-direct-link:hover{background:#eee8dd}
+@media(max-width:640px){.public-account-actions{gap:8px}.public-account-actions .account-identity{max-width:100px;font-size:12px;gap:2px}.manage-direct-link{font-size:12px;padding:8px}.site-header:has(.public-account-actions){gap:10px;flex-wrap:wrap}}

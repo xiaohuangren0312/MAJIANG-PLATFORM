@@ -242,3 +242,5 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .management-page tr.schedule-today>td:first-child{box-shadow:inset 3px 0 #ba3c30}
 .schedule-today-badge{display:inline-block;margin-right:8px;padding:2px 7px;border-radius:4px;background:#ba3c30;color:#fff;font-size:11px;font-weight:600;vertical-align:middle}
 @media(max-width:850px){.management-page #content[data-layout-page=schedule] tr.schedule-today{border-left:3px solid #ba3c30;background:#fcf0e9}.management-page tr.schedule-today>td:first-child{box-shadow:none}}
+
+.overview-tools[hidden]{display:none!important}.overview-tools h2{margin-top:0}.overview-default-logo{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}.overview-default-logo summary{cursor:pointer;font-weight:600}.overview-default-logo form{max-width:520px}

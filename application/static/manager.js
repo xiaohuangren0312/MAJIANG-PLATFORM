@@ -9,7 +9,7 @@ function notice(s,error=false){const box=$('#message');box.textContent=(error?'�
 async function api(url,body){const csrf=document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=')[1];const r=await fetch(url,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-CSRFToken':csrf||''},body:body?JSON.stringify(body):undefined});if(r.status===401){location.href='/login/';throw Error('登录已过期')}const data=await r.json();if(!r.ok)throw Error(data.error||'操作失败，请刷新重试');return data}
 let loadGeneration=0;
 async function load(id){
- const generation=++loadGeneration;$('#content').setAttribute('aria-busy','true');$('#content').innerHTML='<p>正在加载赛事…</p>';$('#nav').querySelectorAll('button').forEach(b=>b.disabled=true);
+ $('#overview-tools').hidden=true;const generation=++loadGeneration;$('#content').setAttribute('aria-busy','true');$('#content').innerHTML='<p>正在加载赛事…</p>';$('#nav').querySelectorAll('button').forEach(b=>b.disabled=true);
  const listing=await api('/api/events/');if(generation!==loadGeneration)return;
  const preferred=id||event?.id||new URLSearchParams(location.search).get('event'),chosen=listing.events.some(e=>e.id===preferred)?preferred:listing.events[0]?.id;
  const next=chosen?await api('/api/events/'+chosen+'/'):null;if(generation!==loadGeneration)return;
@@ -25,6 +25,7 @@ function render(){
  $('#content').dataset.layoutPage=page;
  if(event&&({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[page])&&!can({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[page]))page='overview';
  $('#nav').innerHTML=Object.entries(pages).filter(([k])=>!event||!({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[k])||can({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[k])).map(([k,v])=>`<button data-page="${k}" class="${page===k?'active':''}">${v}</button>`).join('');document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=b.dataset.page;opened=null;preview=null;render()});
+ $('#overview-tools').hidden=page!=='overview';
  if(!event){$('#content').innerHTML='<h1>暂无可管理赛事</h1><p>总管理员可以创建赛事；其他账号请联系赛事管理员授权。</p>';return}
  ({overview,roster,rules,schedule,resources,pairing,settle,lifecycle,access})[page]();if(page==='overview')eventBrandPanel();enforcePermissions();
 }

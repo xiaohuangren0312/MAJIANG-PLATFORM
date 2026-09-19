@@ -58,3 +58,5 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 
 /* Uploaded team marks keep their original image; feather fallback uses team color. */
 .team-mark.team-feather{background:transparent;border:0;border-radius:0;box-shadow:none;color:var(--team);padding:0;display:inline-flex;align-items:center;justify-content:center}.team-feather svg{display:block;width:100%;height:100%;max-width:48px;fill:currentColor}.detail-hero>.team-feather svg{max-width:90px}
+
+.schedule-seat-order{font-size:10px;line-height:1.5;color:var(--muted);margin:0 0 9px;letter-spacing:.5px}.seat-order-mobile{display:none}.home-fixture>.schedule-seat-order{grid-column:2;margin-bottom:-8px}.home-fixture:has(>.schedule-seat-order)>.home-fixture-head{grid-row:1/3}.home-fixture:has(>.schedule-seat-order)>.schedule-lineup{grid-column:2}@media(max-width:760px){.seat-order-desktop{display:none}.seat-order-mobile{display:inline}.home-fixture>.schedule-seat-order{grid-column:1;margin-bottom:-5px}.home-fixture:has(>.schedule-seat-order)>.home-fixture-head{grid-row:auto}.home-fixture:has(>.schedule-seat-order)>.schedule-lineup{grid-column:1}}

@@ -52,13 +52,13 @@ const fixtureViews=new Map();
 function scheduleLineup(m){
  const seats=scheduleSeats(m),known=m.seatOrderKnown!==false&&seats.length===4&&new Set(seats.map(p=>p.wind)).size===4&&seats.every(p=>'东南西北'.includes(p.wind||'?')),personal=tournament.type!=='team'||fixtureViews.get(tournament.id+':'+m.id)==='player';
  if(known)seats.sort((a,b)=>'东南西北'.indexOf(a.wind)-'东南西北'.indexOf(b.wind));
- return `<div class="schedule-lineup">${seats.map(p=>{const name=p.playerId?player(p.playerId)?.name||'未知':m.state==='completed'?'选手未记录':'待公布';return `<div class="schedule-slot">${known?`<span class="schedule-seat-heading">${esc(p.wind)}</span>`:''}<div class="schedule-contender">${personal?(p.playerId?avatar(p.playerId):'<span class="avatar" aria-hidden="true">?</span>'):teamMark(p.teamId)}<div><strong>${esc(personal?name:team(p.teamId)?.name||'队伍待核对')}</strong></div></div></div>`}).join('')}</div>`;
+ return `${known?'<div class="schedule-seat-order"><span class="seat-order-desktop">座次：东 · 南 · 西 · 北</span><span class="seat-order-mobile">座次：上排东、南 · 下排西、北</span></div>':''}<div class="schedule-lineup">${seats.map(p=>{const name=p.playerId?player(p.playerId)?.name||'未知':m.state==='completed'?'选手未记录':'待公布';return `<div class="schedule-slot"><div class="schedule-contender">${personal?(p.playerId?avatar(p.playerId):'<span class="avatar" aria-hidden="true">?</span>'):teamMark(p.teamId)}<div><strong>${esc(personal?name:team(p.teamId)?.name||'队伍待核对')}</strong></div></div></div>`}).join('')}</div>`;
 }
 function bindFixtureCards(){
  if(tournament.type!=='team')return;
  document.querySelectorAll('[data-fixture-id]').forEach(card=>{const m=tournament.schedule.find(x=>x.id===card.dataset.fixtureId);if(!m)return;
  card.tabIndex=0;card.setAttribute('aria-label',`${m.date} ${m.time} ${displayTable(m.table)}桌，按回车切换队伍或选手`);
- const toggle=()=>{const key=tournament.id+':'+m.id;fixtureViews.set(key,fixtureViews.get(key)==='player'?'team':'player');card.querySelector('.schedule-lineup').outerHTML=scheduleLineup(m);card.dataset.view=fixtureViews.get(key)};
+ const toggle=()=>{const key=tournament.id+':'+m.id;fixtureViews.set(key,fixtureViews.get(key)==='player'?'team':'player');card.querySelector('.schedule-seat-order')?.remove();card.querySelector('.schedule-lineup').outerHTML=scheduleLineup(m);card.dataset.view=fixtureViews.get(key)};
  card.onclick=e=>{if(e.target.closest('a,button,input,select,textarea')||window.getSelection()?.toString())return;toggle()};
  card.onkeydown=e=>{if(e.target===card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle()}};
  });

@@ -131,3 +131,5 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 .home-fixture-lineup{justify-content:center}
 .fixture-order-mobile{display:none}
 @media(max-width:760px){.fixture-order-desktop{display:none}.fixture-order-mobile{display:inline}}
+
+[data-result-card]{cursor:pointer}[data-result-card]:focus-visible{outline:2px solid var(--red);outline-offset:3px}

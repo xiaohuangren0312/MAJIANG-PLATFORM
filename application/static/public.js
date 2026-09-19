@@ -44,7 +44,7 @@ const fixtureViews=new Map();
 function scheduleLineup(m){
  const seats=scheduleSeats(m),known=m.seatOrderKnown!==false&&seats.length===4&&new Set(seats.map(p=>p.wind)).size===4&&seats.every(p=>'东南西北'.includes(p.wind||'?')),personal=tournament.type!=='team'||fixtureViews.get(tournament.id+':'+m.id)==='player';
  if(known)seats.sort((a,b)=>'东南西北'.indexOf(a.wind)-'东南西北'.indexOf(b.wind));
- return `<div class="schedule-lineup">${seats.map(p=>{const name=p.playerId?player(p.playerId)?.name||'未知':m.state==='completed'?'选手未记录':'待公布';return `<div class="schedule-slot">${known?`<span class="schedule-seat-heading">${esc(p.wind)}</span>`:''}<div class="schedule-contender">${personal?(p.playerId?avatar(p.playerId):'<span class="avatar" aria-hidden="true">?</span>'):teamMark(p.teamId)}<div><strong>${esc(personal?name:team(p.teamId)?.name||'队伍待核对')}</strong><small>${esc(personal?(tournament.type==='team'?team(p.teamId)?.name||'队伍待核对':''):name)}</small></div></div></div>`}).join('')}</div>`;
+ return `<div class="schedule-lineup">${seats.map(p=>{const name=p.playerId?player(p.playerId)?.name||'未知':m.state==='completed'?'选手未记录':'待公布';return `<div class="schedule-slot">${known?`<span class="schedule-seat-heading">${esc(p.wind)}</span>`:''}<div class="schedule-contender">${personal?(p.playerId?avatar(p.playerId):'<span class="avatar" aria-hidden="true">?</span>'):teamMark(p.teamId)}<div><strong>${esc(personal?name:team(p.teamId)?.name||'队伍待核对')}</strong></div></div></div>`}).join('')}</div>`;
 }
 function bindFixtureCards(){
  if(tournament.type!=='team')return;

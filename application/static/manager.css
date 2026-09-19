@@ -227,3 +227,11 @@ body>.manage-header .manage-account button{border:0;min-height:36px;padding:6px 
 @media(max-width:480px){.management-page #score-form .four{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.management-page #score-form .seat{padding:12px}.management-page #score-form .seat input{font-size:18px}.score-mode-switch>button{flex:1;min-width:0}}
 
 header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height:38px;margin:0;padding:7px 10px;border:1px solid #bfb3a0;border-radius:6px;background:#fffdf8;color:#272522;font:500 12px/1.5 system-ui;cursor:pointer}header .portal-switch option{background:#fffdf8;color:#272522}@media(max-width:600px){header .portal-switch{width:88px;flex-basis:88px;padding:7px 6px}.manage-account{flex-wrap:wrap}.public-account-actions{flex-wrap:wrap;justify-content:flex-end}.manage-header .manage-account{gap:10px}}
+
+/* In-portal pages live in workspace navigation, separate from portal selection. */
+.workspace-links{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:5px}
+.workspace-links>small{font-size:11px;color:#8a7d6b;padding:0 14px 5px}
+.workspace-links>a{display:flex;align-items:center;min-height:42px;padding:10px 14px;color:#554d42;text-decoration:none;border-radius:7px;font-size:13px}
+.workspace-links>a:hover{background:#e2dbce}.workspace-links>a[aria-current=page]{background:#272522;color:#fffdf8;font-weight:600}
+.coach-menu-heading{font-size:15px;font-weight:650;margin:0 14px 18px}.coach-workspace>main{max-width:1280px}.manage-header>.manage-account{margin-left:auto}
+@media(max-width:850px){.workspace>aside .workspace-links{grid-column:1/-1;display:flex;flex-wrap:wrap;margin:4px 0 0;padding-top:10px;gap:4px}.workspace-links>small{display:none}.workspace-links>a{padding:9px 12px;min-height:40px;font-size:12px}.coach-menu-heading{grid-column:1/-1;margin:0 0 4px}.coach-workspace>aside .workspace-links{border:0;padding:0}}

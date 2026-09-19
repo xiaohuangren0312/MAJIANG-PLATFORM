@@ -204,3 +204,24 @@ body>.manage-header .manage-account button{border:0;min-height:36px;padding:6px 
 .management-page dialog button.ui-button.primary{background:#ba3c30;color:#fffdfa;border-color:#ba3c30}
 
 .manage-header .manage-brand img{width:auto;height:54px;max-width:122px;object-fit:contain}@media(max-width:600px){.manage-header .manage-brand img{max-width:72px;height:34px}.manage-brand strong span{display:none}}
+
+/* Match editor: full-width seats and one entry method at a time. */
+.management-page #content:has(#score-form) #lineup-form{display:block}
+.management-page #content:has(#score-form) #lineup-form>.four{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.management-page #content:has(#score-form) #lineup-form label{margin:0}
+.management-page #content:has(#score-form) #lineup-form select{width:100%}
+.management-page #content:has(#score-form) .card[hidden]{display:none!important}
+.score-mode-switch{display:flex;gap:8px;margin:22px 0 0;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.score-mode-switch button{min-width:120px}
+.management-page .manual-score-panel{margin-top:14px}
+.management-page #score-form .seat{background:#f8f5ef;padding:18px;border-color:#e5ded2}
+.management-page #score-form .seat h3{font-size:15px;overflow-wrap:anywhere;min-height:20px}
+.management-page #score-form .seat input{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}
+.score-extra{border-top:1px solid var(--line);margin-top:18px;padding-top:6px}
+.score-extra>summary{font-size:13px;color:#786b59;padding:10px 0}
+.score-extra>button{margin-top:8px}
+.management-page .match-settings{padding:0}
+.match-settings>summary{padding:17px 22px;font-size:13px}
+.match-settings>div,.match-settings>section{padding:0 22px 22px}
+@media(max-width:850px){.management-page #content:has(#score-form) #lineup-form>.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.management-page #score-form .four{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.management-page #score-form .seat{padding:12px}.management-page #score-form .seat input{font-size:18px}.score-mode-switch>button{flex:1;min-width:0}}

@@ -4,6 +4,7 @@ function matchDetail(){
  $('#content').innerHTML=`<button class="secondary" id="back">← 返回赛程</button><button class="secondary" id="match-resources-shortcut">补充解说 / 视频 / 牌谱</button><h1>${esc(m.date)} · ${tableLabel(m.number)}桌</h1><p>${esc(m.time)} · ${esc(m.rule.name)} v${m.rule.version} · ${locked?'阶段已锁定':m.state==='published'?'已发布，可更正':'等待发布'}</p><div class="card"><h2>出战名单</h2><form id="lineup-form"><div class="four">${m.seats.map((s,i)=>`<label>${['东','南','西','北'][i]} · ${event.kind==='team'?esc(team(s.teamId)):''}<select name="p${i}" ${readonly||m.state==='published'?'disabled':''}>${options([{id:'',name:'请选择'},...d.players.filter(p=>(m.state==='published'&&p.id===s.playerId)||(p.active&&(event.kind!=='team'||(p.bond?p.bondStages?.[m.stageId]:p.teamId)===s.teamId)))],s.playerId)}</select></label>`).join('')}</div>${!readonly&&m.state==='draft'?'<button>保存并公布出战名单</button>':''}</form></div><div class="card"><h2>战果录入</h2><form id="score-form"><fieldset ${readonly?'disabled':''}><div class="four">${m.seats.map((s,i)=>`<div class="seat"><h3>${esc(player(s.playerId))}</h3><label>终局点数<input name="score${i}" type="number" step="1" value="${s.score??m.rule.start}" required></label>${s.points!==undefined?`<p>已保存个人净分 ${pt(s.points)} PT${event.kind==='team'?`<br>队伍贡献 ${pt(s.teamPoints)} PT`:''}</p>`:''}</div>`).join('')}</div><h3>罚分记录</h3><div id="penalty-rows"></div>${!readonly?'<button type="button" class="secondary" id="add-penalty">＋ 添加罚分</button>':''}<h3>役满记录</h3><div id="yakuman-rows"></div>${!readonly?'<button type="button" class="secondary" id="add-yakuman">＋ 添加役满</button>':''}${m.state==='published'?'<label>备注（选填）<input name="correction" maxlength="120"></label>':''}${!readonly?`<hr><button>${m.state==='published'?'保存更正并重新发布':'保存战果并标记已完赛'}</button>`:''}</fieldset><p id="score-dirty" role="status"></p></form>${!readonly&&m.state==='draft'?`<hr><div class="actions"><button class="primary" id="publish" ${m.seats.every(s=>'score' in s)?'':'disabled'}>审核无误，发布赛果</button><button class="danger" id="cancel">取消本场</button></div>`:''}</div>`;
  matchMetadata(m);
  if(!readonly)pastePanel(m);
+ organizeMatchEditor(m);
  click('#match-resources-shortcut',()=>openResources(m.id));
  const contestants=m.seats.filter(s=>s.playerId).map(s=>({id:s.playerId,name:player(s.playerId)}));
  function dirty(){if($('#publish'))$('#publish').disabled=true;$('#score-dirty').textContent='有未保存修改，请先保存成绩。'}
@@ -43,4 +44,22 @@ function matchMetadata(m){
   form('match-meta-form',f=>command('match-update',{id:m.id,...Object.fromEntries(f),number:Number(f.get('number'))}));
   click('#delete-match',async()=>{if(!confirm('删除本场赛程及战果？排行榜会重新计算。'))return;await api('/api/events/'+event.id+'/',{action:'match-delete',revision:event.revision,id:m.id});opened=null;await load(event.id);notice('本场已删除')});
  }
+}
+
+function organizeMatchEditor(m){
+ const content=$('#content');
+ const manual=$('#score-form').closest('.card'),paste=$('#paste-form')?.closest('.card');
+ manual.classList.add('manual-score-panel');
+ if(paste){
+  const switcher=document.createElement('div');switcher.className='score-mode-switch';switcher.setAttribute('role','group');switcher.setAttribute('aria-label','录入方式');
+  switcher.innerHTML='<button type="button" class="primary" aria-pressed="true" data-score-mode="manual">手动录分</button><button type="button" class="secondary" aria-pressed="false" data-score-mode="paste">Excel 粘贴</button>';
+  paste.before(switcher);paste.hidden=true;
+  switcher.querySelectorAll('button').forEach(b=>b.onclick=()=>{const usePaste=b.dataset.scoreMode==='paste';paste.hidden=!usePaste;manual.hidden=usePaste;switcher.querySelectorAll('button').forEach(x=>{const active=x===b;x.classList.toggle('primary',active);x.classList.toggle('secondary',!active);x.setAttribute('aria-pressed',String(active))})});
+ }
+ for(const [kind,title,entries] of [['penalty','罚分',m.penalties],['yakuman','役满',m.yakuman]]){
+  const host=$('#'+kind+'-rows'),heading=host.previousElementSibling,add=host.nextElementSibling;
+  const details=document.createElement('details');details.className='score-extra';details.open=entries.length>0;
+  const summary=document.createElement('summary');summary.textContent=title+(entries.length?' · '+entries.length+' 条':'');heading.before(details);heading.remove();details.append(summary,host);if(add?.tagName==='BUTTON')details.append(add);
+ }
+ const meta=$('#match-meta-form')?.closest('.card');if(meta){const details=document.createElement('details');details.className='card match-settings';meta.before(details);const summary=document.createElement('summary');summary.textContent='赛程设置';details.append(summary);meta.querySelector('h2')?.remove();meta.classList.remove('card');details.append(meta)}
 }

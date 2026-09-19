@@ -1,3 +1,4 @@
+from .rule_presets import ML_RULE, ML_TEMPLATE_ID, builtin_templates, resolve_rule
 from .projection import rank_metrics
 from .domain import optional_note
 import json,hashlib,datetime
@@ -89,7 +90,8 @@ def events(request):
         d=apply(initial(),kind,'stage',{'name':'常规赛'})
         if b.get('ruleTemplateId'):
             from .models import RuleTemplate
-            t=get_object_or_404(RuleTemplate,pk=b['ruleTemplateId']);d=apply(d,kind,'rule',t.rule)
+            rule=resolve_rule(b['ruleTemplateId'])
+            if b['ruleTemplateId'] != ML_TEMPLATE_ID:d=apply(d,kind,'rule',rule)
         e=Event.objects.create(name=label(b.get('name')),kind=kind,is_test=b.get('isTest',False),document=d);e.editors.add(request.user)
         Audit.objects.create(event=e,actor=request.user,revision=1,action='create',before={},after=e.document)
     return JsonResponse(summary(e),status=201)
@@ -200,7 +202,7 @@ def event_detail(request,id):
         new=paste_commit(old,e.kind,signed['body'],b.get('candidate',0))
     elif action=='rule-select':
         from .models import RuleTemplate
-        t=get_object_or_404(RuleTemplate,pk=b.get('templateId'));new=apply(old,e.kind,'rule',t.rule)
+        new=apply(old,e.kind,'rule',resolve_rule(b.get('templateId')))
     elif action=='history-bond-register':
         from .history_bonds import register
         new=register(old,b)
@@ -434,10 +436,10 @@ def rule_templates(request):
     from .models import RuleTemplate
     permitted=request.user.is_superuser or Event.objects.filter(editors=request.user).exists()
     if not permitted:raise PermissionDenied('仅赛事管理员可使用规则库')
-    if request.method=='GET':return JsonResponse({'templates':[dict(id=str(t.id),name=t.name,rule=t.rule) for t in RuleTemplate.objects.order_by('name')]})
+    if request.method=='GET':return JsonResponse({'templates':builtin_templates()+[dict(id=str(t.id),name=t.name,rule=t.rule) for t in RuleTemplate.objects.order_by('name')]})
     require(request.method=='POST','请求方法不支持')
     b=body(request);rule=apply(initial(),'personal','rule',b)['rules'][-1]
-    require(not RuleTemplate.objects.filter(name=rule['name']).exists(),'规则库已存在同名方案，请使用新名称')
+    require(rule['name'] != ML_RULE['name'] and not RuleTemplate.objects.filter(name=rule['name']).exists(),'规则库已存在同名方案，请使用新名称')
     from django.db import IntegrityError
     try:
         with transaction.atomic():t=RuleTemplate.objects.create(name=rule['name'],rule=rule,creator=request.user)

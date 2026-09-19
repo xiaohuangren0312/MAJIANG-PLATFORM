@@ -1,3 +1,4 @@
+from .rule_presets import ML_RULE
 """Event commands. PT are signed integer tenths; no client-computed totals."""
 import copy, uuid, datetime, re
 from fractions import Fraction
@@ -18,7 +19,7 @@ def find(items,id):
     require(row is not None,'对象不存在或不属于当前赛事')
     return row
 def initial():
-    return {'season':'','venue':'欢雀楼','teams':[],'players':[],'stages':[], 'matches':[], 'settlements':[], 'rules':[{'id':uid(),'version':1,'name':'M.LEAGUE 默认计分','start':25000,'return':30000,'bonuses':[500,100,-100,-300]}]}
+    return {'season':'','venue':'欢雀楼','teams':[],'players':[],'stages':[], 'matches':[], 'settlements':[], 'rules':[{'id':uid(),'version':1,**copy.deepcopy(ML_RULE)}]}
 def score(rule,values):
     require(len(values)==4,'必须录入四人成绩')
     for n in values: integer(n,'终局点数',-10000000,10000000)

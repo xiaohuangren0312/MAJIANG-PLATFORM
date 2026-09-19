@@ -1,7 +1,7 @@
 function scheduleToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let events=[],event=null,page=new URLSearchParams(location.search).get('page')||'overview',opened=null,preview=null,accountAdmin=false,resourceMatchId=new URLSearchParams(location.search).get('match');
-const pages={overview:'赛事概览',roster:'队伍与选手',rules:'计分规则',schedule:'赛程与战果',resources:'解说与资料',settle:'阶段结算',lifecycle:'结束与归档',access:'赛事授权'};
+const pages={overview:'赛事概览',roster:'队伍选手',rules:'计分规则',schedule:'赛程战果',resources:'解说资料',settle:'阶段结算',lifecycle:'赛事归档',access:'赛事授权'};
 function tableLabel(n){let out='';for(n=Number(n);n>0;n=Math.floor((n-1)/26))out=String.fromCharCode(65+(n-1)%26)+out;return out}
 const pt=n=>(n/10).toFixed(1),team=id=>event.document.teams.find(x=>x.id===id)?.name||'未分配',player=id=>event.document.players.find(x=>x.id===id)?.name||'待公布';
 function options(items,selected=''){return items.map(x=>`<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.name)}</option>`).join('')}

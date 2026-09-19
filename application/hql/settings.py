@@ -42,3 +42,9 @@ LOGGING={'version':1,'disable_existing_loggers':False,'handlers':{'file':{'class
 
 # Temporary administrative workspace. Set to 0 to retire its page, tools and write APIs.
 HISTORY_BACKFILL_ENABLED=os.environ.get('HQL_HISTORY_BACKFILL_ENABLED','1')=='1'
+
+# Set only after the production upstream is bound to loopback behind our TLS proxy.
+if os.environ.get('HQL_BEHIND_HTTPS_PROXY') == '1':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

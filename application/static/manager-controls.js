@@ -48,13 +48,19 @@
   fold(document.querySelector('#bond-form')?.closest('.card'),'登记羁绊选手');
   fold(document.querySelector('#match-form')?.closest('.card'),'安排赛程 / 直接录分');
   content.querySelectorAll('.fold-body>h2').forEach(h=>h.hidden=true);
-  const access=document.querySelector('#account-form');
-  if(access&&!content.querySelector('.access-grid')){
-   const cards=[...content.children].filter(n=>n.classList.contains('card')&&!n.querySelector('#coach-accounts'));
-   const grid=document.createElement('div');grid.className='grid access-grid';cards[0]?.before(grid);cards.forEach(n=>grid.append(n));
+  const members=document.querySelector('#access-members');
+  if(members&&!content.querySelector('.access-layout')){
+   const layout=document.createElement('div');layout.className='access-layout';
+   const directory=document.createElement('section');directory.className='access-directory';
+   const actions=document.createElement('aside');actions.className='access-actions';actions.setAttribute('aria-label','账号操作');
+   members.closest('.card').before(layout);layout.append(directory,actions);
+   [members,document.querySelector('#coach-accounts')].filter(Boolean).forEach(n=>directory.append(n.closest('.card')));
+   [document.querySelector('#grant-form'),document.querySelector('#account-form')].filter(Boolean).forEach(n=>actions.append(n.closest('.card')));
+   if(!actions.children.length){actions.remove();layout.classList.add('access-readonly')}
   }
   fold(document.querySelector('#grant-form')?.closest('.card'),'分配赛事管理员');
   fold(document.querySelector('#account-form')?.closest('.card'),'创建账号');
+  content.querySelectorAll('.access-actions .fold-body>h2').forEach(h=>h.hidden=true);
   document.querySelectorAll('#coach-accounts .roster-team').forEach(row=>{
    row.classList.add('coach-account-row');if(row.querySelector('.roster-row-actions'))return;
    const buttons=[...row.children].filter(n=>n.tagName==='BUTTON');if(buttons.length){const group=document.createElement('div');group.className='roster-row-actions';row.append(group);buttons.forEach(b=>group.append(b))}

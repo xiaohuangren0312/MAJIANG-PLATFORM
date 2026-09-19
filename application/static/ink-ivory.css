@@ -63,3 +63,5 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 
 /* Decorative column stays separate from team identity and all charts. */
 .detail-hero.team-profile-art{position:relative;overflow:hidden;align-items:center}.team-profile-art>div{flex:1;min-width:0;position:relative;z-index:1}.team-profile-art:after{content:'';display:block;align-self:stretch;flex:0 0 34%;min-height:120px;background:url('/assets/team-profile-art.png') right center / auto 100% no-repeat;pointer-events:none}.team-profile-art h1,.team-profile-art p{overflow-wrap:anywhere}@media(max-width:640px){.detail-hero.team-profile-art{gap:14px;padding:20px 16px}.team-profile-art:after{flex-basis:20%;min-height:90px;opacity:.7}.team-profile-art>.team-mark{width:48px;min-width:48px;height:60px}}
+
+.team-profile-art:after{mix-blend-mode:multiply;mask-image:linear-gradient(to right,transparent,#000 35%);background-size:auto 150%}

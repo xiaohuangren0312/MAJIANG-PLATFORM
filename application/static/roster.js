@@ -1,6 +1,6 @@
 function rosterPicture(row,isTeam=false){
  if(row.imageUrl)return `<img class="roster-picture ${isTeam?'team-picture':''}" src="${esc(row.imageUrl)}" alt="${esc(row.name)}${isTeam?'队标':'头像'}" loading="lazy">`;
- return isTeam?`<span class="roster-picture team-picture roster-placeholder" style="background:${esc(row.color)}" aria-label="${esc(row.name)}代表色">${esc(row.name.slice(0,2))}</span>`:'<span class="roster-picture roster-placeholder" role="img" aria-label="默认头像"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><circle cx="16" cy="10" r="6" fill="currentColor"/><path d="M5 29c0-8 4-12 11-12s11 4 11 12" fill="currentColor"/></svg></span>';
+ return isTeam?`<span class="roster-picture team-picture roster-placeholder" style="background:${esc(row.color)}" aria-label="${esc(row.name)}代表色">${esc(row.name.slice(0,2))}</span>`:`<img class="roster-picture" src="/assets/player-default.png" alt="${esc(row.name)}默认头像" loading="lazy">`;
 }
 function roster(){
  const d=event.document;

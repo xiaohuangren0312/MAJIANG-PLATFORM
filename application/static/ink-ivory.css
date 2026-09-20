@@ -119,7 +119,7 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 .home-fixture>.home-fixture-head{grid-column:1;grid-row:1}
 .home-fixture>.home-fixture-lineup{grid-column:2;grid-row:1;min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:74px}
 .home-fixture-lineup .schedule-seat-order{margin:0 0 8px}
-.home-fixture>.home-fixture-result{grid-column:3;grid-row:1;justify-self:end;font-size:12px;color:#756655;white-space:nowrap;border-bottom:1px solid #cbbdac;padding:5px 0}
+.home-fixture>.home-fixture-result{grid-column:3;grid-row:1;justify-self:end;font-size:12px;color:#756655;white-space:nowrap;border-bottom:0;padding:5px 0}
 .home-fixture>.note{grid-row:2;margin:0}
 @media(max-width:760px){.home-next-matchday .home-fixture{grid-template-columns:minmax(0,1fr) auto;gap:14px;min-height:0}.home-fixture>.home-fixture-head{grid-column:1;grid-row:1;flex-wrap:wrap;justify-content:flex-start}.home-fixture>.home-fixture-lineup{grid-column:1/-1;grid-row:2;min-height:0}.home-fixture>.home-fixture-result{grid-column:2;grid-row:1}.home-fixture>.note{grid-row:3}}
 
@@ -141,4 +141,6 @@ img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0
 
 .filters .filter-icon-button,.schedule-tools .filter-icon-button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;min-width:42px;height:42px;padding:0}.filter-icon-button svg{display:block;flex-shrink:0;pointer-events:none}@media(max-width:640px){.filters .filter-icon-button,.schedule-tools .filter-icon-button{width:44px;min-width:44px;height:44px;flex-basis:44px}}
 
-.matchday-live{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font:600 12px/1.5 system-ui;color:#817b73;vertical-align:middle;white-space:nowrap}.matchday-live i{width:7px;height:7px;border-radius:50%;background:#99958e}.matchday-live.is-live{color:#26834a}.matchday-live.is-live i{background:#2caa60}.matchday-live:hover{text-decoration:underline}
+.matchday-live{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font:600 12px/1.5 system-ui;color:#817b73;vertical-align:middle;white-space:nowrap}.matchday-live i{width:7px;height:7px;border-radius:50%;background:#99958e}.matchday-live.is-live{color:#26834a}.matchday-live.is-live i{background:#2caa60}.matchday-live:hover{text-decoration:none;color:#39312a}
+
+.home-fixture>.home-fixture-result,.home-fixture>.home-fixture-result:hover,.schedule-result-link,.schedule-result-link:hover,.matchday-live{text-decoration:none}.home-fixture>a.home-fixture-result:hover,.schedule-result-link:hover{color:#ba3c30}.matchday-live.is-live:hover{color:#1d663a}

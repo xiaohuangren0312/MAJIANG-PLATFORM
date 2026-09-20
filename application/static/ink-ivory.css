@@ -140,3 +140,5 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0}
 
 .filters .filter-icon-button,.schedule-tools .filter-icon-button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;min-width:42px;height:42px;padding:0}.filter-icon-button svg{display:block;flex-shrink:0;pointer-events:none}@media(max-width:640px){.filters .filter-icon-button,.schedule-tools .filter-icon-button{width:44px;min-width:44px;height:44px;flex-basis:44px}}
+
+.matchday-live{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font:600 12px/1.5 system-ui;color:#817b73;vertical-align:middle;white-space:nowrap}.matchday-live i{width:7px;height:7px;border-radius:50%;background:#99958e}.matchday-live.is-live{color:#26834a}.matchday-live.is-live i{background:#2caa60}.matchday-live:hover{text-decoration:underline}

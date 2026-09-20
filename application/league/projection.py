@@ -120,5 +120,7 @@ def rank_metrics(payload):
 def public_event(event):
     from .match_resources import project
     result=project(_public_event(event),event.document)
+    from .matchday_live import project as live_project
+    result=live_project(result,event.document)
     if getattr(event,'pk',None):result['logoUrl']=f'/brand/events/{event.pk}/logo'
     return result

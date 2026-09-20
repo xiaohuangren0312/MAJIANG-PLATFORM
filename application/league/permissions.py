@@ -23,7 +23,7 @@ def actions_for(event,user,backfill=False):
         if event.document.get('archive'):actions={'visibility','archive-reopen','coach-manage','event-logo'}
     if user.is_superuser and event.is_test and event.document.get('archive') and not event.document.get('historySnapshot'):
         actions=actions|{'cleanup-preview','cleanup-commit'}
-    if not event.document.get('archive'):actions=actions|{'match-resources'}
+    if not event.document.get('archive'):actions=actions|{'match-resources','matchday-live'}
     return sorted(actions|({'grant'} if role=='superadmin' else set()))
 def authorize(event,user,action,backfill=False):
     if action not in actions_for(event,user,backfill=backfill):raise PermissionDenied('当前账号无权执行此操作')

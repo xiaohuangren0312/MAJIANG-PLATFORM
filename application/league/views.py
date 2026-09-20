@@ -242,6 +242,9 @@ def event_detail(request,id):
     elif action=='history-roster':
         from .history_roster import update
         new=update(old,b)
+    elif action=='matchday-live':
+        from .matchday_live import update
+        new=update(old,b)
     elif action=='match-resources':
         from .match_resources import update
         new=update(old,b)

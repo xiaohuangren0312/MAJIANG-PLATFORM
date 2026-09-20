@@ -76,3 +76,11 @@ function nextMatchDay(t,today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Sh
  return {state:date===today?'today':'next',date,matches:schedule.filter(m=>m.date===date&&m.state!=='cancelled').slice().sort((a,b)=>(a.time||'').localeCompare(b.time||'')||String(a.table||'').localeCompare(String(b.table||''))||(a.number||0)-(b.number||0))};
 }
 if(typeof module!=='undefined')module.exports.nextMatchDay=nextMatchDay;
+
+function latestCompletedMatchDay(t,stage='all'){
+ const days=new Map();
+ for(const m of t.schedule||[]){if(m.state==='cancelled')continue;const list=days.get(m.date)||[];list.push(m);days.set(m.date,list)}
+ const resultDays=[...new Set((t.results||[]).filter(m=>stage==='all'||m.stageId===stage).map(m=>m.date).concat((t.dailySummaries||[]).filter(m=>stage==='all'||m.stageId===stage).map(m=>m.day)))];
+ return resultDays.filter(day=>!days.has(day)||days.get(day).every(m=>m.state==='completed')).sort().at(-1);
+}
+if(typeof module!=='undefined')module.exports.latestCompletedMatchDay=latestCompletedMatchDay;

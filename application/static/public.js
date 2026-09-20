@@ -124,7 +124,7 @@ function resultResources(m){const r=m.resources||{};return `<div class="card">${
 
 function displayTable(value){if(!/^\d+$/.test(String(value)))return value;let n=Number(value),out='';while(n>0){out=String.fromCharCode(65+(n-1)%26)+out;n=Math.floor((n-1)/26)}return out}
 
-function trendControl(kind,id,stage){const line=scoreTimeline(tournament,kind,id,stage),last=line.at(-1),value=last?.delta;return `<span style="color:${value>0?'#ba3c30':value<0?'#26745a':'inherit'}">${!last?'—':value==null?'未知':value>0?'▲ '+fmt(value):value<0?'▼ '+fmt(value):'— 0.0'}${last&&!last.played?'（轮空/无记录）':''}</span>`}
+function trendControl(kind,id,stage){const line=scoreTimeline(tournament,kind,id,stage),last=line.filter(point=>point.played).at(-1),value=last?.delta;return `<span style="color:${value>0?'#ba3c30':value<0?'#26745a':'inherit'}">${!last?'—':value==null?'未知':value>0?'▲ '+fmt(value):value<0?'▼ '+fmt(value):'— 0.0'}${last&&!last.played?'（轮空/无记录）':''}</span>`}
 function openScoreTrend(kind,id,stage,metric=params.get('metric')||'raw'){
  if(kind==='team')return openTeamTrend(stage,metric);
  document.getElementById('score-trend-dialog')?.remove();const dialog=document.createElement('dialog');dialog.id='score-trend-dialog';dialog.style.cssText='width:min(960px,94vw);max-height:90vh;overflow:auto;border:1px solid #ded8cc;border-radius:12px;background:#f7f4ed;padding:24px';

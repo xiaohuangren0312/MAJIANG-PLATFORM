@@ -11,7 +11,16 @@ function rankMovements(t,kind,stage,rows){
  const matches=t.results.filter(m=>stage==='all'||m.stageId===stage).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||'')||a.number-b.number);
  const deltas=new Map();let label='';
  if(kind==='team'){
-  for(const row of rows){const last=scoreTimeline(t,kind,row.id,stage).at(-1);if(last){label=last.date;deltas.set(row.id,last.delta)}}
+  label=latestCompletedMatchDay(t,stage);if(!label)return {};
+  const after=[];
+  for(const row of rows){
+   const line=scoreTimeline(t,kind,row.id,stage),day=line.find(p=>p.date===label),later=line.filter(p=>p.date>label);
+   if(!Number.isFinite(row.total)||day?.delta===null||later.some(p=>p.delta===null))return {};
+   deltas.set(row.id,day?.delta||0);after.push({id:row.id,total:row.total-later.reduce((sum,p)=>sum+p.delta,0)});
+  }
+  const before=after.map(r=>({id:r.id,total:r.total-deltas.get(r.id)}));
+  const rank=(list,id)=>1+list.filter(r=>r.total>list.find(x=>x.id===id).total).length;
+  return Object.fromEntries(after.map(r=>[r.id,{before:rank(before,r.id),after:rank(after,r.id),change:rank(before,r.id)-rank(after,r.id),label}]));
  }else{
   const last=matches.at(-1);if(!last)return {};
   label=last.date+' '+(last.time||'');

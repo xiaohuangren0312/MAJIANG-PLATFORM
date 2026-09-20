@@ -73,7 +73,7 @@ def history_csv(event):
                 for r in rows:row(stages.get(stage,'全赛事'),{'raw':'原始累计','competitive':'竞技分'}.get(metric,metric),'队伍' if kind=='team' else '选手',r.get('rank'),r['name'],pt(r.get('total')),r.get('games'),*r.get('places',[None]*4),r.get('avgRank'))
     row();row('逐场战果');row('ID','阶段','日期','时间','场次','座次','队伍','选手','终局点数','顺位','个人PT','队伍PT','来源')
     for m in p['results']:
-        for i,s in enumerate(m['seats']):row(m['id'],stages.get(m['stageId']),m.get('date'),m.get('time'),m.get('number'),i+1,teams.get(s.get('teamId')),players.get(s.get('playerId')),s.get('score'),s.get('rank'),pt(s.get('points')),pt(s.get('teamPoints')),m.get('source',''))
+        for i,s in enumerate(m['seats']):row(m['id'],stages.get(m['stageId']),m.get('date'),m.get('time'),m.get('number'),s.get('wind') if m.get('seatOrderKnown') is not False and s.get('wind') in ('东','南','西','北') else None,teams.get(s.get('teamId')),players.get(s.get('playerId')),s.get('score'),s.get('rank'),pt(s.get('points')),pt(s.get('teamPoints')),m.get('source',''))
     row();row('赛程');row('ID','阶段','日期','时间','状态')
     for m in p.get('schedule',[]):row(m['id'],stages.get(m['stageId']),m.get('date'),m.get('time'),m.get('state'))
     row();row('历史更正记录');row('对局ID','操作人','时间','备注')

@@ -28,6 +28,8 @@ USE_TZ=True
 LOGIN_URL='/login/'
 LOGIN_REDIRECT_URL='/manage/'
 LOGOUT_REDIRECT_URL='/login/'
+# Cookies are shared across ports: isolate development from production.
+SESSION_COOKIE_NAME='hql_dev_sessionid' if ENV_ROOT.name=='dev' else 'sessionid'
 SESSION_COOKIE_HTTPONLY=True
 SESSION_COOKIE_SAMESITE='Strict'
 CSRF_COOKIE_SAMESITE='Strict'

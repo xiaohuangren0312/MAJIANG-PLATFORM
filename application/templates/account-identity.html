@@ -6,6 +6,7 @@
 {% if header_can_manage %}<a href="/manage/" {% if header_portal == 'manage' %}aria-current="page"{% endif %}>管理端</a>{% endif %}
 {% if header_can_coach %}<a href="/coach/lineups/" {% if header_portal == 'coach' %}aria-current="page"{% endif %}>教练端</a>{% endif %}
 <div class="account-menu-divider"></div><a href="/account/">账号设置</a>
+{% if draft_navigation %}<a href="/login/?next={{ request.path|urlencode }}">切换账号</a>{% endif %}
 <form method="post" action="/logout/">{% csrf_token %}<button type="submit">退出登录</button></form>
 </div></details>
 <style>

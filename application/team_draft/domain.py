@@ -137,7 +137,7 @@ def first_pick(document, action, payload, team_id=None):
 
 
 
-AUCTION_ACTIONS = {'draw', 'open-bidding', 'bid', 'pass', 'confirm-lot', 'next-lot', 'draw-third', 'assign-third', 'assign-second'}
+AUCTION_ACTIONS = {'draw', 'open-bidding', 'bid', 'pass', 'confirm-lot', 'next-lot', 'draw-third', 'assign-third', 'assign-second', 'mark-unsold', 'admin-third'}
 
 
 def exclusion(document, row, minimum):
@@ -223,11 +223,13 @@ def auction(document, action, payload, team_id=None):
             candidate['state'] = 'third-pool';lot['outcome'] = 'unsold'
         lot['state'] = 'settled'
         draft.setdefault('lots', []).append(copy.deepcopy(lot))
-    elif action == 'assign-second':
-        require(lot.get('stage', 2) == 2 and lot['state'] in {'preview','bidding','awaiting-confirm','settled'}, '当前选手不在第二阶段')
+    elif action in {'assign-second', 'mark-unsold', 'admin-third'}:
+        require(lot.get('stage', 2) == (3 if action=='admin-third' else 2) and lot['state'] in {'preview','bidding','awaiting-confirm','settled'}, '当前选手不在对应分配阶段')
         target=payload.get('teamId')
-        require(any(t['teamId']==target for t in draft['teams']), '接收队伍不属于本活动')
-        price=integer(payload.get('price'), '分配金额', 0, 1000000)
+        if action in {'assign-second','admin-third'}:
+            require(any(t['teamId']==target for t in draft['teams']), '接收队伍不属于本活动')
+            price=integer(payload.get('price'), '分配金额', 0, 1000000)
+        else: price=0
         previous=dict(state=lot['state'],leader=lot.get('leader'),price=lot.get('price'),outcome=lot.get('outcome'),assignedTeam=lot.get('assignedTeam'),assignedPrice=lot.get('assignedPrice'))
         was_settled=lot['state']=='settled'
         if was_settled:
@@ -246,10 +248,15 @@ def auction(document, action, payload, team_id=None):
                 draft['allocations'].pop();player['teamId']=None
             else:
                 require(lot.get('outcome')=='unsold' and candidate['state']=='third-pool' and not player.get('teamId'), '流拍记录已变化')
-            candidate['state']='available'
-        allocate(d,target,lot['playerId'],'admin-second',price)
+            candidate['state']='third-pool' if action=='admin-third' else 'available'
+        if action == 'mark-unsold':
+            candidate=next(r for r in draft['candidates'] if r['playerId']==lot['playerId'])
+            player=find(d['players'],lot['playerId'])
+            require(candidate['state']=='available' and not player.get('teamId'), '候选状态或选手归属已变化')
+            candidate['state']='third-pool'
+        else: allocate(d,target,lot['playerId'],'third-round' if action=='admin-third' else 'admin-second',price)
         lot.setdefault('adminChanges',[]).append(dict(before=previous,teamId=target,price=price))
-        lot.update(state='settled',outcome='assigned',assignedTeam=target,assignedPrice=price,turn=None)
+        lot.update(state='settled',outcome='unsold' if action=='mark-unsold' else 'assigned',assignedTeam=target,assignedPrice=price,turn=None)
         if was_settled:draft['lots'][-1]=copy.deepcopy(lot)
         else:draft.setdefault('lots',[]).append(copy.deepcopy(lot))
     elif action == 'assign-third':

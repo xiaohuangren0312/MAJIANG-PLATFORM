@@ -4,9 +4,11 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import F
+from django.conf import settings
+from .roster import staged, working, check_baseline
 from django.core import signing
 from league.models import Event, Audit
-from league.domain import require, label
+from league.domain import require, label, integer
 from .models import DraftActivity, DraftAudit
 from .history import validate_links, candidate_history, history_options
 from .domain import configuration, first_pick, auction, AUCTION_ACTIONS
@@ -68,8 +70,8 @@ def mutate(activity_id, user, revision, action, payload):
     if activity.event_id:
         require(user.is_superuser or not (activity.event.document.get('archive') or activity.event.document.get('archiveRevision')), '赛事已归档，只有总管理员可以修改')
     before=snapshot(activity)
-    require(activity.status != 'complete' or action in {'publish','unlink'}, '活动已结束，选人记录只读')
-    if action in {'finish','undo','unlink','publish'}:
+    require(activity.status != 'complete' or action in {'publish','unlink','edit-candidates','rollback','rollback-import'}, '活动已结束，选人记录只读')
+    if action in {'finish','undo','unlink','publish','rollback','rollback-import'}:
         from .lifecycle import apply_control
         apply_control(activity,user,action,payload)
         activity.revision+=1
@@ -90,9 +92,27 @@ def mutate(activity_id, user, revision, action, payload):
         require(activity.event_id is not None, '请先关联赛事')
         event=Event.objects.select_for_update().get(pk=activity.event_id)
         if action not in {'nominate', 'bid', 'pass'}: eligible_event(event,user)
-        doc=copy.deepcopy(event.document)
+        if staged(activity) and activity.status!='complete':check_baseline(activity)
+        doc=copy.deepcopy(working(activity))
         if activity.document.get('phase'): doc['draft']=copy.deepcopy(activity.document)
-        if action == 'configure':
+        if action == 'edit-candidates':
+            rows=payload.get('candidates')
+            require(isinstance(rows,list) and rows and all(isinstance(x,dict) for x in rows),'选手资料格式错误')
+            candidates={c['playerId']:c for c in doc['draft']['candidates']}
+            seen=set()
+            for row in rows:
+                pid=row.get('playerId')
+                require(pid in candidates and pid not in seen,'候选不存在或重复')
+                seen.add(pid)
+                price=integer(row.get('startPrice'),'起拍价',0,1000000)
+                description=row.get('description','')
+                require(isinstance(description,str) and len(description)<=2000,'介绍最多2000字')
+                candidates[pid].update(startPrice=price,description=description)
+                lot=doc['draft'].get('lot')
+                if lot and lot['playerId']==pid and lot['state']=='preview':
+                    lot.update(startPrice=price,minimum=price)
+            result=doc
+        elif action == 'configure':
             require(activity.status == 'setup', '选人开始后不可修改配置')
             result=configuration(doc,event.kind,payload)
             result['draft']['historyLinks']=validate_links(payload.get('candidates',[]),user)
@@ -103,12 +123,18 @@ def mutate(activity_id, user, revision, action, payload):
                 ids={r['coachUserId'] for r in activity.document.get('teams',[])}
                 require(set(get_user_model().objects.filter(pk__in=ids,is_active=True).values_list('pk',flat=True))==ids, '教练账号已停用，请重新配置')
             result=(auction if action in AUCTION_ACTIONS else first_pick)(doc,action,payload,tid)
+        baseline=copy.deepcopy(activity.document.get('_baseline'))
+        use_staged=staged(activity) or (action=='configure' and not activity.document.get('phase') and getattr(settings,'HQL_DRAFT_STAGED',True))
+        if use_staged and baseline is None:baseline=dict(document=copy.deepcopy(event.document),revision=event.revision)
         visibility=activity.document.get('public',False)
         activity.document=result.pop('draft')
         activity.document['public']=visibility
-        if activity.document['phase'] != 'setup': activity.status='active'
+        if activity.document['phase'] not in {'setup','complete'}: activity.status='active'
         # Draft state remains exclusively in plugin tables; only changed roster is synchronized.
-        if result != event.document:
+        if use_staged:
+            activity.document['_roster']=copy.deepcopy(result)
+            activity.document['_baseline']=baseline
+        elif result != event.document:
             changed=Event.objects.filter(pk=event.pk,revision=event.revision).update(document=result,revision=F('revision')+1)
             require(changed==1,'赛事名单已更新，请刷新后重试')
             Audit.objects.create(event=event,actor=user,revision=event.revision+1,action='draft-roster',before=event.document,after=result)
@@ -125,6 +151,7 @@ def projection(activity,user):
     if not admin and not own and not activity.document.get('public',False): raise PermissionDenied('此活动未公开，请使用获授权的管理员或教练账号登录')
     draft=copy.deepcopy(activity.document) if activity.document.get('phase') else None
     if draft:
+        for key in ['_roster','_baseline','_import']:draft.pop(key,None)
         draft.pop('eventSnapshot',None)
         draft.pop('eventIdentity',None)
         choices=draft.pop('nominations',{})
@@ -136,5 +163,5 @@ def projection(activity,user):
         else:
             for row in draft['teams']:row.pop('coachUserId',None)
     event=activity.event
-    doc=activity.document.get('eventSnapshot',{}) if activity.status=='complete' or not event else event.document
-    return dict(history=candidate_history(activity.document),historyOptions=history_options() if admin and activity.status=='setup' else [],public=activity.document.get('public',False), id=str(activity.pk),name=activity.name,revision=activity.revision,status=activity.status,eventId=str(event.pk) if event else None,eventName=event.name if event else activity.document.get('eventIdentity',{}).get('name'),manager=admin,myTeam=own,draft=draft,players=[dict(id=p['id'],name=p['name'],teamId=p.get('teamId'),active=p.get('active',True),bond=p.get('bond',False),nonPlayingCoach=p.get('nonPlayingCoach',False)) for p in doc.get('players',[])],teams=[dict(id=t['id'],name=t['name'],active=t.get('active',True),logo=t.get('imageUrl'),**({'draftSettings':t.get('draftSettings',{})} if admin else {})) for t in doc.get('teams',[])])
+    doc=activity.document.get('eventSnapshot',{}) if activity.status=='complete' or not event else working(activity)
+    return dict(canRollbackImport=bool(admin and activity.status=='complete' and activity.document.get('_import')),rosterMode='staged' if staged(activity) else 'legacy',history=candidate_history(activity.document),historyOptions=history_options() if admin and activity.status=='setup' else [],public=activity.document.get('public',False), id=str(activity.pk),name=activity.name,revision=activity.revision,status=activity.status,eventId=str(event.pk) if event else None,eventName=event.name if event else activity.document.get('eventIdentity',{}).get('name'),manager=admin,myTeam=own,draft=draft,players=[dict(id=p['id'],name=p['name'],teamId=p.get('teamId'),active=p.get('active',True),bond=p.get('bond',False),nonPlayingCoach=p.get('nonPlayingCoach',False)) for p in doc.get('players',[])],teams=[dict(id=t['id'],name=t['name'],active=t.get('active',True),logo=t.get('imageUrl'),**({'draftSettings':t.get('draftSettings',{})} if admin else {})) for t in doc.get('teams',[])])

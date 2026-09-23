@@ -145,3 +145,26 @@ class DraftConcurrencyTests(TransactionTestCase):
         with self.assertRaises(Invalid):
             self.lot_call('confirm-lot')
         self.assertEqual(self.stored(), before)
+
+
+@skipUnless(connection.vendor == 'postgresql', 'Requires real PostgreSQL row locks')
+class StagedImportConcurrencyTests(TransactionTestCase):
+    call=fixtures.ActivityTests.call
+    race=DraftConcurrencyTests.race
+    def setUp(self):
+        fixtures.ActivityTests.setUp(self)
+        self.original=deepcopy(self.event.document)
+        self.call('link',eventId=str(self.event.pk));self.call('configure',**self.payload);self.call('start')
+        for i,u in enumerate(self.users):self.call('nominate',u,playerId='p'+str(i))
+        self.call('reveal');self.call('continue');self.call('draw')
+        lot=self.activity.document['lot']['id']
+        self.call('assign-second',lotId=lot,teamId='t0',price=3);self.call('next-lot',lotId=lot)
+    def test_duplicate_import_and_rollback_only_write_once(self):
+        from .lifecycle import preview
+        for action in ['finish','rollback-import']:
+            self.activity.refresh_from_db();self.event.refresh_from_db();revision=self.event.revision
+            token=preview(self.activity.pk,self.admin,self.activity.revision,action)['token']
+            results=self.race([(action,self.admin,{'previewToken':token})]*2)
+            self.assertEqual(sorted(r[0] for r in results),['ok','stale'])
+            self.event.refresh_from_db();self.assertEqual(self.event.revision,revision+1)
+        self.assertEqual(self.event.document,self.original)

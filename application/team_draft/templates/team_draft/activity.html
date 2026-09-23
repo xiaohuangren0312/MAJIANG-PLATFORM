@@ -122,15 +122,411 @@ header .account-identity{display:inline-flex;align-items:center;gap:8px;max-widt
 
 #admin-choices{padding:18px;background:#fffaf0;border:1px solid #d7bf92;border-radius:9px}#admin-choices h3{margin:0 0 12px;font-size:16px}#admin-choices small{font-size:12px;color:#8a7046;font-weight:400}.admin-choice-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}.admin-choice-list>div{display:flex;justify-content:space-between;gap:12px;padding:10px;border-bottom:1px solid #eee5d6;font-size:14px}
 .admin-choice-list>div{flex-wrap:wrap;align-items:center}.admin-choice-list select{min-width:120px;flex:1;font-size:13px}.admin-choice-list button{font-size:12px;padding:7px 10px}.admin-choice-list strong{width:100%}
-</style></head><body><header><strong><span class="brand">雀<img src="/brand/logo" alt="欢雀楼" onerror="this.remove()" onload="this.previousSibling?.remove()"></span>欢雀楼 · 组队选人</strong><a href="/draft/">活动首页</a><a href="/manage/">赛事管理</a><a id="login" href="/login/">登录 / 切换账号</a><span class="connection" id="connection" role="status">正在同步…</span><button id="more" hidden>更多</button>{% include "account-identity.html" %}</header><main><div id="error" role="alert"></div><div id="chooser"><strong id="linked"></strong><button id="link-toggle" hidden>关联赛事</button></div><section id="link-panel" hidden><label>手动选择关联赛事<select id="event"><option value="">请选择赛事</option></select></label><p>开始前可更换关联，更换后清空选人配置；不会移动任何已入队选手。</p><button id="link-save">确认关联</button></section><section class="draft-ink-header" aria-label="选人大会"><div class="draft-ink-copy"><h1 id="name"></h1><div id="phase" class="phase"></div><p id="progress" class="muted"></p></div></section><section id="more-panel" hidden></section><section id="preview-panel" hidden></section><section id="setup" hidden></section><section id="auction" hidden></section><section id="pick" hidden></section><section class="cards" id="teams"></section><section id="admin-choices" hidden></section><section id="feed"></section></main><div id="confirm-dialog" role="dialog" aria-modal="true" aria-label="操作确认" hidden style="position:fixed;inset:0;background:#0009;z-index:20;display:none;align-items:center;justify-content:center;padding:20px"><div style="background:#fffaf0;padding:24px;border-radius:10px;max-width:540px"><p id="confirm-message" style="line-height:1.7"></p><button id="confirm-yes" class="primary">确认</button> <button id="confirm-no">取消</button></div></div><footer id="bar" class="bar"></footer><script>
-const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let state,id="{{ activity_id|escapejs }}",busy=false,timer,adminChoicesOpen=false;
+#admin-pick-save-status{font-size:12px;color:#82704d;margin:12px 0 0}
+#teams .members>span.first-pick-member{border:1px solid #8794b1;background:#edf0f7;color:#435475}
+
+#feed{margin-top:30px;line-height:1.5}.results-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}.results-heading h2{font:600 24px serif;margin:0}.results-heading>span{font-size:12px;color:#8a7e6a}
+.result-round{background:#fffdf8;border:1px solid #ddd5c7;border-radius:12px;padding:22px;margin:16px 0}.round-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #eae2d5}.round-heading h3{font-size:17px;margin:0}.round-heading>span{font-size:12px;color:#85765f}
+.nomination-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.nomination-result{position:relative;border:1px solid #e7dfd1;border-radius:9px;padding:15px;background:#f8f5ee}.nomination-team{display:flex;align-items:center;gap:8px;color:#766c5a;font-size:12px}.nomination-team .team-logo{width:23px;height:23px;background:none}.nomination-team svg{width:23px;height:23px;color:#6f715e}.nomination-player{font-size:23px;font-weight:600;margin:10px 0 7px;color:#29271f;overflow-wrap:anywhere}.nomination-status{font-size:11px;color:#447b70}.nomination-status.contested{color:#9a7040}.nomination-result.is-winner{border-color:#82a59a;background:#edf4ef}
+.draw-results{margin-top:22px;padding-top:18px;border-top:1px solid #eae2d5}.draw-results h4{margin:0 0 12px;font-size:14px;color:#6b5b42}.draw-result{border:1px solid #e4ddcf;border-radius:8px;padding:15px;margin:10px 0}.draw-result-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.draw-result-heading>strong{font-size:19px}.draw-result-heading>span{font-size:12px;color:#386e5c}.draw-score-list{display:flex;gap:9px;flex-wrap:wrap}.draw-score{display:flex;align-items:center;gap:18px;justify-content:space-between;background:#f2eee6;padding:10px 12px;border-radius:6px;min-width:170px;flex:1}.draw-score>span{font-size:12px;color:#786f60}.draw-score>strong{font-size:24px;font-weight:600;color:#766d5e}.draw-score small{font-size:10px;font-weight:400}.draw-score.is-winner{background:#e6efe8;box-shadow:inset 0 0 0 1px #9bb5a7}.draw-score.is-winner>strong{color:#2f6654}.draw-pending{display:flex;align-items:center;justify-content:space-between;gap:15px;background:#f7eedf;border-radius:8px;padding:15px;margin-top:10px}.draw-pending p{font-size:12px;margin:6px 0 0;color:#8a7551}.draw-pending>span{font-size:12px;color:#8a7551}
+@media(max-width:650px){.result-round{padding:14px}.nomination-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.nomination-result{padding:12px}.nomination-player{font-size:20px}.results-heading{align-items:start;flex-direction:column;gap:5px}.draw-result-heading,.draw-pending{align-items:start;flex-direction:column}.draw-score{min-width:130px}}
+
+
+#feed.results-modal[hidden]{display:none!important}
+#feed.results-modal{position:fixed;inset:0;z-index:40;margin:0;padding:24px;background:#18161180;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.results-dialog{width:min(980px,100%);max-height:85vh;display:flex;flex-direction:column;background:#f7f3eb;border:1px solid #d7ccba;border-radius:14px;box-shadow:0 20px 70px #0004;overflow:hidden}
+.results-dialog-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 22px;border-bottom:1px solid #ded5c6;background:#fffaf1;flex-shrink:0}
+.results-dialog-toolbar strong{font-size:17px}.results-dialog-toolbar button{font-size:13px;min-height:34px;padding:6px 14px}
+.results-dialog-body{padding:20px;overflow:auto;overscroll-behavior:contain;min-height:0}.results-dialog-body .results-heading{display:none}.results-dialog-body .result-round:first-child{margin-top:0}
+@media(max-width:650px){#feed.results-modal{padding:12px}.results-dialog{max-height:88vh}.results-dialog-body{padding:12px}.results-dialog-toolbar{padding:12px 16px}}
+
+
+#admin-choices[hidden]{display:none!important}
+#admin-choices{position:fixed;inset:0;z-index:40;margin:0;padding:24px;border:0;border-radius:0;background:#18161180;backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center}
+.admin-choice-dialog{width:min(960px,100%);max-height:85vh;overflow:auto;background:#fffaf0;border:1px solid #d7bf92;border-radius:12px;padding:22px;box-shadow:0 20px 70px #0004}
+.admin-choice-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.admin-choice-heading h3{margin:0!important}.admin-choice-heading button{min-height:34px;padding:6px 14px;font-size:13px}
+@media(max-width:650px){#admin-choices{padding:12px}.admin-choice-dialog{padding:16px;max-height:88vh}.admin-choice-heading h3 small{display:block;margin-top:5px}}
+
+
+#admin-assign-panel[hidden]{display:none!important}#admin-assign-panel{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:#18161180;color:#302a21;backdrop-filter:blur(3px)}
+.admin-assign-dialog{width:min(520px,100%);max-height:85vh;overflow:auto;background:#fffaf1;border:1px solid #d9cbb4;border-radius:14px;padding:26px;box-shadow:0 20px 70px #0004}
+.admin-assign-dialog h3{margin:0;font-size:18px}.assign-player-name{font:600 28px serif;margin:14px 0 20px;color:#352f24}
+#bar .admin-assign-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0;align-items:start}#bar .admin-assign-fields label{color:#7a6a54;font-size:13px;gap:8px}#bar .admin-assign-fields select,#bar .admin-assign-fields input{width:100%;max-width:none;height:44px;background:#fff;color:#302a21}
+#admin-assign-preview{max-width:none;margin:20px 0;padding:13px;background:#eee6d8;border-radius:7px;font-size:14px;line-height:1.8;min-height:48px}.admin-assign-actions{display:flex;justify-content:flex-end;gap:12px}.admin-assign-actions button{min-width:100px}
+#bar{gap:10px;padding:12px 24px}#bar>strong{margin-right:18px}#bar>button{font-size:14px;padding:9px 16px}
+@media(max-width:550px){.admin-assign-dialog{padding:20px}#bar .admin-assign-fields{grid-template-columns:1fr}#bar{padding:10px 12px;gap:8px}}
+
+
+/* Compact roster board: budget shares the heading row; no redundant headcounts. */
+body.coach-view main{max-width:1800px}
+#teams.cards{gap:12px}
+#teams .card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;column-gap:10px;padding:12px 14px 26px}
+#teams .card h3{min-width:0;min-height:30px;margin:0;gap:8px;font-size:16px;align-self:center}
+#teams .card h3>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#teams .team-logo{width:28px;height:28px}
+#teams .team-metrics{padding:0;border:0;align-self:center}
+#teams .team-budget{flex-direction:row;align-items:baseline;gap:5px}
+#teams .team-budget>small{font-size:11px}
+#teams .team-budget>strong{font-size:22px}
+#teams .badge{grid-column:1/-1;margin:5px 0 0;font-size:11px;line-height:16px;min-height:16px}
+#teams .members{grid-column:1/-1;gap:6px;margin-top:7px}
+#teams .members>span{height:40px;min-height:40px;padding:5px;font-size:13px}
+#teams .coach-footer{position:absolute;bottom:5px;left:14px;margin:0;min-height:0;line-height:16px;font-size:10px}
+#teams .coach-footer:empty{display:none}
+#teams .card::after{height:32px;opacity:.12}
+@media(max-width:580px){#teams .card{padding:12px 12px 26px}#teams .team-budget>small{display:none}}
+
+#draft-sidebar:empty{display:none}
+#history summary{cursor:pointer;padding:8px 0;font-size:14px}
+@media(min-width:1100px) and (min-height:650px){
+ body.board-view{height:100dvh;overflow:hidden;padding:0;display:grid;grid-template-rows:60px minmax(0,1fr) auto}
+ body.board-view>header{padding:8px 22px;gap:16px;flex-wrap:nowrap;min-width:0}
+ body.board-view>header strong{font-size:20px}
+ body.board-view>header .brand{width:34px;height:34px;font-size:24px}
+ body.board-view main{margin:0;width:100%;height:100%;max-width:none;min-height:0;padding:12px 22px;display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:82px minmax(0,1fr);gap:12px}
+ body.board-view #chooser{display:none}
+ body.board-view .draft-ink-header{grid-column:1/-1;margin:0;min-height:0;padding:10px 20px;display:flex;align-items:center}
+ body.board-view .draft-ink-copy{max-width:100%;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+ body.board-view .draft-ink-header #name{margin:0;display:flex;align-items:center;gap:15px}
+ body.board-view .draft-title-eyebrow{font-size:14px;margin:0;letter-spacing:.1em}
+ body.board-view .draft-title-main{font-size:32px;gap:10px;letter-spacing:.03em}
+ body.board-view .draft-ink-header .phase{font-size:15px}
+ body.board-view .draft-ink-header #progress{font-size:12px;margin:0}
+ body.board-view #teams{grid-column:1;grid-row:2;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));margin:0;min-height:0;gap:10px}
+ body.board-view #teams .card{min-height:0;padding:10px 12px 24px;grid-template-rows:30px 20px minmax(0,1fr);align-content:stretch}
+ body.board-view #teams .members{min-height:0;grid-template-rows:repeat(2,minmax(0,1fr));margin-top:6px}
+ body.board-view #teams .members>span{height:auto;min-height:0}
+ body.board-view #teams .team-budget>small{display:none}
+ body.board-view #teams .card>p.badge{position:absolute;right:12px;bottom:4px;margin:0;font-size:10px}
+ body.board-view #draft-sidebar{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;border-radius:12px}
+ body.board-view #draft-sidebar>section{margin:0;flex:none}
+ body.board-view #auction{padding:18px!important}
+ body.board-view .hero{display:flex;flex-direction:column;gap:16px}
+ body.board-view .hero>div,body.board-view .hero>details{width:100%;border:0;padding:0;margin:0}
+ body.board-view .hero>div:last-child{order:1;border-top:1px solid #514b43;padding-top:12px}
+ body.board-view #history{order:2;border-top:1px solid #514b43;padding-top:6px}
+ body.board-view .hero h2{font-size:34px;margin:8px 0}
+ body.board-view .hero p{margin:8px 0;font-size:14px}
+ body.board-view .hero .description{font-size:13px;max-height:100px;overflow:auto}
+ body.board-view .quotation{font-size:48px;margin:8px 0;border-bottom-width:2px}
+ body.board-view .hero table{font-size:12px}
+ body.board-view .hero td,body.board-view .hero th{padding:7px 3px}
+ body.board-view #pick{padding:14px;font-size:14px}
+ body.board-view #bar{position:static;max-height:120px;min-height:60px;padding:10px 22px;gap:10px;overflow:auto}
+ body.board-view #more-panel,body.board-view #preview-panel,body.board-view #error:not([style*="display: none"]){position:fixed;z-index:15;top:80px;left:15%;right:15%;max-height:70vh;overflow:auto;box-shadow:0 12px 48px #0004}
+ body.board-view>footer:not(#bar),body.board-view>.site-credit{display:none}
+}
+
+/* Quiet paper surfaces and a consistent hierarchy across the live board. */
+@media(min-width:1100px) and (min-height:650px){
+ body.board-view{background:#f2efe8;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+ body.board-view>header{border-bottom:1px solid #a58a5f}
+ body.board-view>header>a{font-size:13px;color:#d9d3c8;text-decoration:none}
+ body.board-view>header>a:hover{color:#fff}
+ body.board-view .connection{font-size:11px;color:#a99f8c}
+ body.board-view main{gap:14px;grid-template-columns:minmax(0,1fr) 300px}
+ body.board-view .draft-ink-header{border-radius:10px;border-color:#ded5c4}
+ body.board-view #teams{gap:12px}
+ body.board-view #teams .card{border-top-width:2px;border-radius:11px;background:#fffefa;box-shadow:0 2px 6px #49371d06;padding:12px 14px 24px;column-gap:12px;grid-template-rows:30px 21px minmax(0,1fr)}
+ body.board-view #teams .card h3{font-size:15px;font-weight:600;gap:9px;letter-spacing:.02em}
+ body.board-view #teams .team-logo{width:30px;height:30px;color:#64695b}
+ body.board-view #teams .team-budget>strong{font-size:24px;font-weight:650;font-variant-numeric:tabular-nums;color:#a53c35}
+ body.board-view #teams .team-budget small{color:#a49b8b;font-size:10px}
+ body.board-view #teams .badge{font-size:10px;color:#978c7b;margin-top:4px;letter-spacing:.025em}
+ body.board-view #teams .members{gap:7px;margin-top:7px}
+ body.board-view #teams .members>span{border-radius:7px;background:#f6f3ed;border-color:#ece5d9;font-size:14px;color:#403d36}
+ body.board-view #teams .members>span.muted{background:#faf8f3aa;border-color:#e8e0d2;color:#b7ae9f;font-size:11px}
+ body.board-view #teams .members>span.playing-coach{background:#f8f0dc;border-color:#c3a264;color:#785822}
+ body.board-view #teams .members>span.first-pick-member{background:#eff1f6;border-color:#a0abc1;color:#4d5c7a}
+ body.board-view #teams .card.leading{border-color:#b85148;box-shadow:0 0 0 1px #b8514820,0 3px 10px #8b3b2410}
+ body.board-view #teams .coach-footer{left:14px;color:#998d78}
+ body.board-view #draft-sidebar{gap:12px}
+ body.board-view #auction{background:#292b28!important;border:1px solid #373b33;border-radius:11px!important;padding:20px!important;box-shadow:0 3px 12px #22220e0b}
+ body.board-view .hero>div>span{font-size:11px;color:#beb8a8;letter-spacing:.08em}
+ body.board-view .hero h2{font-family:"Songti SC","SimSun",serif;font-size:36px;letter-spacing:.06em;color:#fffdf3;margin:12px 0}
+ body.board-view .hero p{font-size:12px;color:#d7d1c3;line-height:1.7}
+ body.board-view .hero .description{font-size:12px;color:#a6a595;line-height:1.8}
+ body.board-view .hero>div:last-child,body.board-view #history{border-color:#494c41}
+ body.board-view .quotation{font-size:56px;line-height:1.1;font-weight:600;letter-spacing:-.035em;border-color:#bca16d;padding-bottom:12px;color:#faf6e9}
+ body.board-view .hero>div:last-child>strong:last-child{display:inline-block;font-size:12px;font-weight:500;color:#d7c59d;background:#d7c59d12;border:1px solid #d7c59d30;border-radius:5px;padding:4px 9px;margin-top:4px}
+ body.board-view #history summary{font-size:12px;color:#d4cebf}
+ body.board-view #history h3{font-size:14px}
+ body.board-view #pick{border:1px solid #d8c7a7;border-left:3px solid #b29a6f;border-radius:9px;background:#fffaf0;color:#756343;font-size:12px;line-height:1.8}
+ body.board-view #bar{border-top:1px solid #b6a382;background:#252723}
+ body.board-view #bar>strong{font-size:13px;color:#c9bfaa;font-weight:500;letter-spacing:.05em}
+ body.board-view #bar>button{font-size:13px;border-radius:7px;min-height:38px;padding:8px 16px;border-color:#ddd6c8;background:#f7f3ea;color:#41392a}
+ body.board-view #bar>button.primary{background:#a9443d;color:#fff;border-color:#a9443d}
+}
+
+/* Roster presentation: editorial heading, player tiles, quiet open positions. */
+@media(min-width:1100px) and (min-height:650px){
+ body.board-view{background:#eae7df}
+ body.board-view main{padding:14px 24px;gap:16px;grid-template-columns:minmax(0,1fr) 320px;grid-template-rows:88px minmax(0,1fr)}
+ body.board-view .draft-ink-header{border:0;padding:12px 26px;box-shadow:0 1px 0 #c9beaa}
+ body.board-view .draft-title-main{font-size:38px}
+ body.board-view #teams{gap:14px}
+ body.board-view #teams .card{background:#fffdf7;border:0;border-radius:12px;padding:16px 18px 24px;grid-template-rows:40px 20px minmax(0,1fr);box-shadow:0 2px 8px #3f351a0b}
+ body.board-view #teams .card h3{font-size:19px;gap:12px;letter-spacing:.01em}
+ body.board-view #teams .team-logo{width:38px;height:38px;color:#555f50}
+ body.board-view #teams .team-budget{display:block;text-align:right}
+ body.board-view #teams .team-budget>small{display:block;font-size:9px;letter-spacing:.13em;color:#9f9480;margin-bottom:1px}
+ body.board-view #teams .team-budget>strong{font-size:28px;line-height:1;color:#8c4435;font-weight:500}
+ body.board-view #teams .badge{margin:2px 0 0 50px;font-size:10px;color:#938873}
+ body.board-view #teams .members{gap:9px;margin-top:10px;padding-top:10px;border-top:1px solid #eee8dc}
+ body.board-view #teams .members>span{border:0;background:#eeeae0;border-radius:6px;font-size:16px;color:#343c35;font-weight:500;box-shadow:inset 0 -2px 0 #d8d1c480}
+ body.board-view #teams .members>span.muted{background:transparent;border:0;box-shadow:none;color:#bdb5a6;font-size:11px;font-weight:400;position:relative}
+ body.board-view #teams .members>span.muted::after{content:"";position:absolute;bottom:5px;left:30%;right:30%;height:1px;background:#e8e1d4}
+ body.board-view #teams .members>span.playing-coach{background:#f5ead0;color:#715320;border:1px solid #c7a564;box-shadow:inset 3px 0 #b38c47}
+ body.board-view #teams .playing-coach strong{font-size:16px;font-weight:600}
+ body.board-view #teams .members>span.first-pick-member{background:#e9edf4;color:#4b5d7b;border:1px solid #9baac2;box-shadow:inset 3px 0 #8194b4}
+ body.board-view #teams .card.leading{background:#fffaf0;box-shadow:inset 0 3px #b05240,0 3px 14px #65452214}
+ body.board-view #teams .card.responding{box-shadow:inset 0 3px #b99a5e,0 3px 14px #65452214}
+ body.board-view #teams .card::after{height:55px;opacity:.18}
+ body.board-view #teams .coach-footer{left:18px;bottom:4px;font-size:10px}
+ body.board-view #auction{padding:26px!important;background:linear-gradient(145deg,#353e35,#202820)!important;border:0;border-radius:12px!important;box-shadow:0 8px 24px #222c2215}
+ body.board-view .hero{gap:22px}
+ body.board-view .hero>div>span{font-size:11px;letter-spacing:.15em;color:#b7beab}
+ body.board-view .hero h2{font-size:44px;line-height:1.2;margin:16px 0 12px;color:#fff9e9}
+ body.board-view .hero .description{color:#b0b6a6}
+ body.board-view .hero>div:last-child{padding-top:22px}
+ body.board-view .quotation{font-size:76px;font-weight:500;line-height:1;margin:14px 0 12px;border:0;padding:0;color:#e2cea0}
+ body.board-view .hero>div:last-child>p{font-size:16px;color:#eee8db;margin:10px 0}
+ body.board-view .hero>div:last-child>strong:last-child{border:0;padding:5px 11px;border-radius:20px;background:#d0c09520;color:#d8c59c}
+ body.board-view #history{padding-top:12px}
+ body.board-view #pick{background:#f5f0e4;border:0;border-left:3px solid #ad9569;padding:16px 18px;font-size:13px}
+ body.board-view #bar{background:#eae7df;border-top:1px solid #d2c9b8;padding:10px 24px}
+ body.board-view #bar>strong{color:#837761}
+ body.board-view #bar>button{background:#fffdf7;border:1px solid #d6cbb7;box-shadow:0 2px 4px #43372208}
+ body.board-view #bar>button.primary{background:#8e4537;border-color:#8e4537}
+}
+@media(min-width:1100px) and (max-height:800px) and (min-height:650px){
+ body.board-view main{grid-template-rows:76px minmax(0,1fr);gap:12px;padding:10px 20px;grid-template-columns:minmax(0,1fr) 290px}
+ body.board-view #teams{gap:10px}
+ body.board-view #teams .card{padding:10px 12px 22px;grid-template-rows:32px 16px minmax(0,1fr)}
+ body.board-view #teams .card h3{font-size:16px;gap:8px}
+ body.board-view #teams .team-logo{width:30px;height:30px}
+ body.board-view #teams .badge{margin-left:38px}
+ body.board-view #teams .members{margin-top:5px;padding-top:6px;gap:6px}
+ body.board-view #teams .members>span,body.board-view #teams .playing-coach strong{font-size:13px}
+ body.board-view #teams .team-budget>strong{font-size:23px}
+ body.board-view #auction{padding:20px!important}
+ body.board-view .hero h2{font-size:36px}
+ body.board-view .quotation{font-size:60px}
+}
+
+@media(min-width:1100px) and (min-height:650px){
+body.board-view{background:#eeebe3}
+body.board-view>header{background:linear-gradient(110deg,#202a26,#2c322d);height:60px;border:0}
+body.board-view main{padding:0 30px 12px;grid-template-rows:100px minmax(0,1fr);grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+body.board-view .draft-ink-header{margin:0 -30px;padding:16px 38px;border-radius:0;background-color:#f8f5ed;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20700%20150%22%3E%3Cg%20fill%3D%22%23747d6e%22%3E%3Cpath%20opacity%3D%22.12%22%20d%3D%22M0%20145L90%20110l60%2018%2080-57%2058%2024%2066-50%2062%2043%2063-66%2052%2050%2044-31%20125%20104Z%22/%3E%3Cpath%20opacity%3D%22.16%22%20d%3D%22M240%20150l82-51%2042%2022%20102-93%2045%2041%2037-12%2077%2073%2075%2020Z%22/%3E%3Cpath%20opacity%3D%22.17%22%20d%3D%22M380%20145l88-103-37%2094%2041-38%2058%2049ZM60%20150l87-37%2096%2037Z%22/%3E%3C/g%3E%3Cpath%20d%3D%22M483%2018v21m-4-18h8m-8%206h8m-8%206h8%22%20stroke%3D%22%23a34d37%22%20opacity%3D%22.6%22/%3E%3C/svg%3E");background-size:auto 100%;background-repeat:no-repeat;background-position:right;border-bottom:1px solid #ded8ca;box-shadow:none}
+body.board-view .draft-title-main{font-size:46px}
+body.board-view .draft-title-eyebrow{font-size:17px}
+body.board-view .draft-ink-header .phase{background:#e8dfcd;border-radius:24px;padding:6px 16px;font-weight:600}
+body.board-view #teams{gap:16px}
+body.board-view #teams .card{padding:17px 20px 25px;grid-template-rows:42px 23px minmax(0,1fr);background:linear-gradient(125deg,#fffdf7,#faf8f1);border:1px solid #e7e2d8;box-shadow:0 4px 14px #342b1410;border-radius:14px}
+body.board-view #teams .team-logo{width:44px;height:44px;align-self:start}
+body.board-view #teams .card h3{font-size:20px;gap:14px;color:#202c2c}
+body.board-view #teams .badge{margin-left:58px;font-size:12px;line-height:20px}
+body.board-view #teams .settled-badge{background:#ecddba;color:#705829;border-radius:6px;justify-self:start;padding:0 9px}
+body.board-view #teams .team-budget>strong{font-size:30px;color:#a3422e}
+body.board-view #teams .team-budget>small{font-size:10px;color:#7c7567}
+body.board-view #teams .members{gap:9px;margin-top:8px;padding-top:12px}
+body.board-view #teams .members>span{font-size:16px;background:#eeebe3;box-shadow:none;border:1px solid #dfd6c6}
+body.board-view #teams .members>span.muted{border:1px dashed #d6cbbb;background:transparent;color:#a69f92;font-size:13px}
+body.board-view #teams .members>span.muted::after{display:none}
+body.board-view #teams .members>span.playing-coach{background:#f4e9cd;border:1px solid #c59b4d;box-shadow:inset 0 0 0 3px #ffffff30;color:#78521e}
+body.board-view #teams .members>span.first-pick-member{background:#e6eae2;border:1px solid #789086;box-shadow:inset 0 0 0 3px #ffffff30;color:#2d4244}
+body.board-view #teams .card.leading{border:1px solid #bd9139;box-shadow:0 0 0 1px #bd913950,0 4px 14px #342b1410}
+body.board-view #teams .card::after{opacity:.06}
+body.board-view #draft-sidebar{gap:12px}
+body.board-view #auction{flex:1;padding:24px!important;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20260%20400%22%3E%3Cg%20fill%3D%22%23a5b09a%22%20opacity%3D%22.12%22%3E%3Cpath%20d%3D%22M241%200l-43%20400h4L247%200Z%22/%3E%3Cpath%20d%3D%22M230%2060Q154%2036%20122%2084q72-6%20108-24M224%20102q-71-4-100%2047%2063-23%20100-47M220%20155q-73%209-104%2060%2077-29%20104-60M234%2064q32%207%2026%2066-23-33-26-66M225%20133q35%2021%2033%2079-33-39-33-79M210%20212q-69%2021-85%2078%2051-39%2085-78%22/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(125deg,#344337,#202b24)!important;background-position:right top,center!important;background-size:220px auto,cover!important;background-repeat:no-repeat!important;border:1px solid #6f7a5b;border-radius:12px!important}
+body.board-view .reference-auction{min-height:100%;gap:20px}
+body.board-view .reference-auction .lot-summary{order:0}
+body.board-view .reference-auction .lot-price{order:1;border-top:1px solid #b6a16a;padding-top:20px}
+body.board-view .reference-auction #history{order:2;margin-top:auto;border:0;padding-top:0}
+body.board-view .lot-status{display:table;padding:8px 18px;margin:0 0 20px;border:1px solid #c9af69;border-radius:30px;background:linear-gradient(110deg,#8b743e,#b19959);font-size:16px;color:#fff8e7}
+body.board-view .reference-auction h2{font-size:52px;margin:12px 0 18px;padding-bottom:18px;border-bottom:1px solid #a89b72;font-weight:500;letter-spacing:.06em}
+body.board-view .reference-auction .lot-summary>span{color:#c7b57c;font-size:14px}
+body.board-view .reference-auction p,body.board-view .reference-auction .description{font-size:15px;color:#e7e7d7}
+body.board-view .price-line{display:flex;align-items:baseline;gap:14px}
+body.board-view .price-line .quotation{font-family:Georgia,serif;font-size:96px;color:#e0cb91;margin:0 0 10px;padding:0}
+body.board-view .price-line>small{font-size:14px;color:#cbb87c}
+body.board-view .reference-auction .recipient{font-family:"SimSun",serif;font-size:25px;margin-top:8px}
+body.board-view #history summary{border:1px solid #ac9d70;border-radius:9px;padding:13px 16px;color:#e2d19c;text-align:center;font-size:14px}
+body.board-view #history summary span{margin-left:10px}
+body.board-view #pick{padding:17px 20px;background:#fffaf0;border:1px solid #e2d9c8;box-shadow:0 2px 6px #342b1408;font-size:14px;color:#4d4a3b}
+body.board-view #bar{background:#eeebe3;padding:10px 32px;border-color:#d7cebd}
+}
+@media(min-width:1100px) and (max-height:850px) and (min-height:650px){
+body.board-view main{padding:0 20px 10px;grid-template-rows:82px minmax(0,1fr);grid-template-columns:minmax(0,1fr) 290px;gap:12px}
+body.board-view .draft-ink-header{margin:0 -20px;padding:12px 28px}
+body.board-view .draft-title-main{font-size:36px}
+body.board-view #teams{gap:12px}
+body.board-view #teams .card{padding:10px 14px 22px;grid-template-rows:32px 18px minmax(0,1fr)}
+body.board-view #teams .card h3{font-size:16px;gap:9px}
+body.board-view #teams .team-logo{width:32px;height:32px}
+body.board-view #teams .badge{margin-left:41px;font-size:10px;line-height:16px}
+body.board-view #teams .team-budget>strong{font-size:24px}
+body.board-view #teams .members{margin-top:6px;padding-top:7px;gap:6px}
+body.board-view #teams .members>span{font-size:13px}
+body.board-view #teams .members>span.muted{font-size:11px}
+body.board-view #auction{padding:18px!important}
+body.board-view .reference-auction{gap:12px}
+body.board-view .lot-status{font-size:13px;padding:5px 12px;margin-bottom:12px}
+body.board-view .reference-auction h2{font-size:38px;margin:8px 0 12px;padding-bottom:12px}
+body.board-view .reference-auction p,body.board-view .reference-auction .description{font-size:12px}
+body.board-view .price-line .quotation{font-size:64px}
+body.board-view .reference-auction .lot-price{padding-top:12px}
+body.board-view .reference-auction .recipient{font-size:20px}
+}
+
+/* Reference refinement: generous roster cells and a full-height auction panel. */
+@media(min-width:1100px) and (min-height:650px){
+body.board-view .draft-ink-header{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20800%20180%22%3E%3Cdefs%3E%3Cfilter%20id%3D%22ink%22%3E%3CfeTurbulence%20baseFrequency%3D%22.035%22%20numOctaves%3D%223%22%20seed%3D%228%22%20result%3D%22noise%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22noise%22%20scale%3D%229%22/%3E%3CfeGaussianBlur%20stdDeviation%3D%22.5%22/%3E%3C/filter%3E%3ClinearGradient%20id%3D%22wash%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23657064%22%20stop-opacity%3D%22.4%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23a0a291%22%20stop-opacity%3D%220%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20filter%3D%22url%28%23ink%29%22%20fill%3D%22url%28%23wash%29%22%3E%3Cpath%20d%3D%22M0%20178Q80%20159%20120%20141T199%20144Q235%20130%20270%2094Q290%20110%20304%20100Q336%20128%20370%20145Q416%20155%20452%20178Z%22/%3E%3Cpath%20d%3D%22M265%20180Q360%20149%20390%20133Q433%20104%20455%2066Q475%2030%20491%2049Q501%2063%20511%2057Q535%2086%20559%20104Q597%20131%20635%20151L710%20180Z%22/%3E%3Cpath%20d%3D%22M459%20180Q520%20131%20550%20108Q575%2070%20596%2032Q610%209%20626%2033L643%2063Q659%2053%20681%2088Q714%20105%20736%20134L800%20177Z%22/%3E%3C/g%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%236d7567%22%20stroke-width%3D%221%22%20opacity%3D%22.17%22%20filter%3D%22url%28%23ink%29%22%3E%3Cpath%20d%3D%22M559%20148q32-73%2053-110l-16%2083%2033-57-8%2057%2033-32%2049%2076M406%20145l51-67-17%2063%2051-79-26%2091M169%20153l101-48-54%2050%22/%3E%3C/g%3E%3Cg%20fill%3D%22%23777f6e%22%20opacity%3D%22.18%22%3E%3Cpath%20d%3D%22M606%2085l-4%2031h8Z%20M650%20120l-5%2030h10Z%20M453%20116l-4%2025h8Z%22/%3E%3C/g%3E%3C/svg%3E")}
+body.board-view #teams .card{grid-template-rows:36px 19px minmax(0,1fr);padding-top:12px;padding-bottom:22px}
+body.board-view #teams .card h3{overflow:visible;gap:14px}
+body.board-view #teams .team-logo{width:50px;height:50px;min-width:50px;overflow:visible;align-self:center}
+body.board-view #teams .team-logo svg{width:100%;height:100%;display:block}
+body.board-view #teams .badge{margin-left:64px;line-height:18px;margin-top:0}
+body.board-view #teams .members{margin-top:5px;padding-top:9px;gap:9px}
+body.board-view #draft-sidebar{align-self:stretch;height:100%;min-height:0}
+body.board-view #draft-sidebar>#auction{flex:1 0 auto;min-height:0;display:flex;flex-direction:column;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20300%20480%22%3E%3Cdefs%3E%3Cfilter%20id%3D%22ink%22%3E%3CfeTurbulence%20baseFrequency%3D%22.04%22%20numOctaves%3D%222%22%20seed%3D%224%22%20result%3D%22n%22/%3E%3CfeDisplacementMap%20in%3D%22SourceGraphic%22%20in2%3D%22n%22%20scale%3D%223%22/%3E%3C/filter%3E%3C/defs%3E%3Cg%20fill%3D%22%23a5b49b%22%20opacity%3D%22.1%22%20filter%3D%22url%28%23ink%29%22%3E%3Cpath%20d%3D%22M290%200Q257%20190%20240%20420l3%201Q267%20184%20295%200Z%22/%3E%3Cpath%20d%3D%22M280%2049Q244%204%20208%2012q30%2032%2072%2037M278%2052q-54-14-94%2014%2053%200%2094-14M270%2087q-66%207-90%2061%2047-24%2090-61M267%20102q-8%2063%2015%20104%207-58-15-104M257%20174q-66-4-112%2039%2067-12%20112-39M255%20178q-50%2040-55%2098%2035-44%2055-98M248%20232q15%2069%2042%2088-6-57-42-88M247%20254q-64%2019-95%2072%2055-24%2095-72M285%2024q12%2049%2015%2062V35Z%22/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(125deg,#344337,#202b24)!important;background-size:230px auto,cover!important}
+body.board-view #draft-sidebar>#auction[hidden]{display:none}
+body.board-view #auction .reference-auction{flex:1;min-height:0;justify-content:flex-start}
+body.board-view .reference-auction #history{margin-top:auto;padding-top:18px}
+body.board-view #pick{flex:0 0 auto}
+}
+@media(min-width:1100px) and (max-height:850px) and (min-height:650px){
+body.board-view #teams .card{grid-template-rows:30px 17px minmax(0,1fr);padding-top:9px}
+body.board-view #teams .team-logo{width:39px;height:39px;min-width:39px}
+body.board-view #teams .badge{margin-left:48px;line-height:16px}
+body.board-view #teams .card h3{gap:9px}
+body.board-view #teams .members{margin-top:4px;padding-top:6px;gap:6px}
+body.board-view .reference-auction #history{padding-top:10px}
+}
+
+#auction .reference-auction[hidden],#history-card-view[hidden]{display:none!important}
+#history-card-view{display:flex;flex-direction:column;min-height:0;flex:1;gap:18px;color:#eee8d9}
+.history-card-heading>span{font-size:13px;color:#c9b884;letter-spacing:.1em}
+.history-card-heading h2{font-family:"SimSun",serif;font-size:34px;font-weight:500;margin:12px 0 0}
+.history-card-content{min-height:0;overflow:auto;flex:1;font-size:13px}
+.history-card-content select{width:100%;background:#354135;color:#eee8d9;border-color:#8f8764;margin-top:10px}
+.history-card-content table{width:100%;border-collapse:collapse;font-size:12px}
+.history-card-content td,.history-card-content th{padding:10px 4px;text-align:right;border-bottom:1px solid #59604e;white-space:nowrap}
+.history-card-content td:first-child,.history-card-content th:first-child{text-align:left}
+.history-card-content .muted{color:#b9bcae;font-size:12px;line-height:1.8}
+#show-player-history,#back-to-auction{width:100%;border:1px solid #ac9d70;border-radius:9px;padding:13px 10px;background:transparent;color:#e2d19c;font-size:14px;flex:none}
+#back-to-auction{margin-top:auto}
+@media(min-width:1100px) and (min-height:650px){body.board-view #draft-sidebar>#auction{flex:1 1 0;overflow:hidden}body.board-view #auction .reference-auction{overflow:auto}body.board-view #history-card-view{height:100%;overflow:hidden}}
+
+.results-dialog{width:min(900px,96vw)}
+.results-dialog-toolbar{padding:16px 22px}
+.results-dialog-body{padding:6px 20px 20px}
+.result-round.compact-round{padding:0;margin:16px 0;border:1px solid #dfd7c9;border-radius:10px;overflow:hidden;background:#fffdf7}
+.compact-round .round-heading{padding:13px 18px;margin:0;background:#f0ebe0;border-bottom:1px solid #e1d9cb}
+.compact-round .round-heading h3{font-size:16px}
+.result-entry{margin:0;padding:15px 18px}
+.result-entry+.result-entry{border-top:1px solid #e9e2d6}
+.result-entry-main{display:grid;grid-template-columns:minmax(100px,1fr) auto minmax(160px,1fr);gap:16px;align-items:center}
+.result-person{font-size:20px;color:#27342e;overflow-wrap:anywhere}
+.result-outcome{font-size:11px;color:#9b783a;background:#f3ead9;border-radius:20px;padding:3px 10px;white-space:nowrap}
+.result-outcome.resolved{background:#e6ece4;color:#526d5c}
+.result-recipient{display:flex;align-items:center;justify-content:flex-end;gap:9px;font-size:14px;color:#3e4c40}
+.result-recipient .team-logo{width:26px;height:26px;background:none}
+.result-contenders{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-top:9px;font-size:11px;color:#9a8d78}
+.contender{color:#8d8170}.contender.winner{color:#4d6957}
+.compact-rolls{margin-top:10px;padding:10px 12px;background:#f5f2e9;border-radius:7px}
+.compact-roll{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.compact-roll+.compact-roll{border-top:1px solid #e5dfd3;padding-top:8px;margin-top:8px}
+.roll-label{font-size:11px;color:#8d806a;min-width:62px}
+.roll-chips{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.roll-chip{font-size:12px;color:#8c8374;background:#eae6de;padding:4px 10px;border-radius:5px;display:inline-flex;gap:10px;align-items:baseline}
+.roll-chip b{font-size:20px;font-variant-numeric:tabular-nums}
+.roll-chip.winner{background:#e1eae0;color:#3e634f}
+.roll-chip small,.roll-tie{font-size:10px}
+.compact-pending{margin-top:10px;font-size:12px;color:#94783e}
+@media(max-width:600px){.results-dialog-body{padding:4px 10px 12px}.result-entry{padding:12px}.result-entry-main{grid-template-columns:1fr auto;gap:8px}.result-recipient{grid-column:1/-1;justify-content:flex-start}.result-person{font-size:18px}}
+
+body.board-view .draft-ink-header #progress{color:#786342;font-size:13px;font-weight:500;line-height:1.6}
+body.board-view .draft-ink-header .phase{white-space:nowrap}
+
+#teams .members>span .member-name{background:none;padding:0;min-height:0;max-width:100%;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:0;font-size:inherit}
+#teams .members>span .member-price{font:500 10px/1.1 system-ui,sans-serif;color:#887c65;white-space:nowrap}
+#teams .members>span.first-pick-member .member-price{color:#718076}
+#teams .members>span{gap:3px}
+@media(min-width:1100px) and (max-height:800px) and (min-height:650px){body.board-view #teams .members>span{padding:2px 4px;gap:1px}#teams .members>span .member-price{font-size:9px}}
+
+#teams .members>span{position:relative}
+#teams .members>span .member-price{position:absolute;right:5px;bottom:3px;font-size:10px;line-height:1;font-weight:400;pointer-events:none}
+#teams .members>span .member-name,#teams .members>span.playing-coach>strong{max-width:100%;padding:0 8px}
+
+#bar{align-items:center;gap:10px}
+#bar>strong{flex:0 0 auto;margin-right:12px;white-space:nowrap}
+#bar>button,body.board-view #bar>button{height:40px;min-height:40px;min-width:112px;padding:0 16px;font:500 13px/1 system-ui,"Microsoft YaHei",sans-serif;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;background:#fffdf7;color:#554a37;border:1px solid #d8cebb;box-shadow:0 1px 2px #342b1408;transition:background .15s,border-color .15s}
+#bar>button:hover,body.board-view #bar>button:hover{background:#f1ebdf;border-color:#b7a681}
+#bar>button.primary,body.board-view #bar>button.primary{background:#934a3a;border-color:#934a3a;color:#fffaf0}
+#bar>button.primary:hover{background:#7d3d30}
+#bar>#more,body.board-view #bar>#more{margin-left:auto;background:transparent;min-width:112px;border-color:#cbbda3;color:#746044}
+#bar>#more[hidden]{display:none}
+#bar>#show-results{margin-left:12px}
+#more-panel,body.board-view #more-panel{position:fixed;z-index:18;top:auto;left:auto;right:24px;bottom:76px;width:340px;max-width:calc(100vw - 32px);max-height:65vh;margin:0;padding:18px;background:#fffdf7;color:#423d32;border:1px solid #dbd1bd;border-radius:12px;box-shadow:0 12px 40px #2d281b26;overflow:auto}
+#more-panel>b{display:block;font-size:12px;font-weight:500;color:#8b7d65;padding:0 2px 12px;border-bottom:1px solid #ece4d5}
+#more-panel>p{display:grid;grid-template-columns:1fr;gap:6px;margin:10px 0 0}
+#more-panel button{height:40px;min-height:40px;margin:0;padding:0 12px;text-align:left;border:0;border-radius:6px;background:transparent;color:#554b39;font-size:13px}
+#more-panel button:hover{background:#f1ebdf}
+@media(max-width:800px){#bar{gap:8px}#bar>button,body.board-view #bar>button{min-width:100px;padding:0 10px}#bar>#show-results{margin-left:0}#more-panel,body.board-view #more-panel{right:16px;bottom:130px}}
+
+/* Reference roster: name on the left, cost on the right on one baseline. */
+#teams .members>span:not(.muted),body.board-view #teams .members>span:not(.muted){display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;text-align:left}
+#teams .members>span .member-name,#teams .members>span.playing-coach>strong{flex:1;min-width:0;max-width:none;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+#teams .members>span .member-price,body.board-view #teams .members>span .member-price{position:static;flex:none;font-size:14px;line-height:1.4;font-weight:400;color:#4b514b;font-variant-numeric:tabular-nums;pointer-events:none}
+#teams .members>span .member-price::after{content:'点';font-size:10px;margin-left:5px;color:#9e9889}
+#teams .members>span.muted{justify-content:center}
+@media(min-width:1100px) and (max-width:1450px){body.board-view #teams .members>span:not(.muted){padding:5px 8px;gap:5px}body.board-view #teams .members>span .member-price{font-size:12px}#teams .members>span .member-price::after{margin-left:3px;font-size:9px}}
+#teams .members>span .member-name{text-align:left}
+
+#preview-panel.finish-review,body.board-view #preview-panel.finish-review{position:fixed;top:50%;left:50%;right:auto;transform:translate(-50%,-50%);width:min(980px,calc(100vw - 40px));max-height:88dvh;margin:0;padding:0;display:flex;flex-direction:column;overflow:hidden;background:#f7f4ec;border:1px solid #d5c9b3;border-radius:16px;box-shadow:0 0 0 100vmax #17231db3,0 20px 80px #0004;z-index:25;color:#343b32}
+#preview-panel.finish-review[hidden]{display:none}
+.finish-heading{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e1d8c6;background:#fffaf0}
+.finish-heading>div>span{font-size:11px;letter-spacing:.1em;color:#938061}
+.finish-heading h2{font-size:23px;margin:5px 0 0}
+.finish-body{overflow:auto;min-height:0;padding:20px 24px}
+.finish-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.finish-stats>div{border:1px solid #e1dacb;border-radius:10px;background:#fffdf7;padding:12px 16px}
+.finish-stats small{display:block;font-size:12px;color:#8b806c}
+.finish-stats strong{display:block;font-size:30px;font-weight:600;margin-top:4px;color:#355545}
+.finish-stats strong span{font-size:13px;color:#9b907c;font-weight:400}
+.finish-stats .has-vacancy strong{color:#a46f25}
+.finish-notice{padding:11px 14px;background:#eee7d7;border-radius:8px;font-size:12px;line-height:1.7;color:#806942;margin:14px 0}
+.finish-team-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.finish-team{padding:13px;background:#fffdf8;border:1px solid #e1dacd;border-radius:10px;min-width:0}
+.finish-team.short-team{border-color:#c6a265;background:#fff8e9}
+.finish-team-heading{display:flex;align-items:center;gap:7px}
+.finish-team-heading .team-logo{width:27px;height:27px;background:none}
+.finish-team-heading strong{font-size:14px;flex:1}
+.finish-team-heading>span{font-size:10px;color:#80907b;white-space:nowrap}
+.short-team .finish-team-heading>span{color:#a16e27}
+.finish-team-meta{display:flex;justify-content:space-between;margin:9px 0;font-size:11px;color:#8f8270}
+.finish-team-meta b{color:#a14c39;font-size:14px}
+.finish-members{display:flex;flex-wrap:wrap;gap:5px}
+.finish-members>span{padding:4px 7px;font-size:12px;background:#f1eee5;color:#555c4e;border-radius:4px}
+.finish-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:15px 24px;border-top:1px solid #dfd6c5;background:#fffaf0}
+.finish-actions>span{margin-right:auto;font-size:12px;color:#8b7651}
+.finish-review button{height:38px;min-height:38px;padding:0 15px;border-radius:7px;font-size:13px;border:1px solid #d5c9b5;background:#fffdf7;color:#65583d}
+.finish-review button.primary{background:#934b3b;color:#fff8ec;border-color:#934b3b}
+@media(max-width:700px){.finish-team-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.finish-body{padding:14px}.finish-heading,.finish-actions{padding:14px}.finish-actions>span{display:none}.finish-stats{gap:7px}.finish-stats>div{padding:9px}.finish-stats strong{font-size:24px}}
+@media(max-width:420px){.finish-team-grid{grid-template-columns:1fr}}
+</style></head><body><header><strong><span class="brand">雀<img src="/brand/logo" alt="欢雀楼" onerror="this.remove()" onload="this.previousSibling?.remove()"></span>欢雀楼 · 选人大会</strong><a href="/draft/">活动首页</a>{% if header_can_manage %}<a href="/manage/">赛事管理</a>{% endif %}{% if not request.user.is_authenticated %}<a id="login" href="/login/?next={{ request.path|urlencode }}">登录</a>{% endif %}<span class="connection" id="connection" role="status">正在同步…</span><button id="more" hidden>更多</button>{% include "account-identity.html" with draft_navigation=True %}</header><main><div id="error" role="alert"></div><div id="chooser"><strong id="linked"></strong><button id="link-toggle" hidden>关联赛事</button></div><section id="link-panel" hidden><label>手动选择关联赛事<select id="event"><option value="">请选择赛事</option></select></label><p>开始前可更换关联，更换后清空选人配置；不会移动任何已入队选手。</p><button id="link-save">确认关联</button></section><section class="draft-ink-header" aria-label="选人大会"><div class="draft-ink-copy"><h1 id="name"></h1><div id="phase" class="phase"></div><p id="progress" class="muted"></p></div></section><section id="more-panel" hidden></section><section id="preview-panel" hidden></section><section id="setup" hidden></section><section id="auction" hidden></section><section id="pick" hidden></section><section class="cards" id="teams"></section><aside id="draft-sidebar"></aside><section id="admin-choices" role="dialog" aria-modal="true" aria-label="本轮选择" hidden></section><section id="feed" class="results-modal" role="dialog" aria-modal="true" aria-label="指名结果" hidden></section></main><div id="confirm-dialog" role="dialog" aria-modal="true" aria-label="操作确认" hidden style="position:fixed;inset:0;background:#0009;z-index:20;display:none;align-items:center;justify-content:center;padding:20px"><div style="background:#fffaf0;padding:24px;border-radius:10px;max-width:540px"><p id="confirm-message" style="line-height:1.7"></p><button id="confirm-yes" class="primary">确认</button> <button id="confirm-no">取消</button></div></div><footer id="bar" class="bar"></footer><script>
+const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let state,id="{{ activity_id|escapejs }}",busy=false,timer,adminChoicesOpen=false,resultsOpen=false;
 const csrf=()=>document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=')[1];
 function error(e){$('error').textContent=e.message||e;$('error').style.display='block'}
 async function request(url,body){let r=await fetch(url,body?{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify(body)}:{});let d;try{d=await r.json()}catch(e){throw Error('连接异常，请稍后重试')}if(!r.ok){const e=Error(d.error||'请求失败，请重新登录或刷新');e.status=r.status;throw e}return d}
-async function load(force=false){if(!id||busy)return;try{let next=await request('/api/draft/'+id+'/');$('connection').textContent='已同步 · '+new Date().toLocaleTimeString();if(force||!state||next.revision!==state.revision||next.manager!==state.manager||next.myTeam!==state.myTeam||next.public!==state.public||JSON.stringify(next.history)!==JSON.stringify(state.history)||JSON.stringify(next.players)!==JSON.stringify(state.players)||JSON.stringify(next.teams)!==JSON.stringify(state.teams)){if(!force&&state&&configOpen&&state.status==='setup'&&next.manager===state.manager&&next.myTeam===state.myTeam){error('活动已更新，请先刷新配置再保存');$('connection').textContent='有新版本 · 保存前请刷新';return}state=next;render()}}catch(e){if(e.status===401||e.status===403){state=null;['teams','auction','pick','setup','feed','bar','more-panel','preview-panel','admin-choices'].forEach(id=>{$(id).innerHTML='';$(id).hidden=true});$('more').hidden=true;$('link-panel').hidden=true;$('link-toggle').hidden=true;$('name').textContent='此活动需要访问授权';$('phase').textContent='请登录管理员或绑定教练账号';$('progress').textContent='';$('linked').textContent=''}$('connection').textContent='连接中断 · 正在重试（不会自动 PASS）';error(e)}}
-async function send(action,data={}){if(busy)return;busy=true;document.querySelectorAll('button').forEach(x=>x.disabled=true);try{state=await request('/api/draft/'+id+'/',{action,revision:state.revision,...data});$('error').style.display='none';render()}catch(e){error(e);busy=false;await load(true)}finally{busy=false;['more','link-toggle','link-save'].forEach(id=>$(id).disabled=false)}}
+async function load(force=false){if(!id||busy)return;try{let next=await request('/api/draft/'+id+'/');if(busy)return;$('connection').textContent='已同步 · '+new Date().toLocaleTimeString();if(force||!state||next.revision!==state.revision||next.manager!==state.manager||next.myTeam!==state.myTeam||next.public!==state.public||JSON.stringify(next.history)!==JSON.stringify(state.history)||JSON.stringify(next.players)!==JSON.stringify(state.players)||JSON.stringify(next.teams)!==JSON.stringify(state.teams)){if(!force&&state&&configOpen&&state.status==='setup'&&next.manager===state.manager&&next.myTeam===state.myTeam){error('活动已更新，请先刷新配置再保存');$('connection').textContent='有新版本 · 保存前请刷新';return}state=next;render()}}catch(e){if(e.status===401||e.status===403){state=null;['teams','auction','pick','setup','feed','bar','more-panel','preview-panel','admin-choices'].forEach(id=>{$(id).innerHTML='';$(id).hidden=true});$('more').hidden=true;$('link-panel').hidden=true;$('link-toggle').hidden=true;$('name').textContent='此活动需要访问授权';$('phase').textContent='请登录管理员或绑定教练账号';$('progress').textContent='';$('linked').textContent=''}$('connection').textContent='连接中断 · 正在重试（不会自动 PASS）';error(e)}}
+async function send(action,data={}){if(busy)return;busy=true;const lockedButtons=[...document.querySelectorAll('button')].filter(button=>!button.closest('.account-menu')).map(button=>({button,disabled:button.disabled}));lockedButtons.forEach(({button})=>button.disabled=true);try{state=await request('/api/draft/'+id+'/',{action,revision:state.revision,...data});$('error').style.display='none';if(['reveal','roll'].includes(action))resultsOpen=true;render();if(resultsOpen&&!$('feed').hidden)$('close-results')?.focus()}catch(e){error(e);busy=false;await load(true)}finally{busy=false;lockedButtons.forEach(({button,disabled})=>{if(button.isConnected)button.disabled=disabled})}}
 const player=pid=>state.players.find(p=>p.id===pid)?.name||'未知';const team=tid=>state.teams.find(t=>t.id===tid)?.name||'未知';
 function options(rows,chosen){return '<option value="">请选择</option>'+rows.map(p=>`<option value="${esc(p.id)}" ${p.id===chosen?'selected':''}>${esc(p.name)}</option>`).join('')}
+function memberPrice(pid,tid){const a=[...(state.draft?.allocations||[])].reverse().find(a=>a.playerId===pid&&a.teamId===tid);return a&&Number.isFinite(a.price)?'<small class="member-price" title="实际入队花费">'+esc(a.price)+'</small>':''}
+function teamIsFull(tid){const t=state.draft?.teams.find(t=>t.teamId===tid);return !!t&&state.players.filter(p=>p.teamId===tid&&!p.bond).length>=t.capacity}
 function renderDraftTitle(name){
 const match=String(name).match(/^(.*?)\s*(S\d+)\s*(指名大会)$/i);
 $('name').innerHTML=match?'<span class="draft-title-eyebrow">'+esc(match[1].trim())+'</span><span class="draft-title-main"><span class="draft-title-season">'+esc(match[2].toUpperCase())+'</span><span>'+esc(match[3])+'</span></span>':esc(name);
@@ -139,34 +535,54 @@ function render(){const d=state.draft,phase=d?.phase||'setup';renderDraftTitle(s
 if(!state.eventId&&state.status!=='complete'){$('setup').hidden=true;$('progress').textContent='请先手动关联赛事，再配置队伍和候选选手。';return}
 if(phase==='setup'&&state.manager){setup();$('bar').insertAdjacentHTML('beforeend','<button class="primary" id="save">保存配置</button>'+(d?'<button id="start">开始一选</button>':''));$('save').onclick=save;if(d)$('start').onclick=async()=>{if(await askConfirm('按已保存配置开始一选？教练将进入队伍名单。'))send('start')};}
 if(!d)return;
-$('teams').innerHTML=d.teams.map(t=>{let members=state.players.filter(p=>p.teamId===t.teamId&&!p.bond&&p.id!==t.coachPlayerId);return `<article class="card" data-ink="${Math.max(0,state.teams.findIndex(row=>row.id===t.teamId))%9}"><h3>${esc(team(t.teamId))}</h3><div class="team-metrics"><div class="team-budget"><small>剩余预算</small><strong>${t.balance}<small> 点</small></strong></div><div class="team-count"><strong>${members.length+1}<small> / ${t.capacity} 人</small></strong><small>待选 ${Math.max(0,t.capacity-1-members.length)} 人</small></div></div><div class="badge">${state.status==='complete'?'最终阵容':d.lot?(d.lot.leader===t.teamId?'领先 '+d.lot.price:d.lot.passed.includes(t.teamId)?'本选手 PASS':d.lot.excluded[t.teamId]|| (d.lot.turn===t.teamId?'当前响应':'等待')):(phase==='setup'?'准备中':d.submitted?.includes(t.teamId)?'已提交':d.pending?.includes(t.teamId)?'等待提交':'已完成一选')}</div><div class="members">${t.coachPlaying===false?'':`<span class="playing-coach"><strong>${esc(player(t.coachPlayerId))}</strong></span>`}${members.map(p=>'<span>'+esc(p.name)+'</span>').join('')}${Array.from({length:Math.max(0,t.capacity-1-members.length)},()=>'<span class="muted">待选</span>').join('')}</div><div class="coach-footer">${t.coachPlaying===false?'全职教练：'+esc(player(t.coachPlayerId)):''}</div></article>`}).join('');
+$('teams').innerHTML=d.teams.map(t=>{let members=state.players.filter(p=>p.teamId===t.teamId&&!p.bond&&p.id!==t.coachPlayerId);const isFirstPick=p=>(d.allocations||[]).some(a=>a.playerId===p.id&&a.teamId===t.teamId&&['first-pick','first-roll'].includes(a.method)),firstPicks=members.filter(isFirstPick),otherMembers=members.filter(p=>!isFirstPick(p));return `<article class="card" data-ink="${Math.max(0,state.teams.findIndex(row=>row.id===t.teamId))%9}"><h3>${esc(team(t.teamId))}</h3><div class="team-metrics"><div class="team-budget"><small>剩余预算</small><strong>${t.balance}<small> 点</small></strong></div></div><div class="badge">${state.status==='complete'?'最终阵容':d.lot?(d.lot.leader===t.teamId?'领先 '+d.lot.price:d.lot.passed.includes(t.teamId)?'本选手 PASS':d.lot.excluded[t.teamId]|| (d.lot.turn===t.teamId?'当前响应':'等待')):(phase==='setup'?'准备中':d.submitted?.includes(t.teamId)?'已提交':d.pending?.includes(t.teamId)?'等待提交':'已完成一选')}</div><div class="members">${t.coachPlaying===false?'':`<span class="playing-coach"><strong>${esc(player(t.coachPlayerId))}</strong><small class="member-price" title="教练定价">${esc(t.coachPrice)}</small></span>`}${otherMembers.map(p=>'<span><span class="member-name" title="'+esc(p.name)+'">'+esc(p.name)+'</span>'+memberPrice(p.id,t.teamId)+'</span>').join('')}${Array.from({length:Math.max(0,t.capacity-1-members.length)},()=>'<span class="muted">待选</span>').join('')}${firstPicks.map(p=>'<span class="first-pick-member"><span class="member-name" title="'+esc(p.name)+'">'+esc(p.name)+'</span>'+memberPrice(p.id,t.teamId)+'</span>').join('')}</div><div class="coach-footer">${t.coachPlaying===false?'全职教练：'+esc(player(t.coachPlayerId)):''}</div></article>`}).join('');
 if(phase==='nomination'){$('progress').textContent=`${d.round===1?'首轮':'第 '+d.round+' 轮补选'} · ${d.submitted.length} / ${d.pending.length} 队已提交 · 选择暂不公开`;if(state.myTeam&&d.pending.includes(state.myTeam)){$('pick').hidden=false;$('pick').innerHTML=d.myPick?'<strong>已提交：'+esc(player(d.myPick))+'</strong><p>等待管理员公布。</p>':'<strong>免费指定一名选手</strong><select id="candidate">'+options(d.candidates.filter(c=>c.state==='available').map(c=>({id:c.playerId,name:player(c.playerId)})))+'</select><button class="primary" id="submit">提交首选</button>';if($('submit'))$('submit').onclick=()=>{if($('candidate').value)send('nominate',{playerId:$('candidate').value})}}if(state.manager){$('bar').insertAdjacentHTML('beforeend','<button class="primary" id="reveal">公布选择</button>');$('reveal').disabled=d.submitted.length!==d.pending.length;$('reveal').onclick=()=>send('reveal')}}
 if(phase==='nomination'&&state.manager){
 $('bar').insertAdjacentHTML('beforeend','<button id="view-admin-choices" aria-expanded="'+adminChoicesOpen+'">'+(adminChoicesOpen?'收起本轮选择':'查看本轮选择')+'</button>');
-$('view-admin-choices').onclick=()=>{adminChoicesOpen=!adminChoicesOpen;render()};
-if(adminChoicesOpen){$('admin-choices').hidden=false;$('admin-choices').innerHTML='<h3>本轮选择 <small>仅管理员可见 · 尚未公布</small></h3><div class="admin-choice-list">'+d.pending.map(tid=>'<div><strong>'+esc(team(tid))+'</strong><select aria-label="'+esc(team(tid))+'本轮选择" data-admin-pick="'+esc(tid)+'">'+options(d.candidates.filter(c=>c.state==="available").map(c=>({id:c.playerId,name:player(c.playerId)})),d.adminChoices?.[tid])+'</select><button data-save-admin-pick="'+esc(tid)+'">'+(d.adminChoices?.[tid]?'修改':'补填')+'</button></div>').join('')+'</div>';document.querySelectorAll('[data-save-admin-pick]').forEach(button=>{button.onclick=async()=>{const tid=button.dataset.saveAdminPick,select=[...document.querySelectorAll('[data-admin-pick]')].find(x=>x.dataset.adminPick===tid),pid=select.value,revision=state.revision;if(!pid){error('请选择选手');return}if(await askConfirm(team(tid)+' → '+player(pid)+'，确认保存本轮选择？'))send('admin-nominate',{teamId:tid,playerId:pid,revision})}})}
+$('view-admin-choices').onclick=()=>{adminChoicesOpen=!adminChoicesOpen;render();if(adminChoicesOpen)$('close-admin-choices')?.focus()};
+if(adminChoicesOpen){$('admin-choices').hidden=false;$('admin-choices').innerHTML='<div class="admin-choice-dialog"><div class="admin-choice-heading"><h3>本轮选择 <small>仅管理员可见 · 尚未公布</small></h3><button id="close-admin-choices">关闭</button></div><div class="admin-choice-list">'+d.pending.map(tid=>'<div><strong>'+esc(team(tid))+'</strong><select aria-label="'+esc(team(tid))+'本轮选择" data-admin-pick="'+esc(tid)+'">'+options(d.candidates.filter(c=>c.state==="available").map(c=>({id:c.playerId,name:player(c.playerId)})),d.adminChoices?.[tid])+'</select></div>').join('')+'</div>';$('admin-choices').querySelector('.admin-choice-dialog').insertAdjacentHTML('beforeend','<p id="admin-pick-save-status" role="status" aria-live="polite">选择后自动保存</p>');const closeAdminChoices=()=>{adminChoicesOpen=false;$('admin-choices').hidden=true;$('view-admin-choices')?.focus()};$('close-admin-choices').onclick=closeAdminChoices;$('admin-choices').onclick=e=>{if(e.target===$('admin-choices'))closeAdminChoices()};$('admin-choices').onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closeAdminChoices()}if(e.key==='Tab'){const items=[...$('admin-choices').querySelectorAll('button:not(:disabled),select:not(:disabled)')],first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}};document.querySelectorAll('[data-admin-pick]').forEach(select=>{select.onchange=async()=>{const tid=select.dataset.adminPick,pid=select.value,previous=state.draft.adminChoices?.[tid]||'';if(busy||!pid){select.value=previous;return}if(pid===previous)return;const revision=state.revision;document.querySelectorAll('[data-admin-pick]').forEach(el=>el.disabled=true);$('admin-pick-save-status').textContent='正在保存…';await send('admin-nominate',{teamId:tid,playerId:pid,revision});document.querySelectorAll('[data-admin-pick]').forEach(el=>el.disabled=false);const status=$('admin-pick-save-status');if(status)status.textContent=state?.draft?.adminChoices?.[tid]===pid?'已自动保存':'保存失败，请重新选择';}})}
 }
 if(phase==='revealed'&&state.manager){$('bar').insertAdjacentHTML('beforeend','<button id="continue" class="primary">'+(d.allocations.length===d.teams.length?'完成一选':'开启补选')+'</button>');$('continue').disabled=d.conflicts.length>0;$('continue').onclick=()=>send('continue')}
 if(phase==='auction-ready'){$('progress').textContent='随机抽取下一名选手，确认展示资料后开始竞拍。';if(state.manager){$('bar').insertAdjacentHTML('beforeend','<button class="primary" id="draw">随机抽取选手</button>');$('draw').onclick=()=>send('draw')}}
 if(phase==='third-ready'){let n=d.candidates.filter(c=>c.state==='third-pool').length;$('progress').textContent=n?'待补选 '+n+' 人 · 重新竞拍后由管理员分派，第二轮 PASS 已重置。':'没有待补选选手，名单已保存。';if(state.manager&&n){$('bar').insertAdjacentHTML('beforeend','<button class="primary" id="draw-third">抽取第三轮选手</button>');$('draw-third').onclick=()=>send('draw-third')}}
 if(phase==='review-ready')$('progress').textContent='第三轮分派完成，名单与预算已保存。请检查最终名单和余额，再确认结束活动。';
 if(phase==='auction')renderAuction();
-$('feed').innerHTML=(d.reveals||[]).map(r=>'<h3>第 '+r.round+' 次公布</h3>'+Object.entries(r.choices).map(([tid,pid])=>esc(team(tid))+' → '+esc(player(pid))).join('<br>')).join('')+(d.rolls||[]).map(r=>'<p>Roll · '+esc(player(r.playerId))+'：'+Object.entries(r.values).map(([tid,v])=>esc(team(tid))+' '+v).join(' / ')+' · '+(r.winner?'获得：'+esc(team(r.winner)):'最高点相同，需重掷')+'</p>').join('')+(d.conflicts||[]).map(c=>'<p>冲突：'+esc(player(c.playerId))+' · '+c.teams.map(team).map(esc).join(' / ')+(state.manager?' <button data-roll="'+esc(c.playerId)+'">Roll 决定归属</button>':'')+'</p>').join('');document.querySelectorAll('[data-roll]').forEach(b=>b.onclick=()=>send('roll',{playerId:b.dataset.roll}));}
+$('feed').innerHTML='<div class="results-dialog"><div class="results-dialog-toolbar"><strong>指名与抽签结果</strong><button id="close-results" aria-label="关闭指名结果">关闭</button></div><div class="results-dialog-body">'+renderNominationResults(d)+'</div></div>';
+$('feed').hidden=!resultsOpen||!(d.reveals||[]).length;
+if((d.reveals||[]).length){$('bar').insertAdjacentHTML('beforeend','<button id="show-results">查看指名结果'+((d.conflicts||[]).length?' · 待抽签 '+d.conflicts.length:'')+'</button>');$('show-results').onclick=()=>{resultsOpen=true;$('feed').hidden=false;$('close-results').focus()}}
+const closeResults=()=>{resultsOpen=false;$('feed').hidden=true;$('show-results')?.focus()};$('close-results').onclick=closeResults;$('feed').onclick=e=>{if(e.target===$('feed'))closeResults()};
+$('feed').onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closeResults()}if(e.key==='Tab'){const items=[...$('feed').querySelectorAll('button:not(:disabled),select:not(:disabled),[tabindex="0"]')],first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}};
+document.querySelectorAll('[data-roll]').forEach(b=>b.onclick=()=>send('roll',{playerId:b.dataset.roll}));}
+function renderNominationResults(d){
+if(!(d.reveals||[]).length)return '';
+return [...d.reveals].reverse().map(r=>{
+const groups=new Map();d.teams.forEach(t=>{const pid=r.choices[t.teamId];if(pid){if(!groups.has(pid))groups.set(pid,[]);groups.get(pid).push(t.teamId)}});
+return '<article class="result-round compact-round"><div class="round-heading"><h3>'+(r.round===1?'首轮指名':'第 '+r.round+' 轮补选')+'</h3><span>'+Object.keys(r.choices).length+' 队 · '+groups.size+' 位选手</span></div><div class="result-entries">'+[...groups].map(([pid,tids])=>{
+const rolls=(d.rolls||[]).filter(x=>x.round===r.round&&x.playerId===pid),winner=[...rolls].reverse().find(x=>x.winner)?.winner,contested=tids.length>1,pending=d.round===r.round&&(d.conflicts||[]).some(c=>c.playerId===pid),recipient=contested?winner:tids[0];
+return '<section class="result-entry"><div class="result-entry-main"><strong class="result-person">'+esc(player(pid))+'</strong><span class="result-outcome '+(recipient?'resolved':'')+'">'+(recipient?(contested?'抽签获选':'直接入队'):'等待抽签')+'</span><div class="result-recipient">'+(recipient?logo(recipient)+'<strong>'+esc(team(recipient))+'</strong>':'<span>'+tids.length+' 队共同指名</span>')+'</div></div>'+(contested?'<div class="result-contenders"><span>参与指名</span>'+tids.map(tid=>'<span class="contender '+(tid===winner?'winner':'')+'">'+esc(team(tid))+(tid===winner?' · 获选':winner?' · 未中签':'')+'</span>').join('')+'</div>':'')+(rolls.length?'<div class="compact-rolls">'+rolls.map((roll,i)=>'<div class="compact-roll"><span class="roll-label">'+(rolls.length>1?'第 '+(i+1)+' 次抽签':'抽签点数')+'</span><div class="roll-chips">'+Object.entries(roll.values).sort((a,b)=>b[1]-a[1]).map(([tid,value])=>'<span class="roll-chip '+(roll.winner===tid?'winner':'')+'">'+esc(team(tid))+' <b>'+value+'</b>'+(roll.winner===tid?' <small>获选</small>':'')+'</span>').join('')+'</div>'+(!roll.winner?'<small class="roll-tie">最高点相同，重抽</small>':'')+'</div>').join('')+'</div>':'')+(pending?'<div class="compact-pending">'+(state.manager?'<button class="primary" data-roll="'+esc(pid)+'">抽签决定归属</button>':'<span>等待主持抽签</span>')+'</div>':'')+'</section>'
+}).join('')+'</div></article>'
+}).join('');
+}
 function renderAuction(){const d=state.draft,l=d.lot,c=d.candidates.find(c=>c.playerId===l.playerId);$('auction').hidden=false;$('auction').style.cssText='background:#202021;color:#fff;border-radius:12px;padding:24px';$('auction').innerHTML=`<div style="display:flex;gap:30px;flex-wrap:wrap"><div style="flex:1;min-width:220px"><div class="muted" style="color:#ccc">${l.stage===3?'第三轮补选':'当前竞拍选手'}</div><h2 style="font-size:36px;margin:10px 0">${esc(player(l.playerId))}</h2><p>起拍价 ${l.startPrice} 点</p><p style="white-space:pre-wrap">${esc(c.description||'暂无介绍')}</p></div><div><div>当前最高报价</div><strong style="font-size:60px">${l.price??'—'}</strong><p>${l.leader?esc(team(l.leader)):'尚无出价'}</p><div>${({preview:'等待主持开始',bidding:'轮到 '+team(l.turn), 'awaiting-confirm':l.stage===3?'等待管理员分派':l.leader?'等待确认成交':'无人有效出价，等待确认流拍',settled:l.outcome==='assigned'?'已分派至 '+team(l.assignedTeam):l.outcome==='sold'?'已成交':'已进入第三轮池'})[l.state]}</div></div></div>`;
 const act=(action,data={})=>send(action,{lotId:l.id,...data});
-if(state.manager){if(l.stage!==3){
+if(state.manager){if([2,3].includes(l.stage||2)){
 const previous=l.state==='settled'?(l.outcome==='assigned'?{teamId:l.assignedTeam,price:l.assignedPrice}:l.outcome==='sold'?{teamId:l.leader,price:l.price}:null):null;
-$('bar').insertAdjacentHTML('beforeend','<details id="admin-assign-panel"><summary>管理员分配</summary><div class="admin-assign-fields"><label>接收队伍<select id="admin-assign-team">'+options(d.teams.map(t=>({id:t.teamId,name:team(t.teamId)})),previous?.teamId||l.leader)+'</select></label><label>分配金额<input id="admin-assign-price" type="number" min="0" step="1" value="'+(previous?.price??l.price??l.startPrice)+'"></label><span id="admin-assign-preview"></span><button id="admin-assign-confirm">确认分配</button></div></details>');
-const preview=()=>{const t=d.teams.find(t=>t.teamId===$('admin-assign-team').value),raw=$('admin-assign-price').value,price=Number(raw);const refund=t&&previous?.teamId===t.teamId?previous.price:0;const count=t?state.players.filter(p=>p.teamId===t.teamId&&!p.bond&&!(previous&&p.id===l.playerId)).length:0;const valid=t&&raw!==''&&Number.isInteger(price)&&price>=0&&price<=t.balance+refund&&count<t.capacity;const text=t?player(l.playerId)+' → '+team(t.teamId)+' · '+price+' 点 · 入队后 '+(count+1)+'/'+t.capacity+' 人 · 余额 '+(t.balance+refund-price)+(previous?'；先退回 '+team(previous.teamId)+' '+previous.price+' 点':''):'';$('admin-assign-preview').textContent=text+(t&&!valid?'（人数或金额无效）':'');$('admin-assign-confirm').disabled=!valid;return text};
+$('bar').insertAdjacentHTML('beforeend','<button id="open-admin-assign">管理员分配</button><button id="quick-undo">撤销上一步</button><div id="admin-assign-panel" role="dialog" aria-modal="true" aria-label="管理员分配" hidden><div class="admin-assign-dialog"><h3>管理员分配</h3><p class="assign-player-name">'+esc(player(l.playerId))+'</p><div class="admin-assign-fields"><label>接收队伍<select id="admin-assign-team">'+options(d.teams.map(t=>({id:t.teamId,name:team(t.teamId)})),previous?.teamId||l.leader)+'</select></label><label>分配金额<input id="admin-assign-price" type="number" min="0" step="1" value="'+(previous?.price??l.price??l.startPrice)+'"></label></div><p id="admin-assign-preview" role="status"></p><div class="admin-assign-actions"><button id="admin-mark-unsold">确认流拍 · 进入第三轮池</button><button id="cancel-admin-assign">取消</button><button class="primary" id="admin-assign-confirm">确认分配</button></div></div></div>');
+const preview=()=>{const t=d.teams.find(t=>t.teamId===$('admin-assign-team').value),raw=$('admin-assign-price').value,price=Number(raw);const refund=t&&previous?.teamId===t.teamId?previous.price:0;const count=t?state.players.filter(p=>p.teamId===t.teamId&&!p.bond&&!(previous&&p.id===l.playerId)).length:0;const valid=t&&!$('admin-assign-team').selectedOptions[0]?.disabled&&raw!==''&&Number.isInteger(price)&&price>=0&&price<=t.balance+refund&&count<t.capacity;const text=t?player(l.playerId)+' → '+team(t.teamId)+' · '+price+' 点 · 入队后 '+(count+1)+'/'+t.capacity+' 人 · 余额 '+(t.balance+refund-price)+(previous?'；先退回 '+team(previous.teamId)+' '+previous.price+' 点':''):'';$('admin-assign-preview').textContent=text+(t&&!valid?'（人数或金额无效）':'');$('admin-assign-confirm').disabled=!valid;return text};
+for(const option of $('admin-assign-team').options){const t=d.teams.find(t=>t.teamId===option.value);if(!t)continue;const count=state.players.filter(p=>p.teamId===t.teamId&&!p.bond&&!(previous&&p.id===l.playerId)).length;const inactive=state.teams.find(row=>row.id===t.teamId)?.active===false;option.disabled=count>=t.capacity||inactive;option.textContent=team(t.teamId)+(inactive?'（已停用）':count>=t.capacity?'（已满员）':'（剩余 '+(t.capacity-count)+' 位）')}if($('admin-assign-team').selectedOptions[0]?.disabled)$('admin-assign-team').value='';
 $('admin-assign-team').onchange=preview;$('admin-assign-price').oninput=preview;preview();
-$('admin-assign-confirm').onclick=async()=>{const text=preview(),payload={teamId:$('admin-assign-team').value,price:Number($('admin-assign-price').value),revision:state.revision};if(!$('admin-assign-confirm').disabled&&await askConfirm(text+'。确认后结束当前选手竞拍。'))act('assign-second',payload)};
+const closeAssignment=()=>{$('admin-assign-panel').hidden=true;$('admin-assign-team').value=previous?.teamId||l.leader||'';$('admin-assign-price').value=previous?.price??l.price??l.startPrice;preview();$('open-admin-assign').focus()};
+$('open-admin-assign').onclick=()=>{$('admin-assign-panel').hidden=false;$('admin-assign-team').focus()};$('cancel-admin-assign').onclick=closeAssignment;$('quick-undo').onclick=()=>controlPreview('undo');
+$('admin-assign-panel').onclick=e=>{if(e.target===$('admin-assign-panel'))closeAssignment()};$('admin-assign-panel').onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closeAssignment()}if(e.key==='Tab'){const controls=[...$('admin-assign-panel').querySelectorAll('select,input,button:not(:disabled)')],first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}};
+$('open-admin-assign').textContent=l.stage===3?'管理员直接指定':'管理员分配';$('admin-mark-unsold').hidden=l.stage===3;$('admin-mark-unsold').disabled=l.state==='settled'&&l.outcome==='unsold';$('admin-mark-unsold').onclick=async()=>{if(confirm('确认将 '+player(l.playerId)+' 标记为流拍并放入第三轮候选池？'+(previous?'原队伍将退回 '+previous.price+' 点，选手归属将解除。':'')))await act('mark-unsold')};
+$('admin-assign-confirm').onclick=async()=>{const text=preview(),payload={teamId:$('admin-assign-team').value,price:Number($('admin-assign-price').value),revision:state.revision};if(!$('admin-assign-confirm').disabled)await act(l.stage===3?'admin-third':'assign-second',payload)};
 }
 if(l.state==='preview'){$('bar').insertAdjacentHTML('beforeend','<button class="primary" id="open-bidding">开始竞拍</button>');$('open-bidding').onclick=()=>act('open-bidding')}
 if(l.state==='awaiting-confirm'&&l.stage!==3){$('bar').insertAdjacentHTML('beforeend','<span>'+ (l.leader?esc(player(l.playerId))+' → '+esc(team(l.leader))+' · 成交后余额 '+(d.teams.find(t=>t.teamId===l.leader).balance-l.price):'本选手进入第三轮池')+'</span><button class="primary" id="confirm-lot">'+(l.leader?'确认成交 · '+l.price+'点':'确认流拍')+'</button>');$('confirm-lot').onclick=()=>act('confirm-lot')}
-if(l.state==='awaiting-confirm'&&l.stage===3){$('bar').insertAdjacentHTML('beforeend','<label>接收队伍<select id="assign-team">'+options(d.teams.map(t=>({id:t.teamId,name:team(t.teamId)})),l.leader)+'</select></label><label>扣费点数<input id="assign-price" type="number" min="0" value="'+(l.leader?l.price:0)+'" '+(l.leader?'readonly':'')+'></label><span id="assign-preview"></span><button class="primary" id="assign-third">确认分派</button>');const preview=()=>{let t=d.teams.find(t=>t.teamId===$('assign-team').value),price=Number($('assign-price').value);let count=t?state.players.filter(p=>p.teamId===t.teamId&&!p.bond).length:0;let valid=t&&Number.isInteger(price)&&price>=0&&price<=t.balance&&count<t.capacity;$('assign-preview').textContent=t?player(l.playerId)+' → '+team(t.teamId)+' · 入队后 '+(count+1)+'/'+t.capacity+' 人 · 余额 '+(t.balance-price)+(valid?'':'（人数或价格无效）'):'请选择接收队伍';$('assign-third').disabled=!valid};$('assign-team').onchange=preview;$('assign-price').oninput=preview;preview();$('assign-third').onclick=()=>act('assign-third',{teamId:$('assign-team').value,price:Number($('assign-price').value)})}
+
 if(l.state==='settled'){$('bar').insertAdjacentHTML('beforeend','<button class="primary" id="next-lot">下一位</button>');$('next-lot').onclick=()=>act('next-lot')}}
-if(state.myTeam){$('pick').hidden=false;if(l.state==='bidding'&&l.turn===state.myTeam){let own=d.teams.find(t=>t.teamId===state.myTeam);$('pick').innerHTML=`<strong>轮到你出价 · 余额 ${own.balance}</strong><p>最低出价 ${l.minimum} 点；PASS 后，本阶段不能再对该选手出价。</p><input aria-label="出价" id="bid-price" type="number" min="${l.minimum}" max="${own.balance}" step="1" value="${l.minimum}"><button id="bid" class="primary">出价</button> <button id="pass">PASS</button>`;$('bid').onclick=()=>act('bid',{price:Number($('bid-price').value)});$('pass').onclick=()=>act('pass')}
-else $('pick').textContent=l.passed.includes(state.myTeam)?'你已对本选手 PASS，请等待下一名选手。':l.excluded[state.myTeam]||'请等待当前队伍响应或主持推进。';}}
+if(state.myTeam){$('pick').hidden=false;if(l.state==='bidding'&&l.turn===state.myTeam){let own=d.teams.find(t=>t.teamId===state.myTeam);$('pick').innerHTML=`<strong>轮到你出价 · 余额 ${own.balance}</strong><p>${l.leader?'已有报价，最低加价至 '+l.minimum+' 点':'尚无出价，可按起拍价 '+l.startPrice+' 点出价'}；PASS 后，本阶段不能再对该选手出价。</p><input aria-label="出价" id="bid-price" type="number" min="${l.minimum}" max="${own.balance}" step="1" value="${l.minimum}"><button id="bid" class="primary">出价</button> <button id="pass">PASS</button>`;$('bid').onclick=()=>act('bid',{price:Number($('bid-price').value)});$('pass').onclick=()=>act('pass')}
+else $('pick').textContent=teamIsFull(state.myTeam)?'队伍已满员，系统自动 PASS，无需操作。':l.passed.includes(state.myTeam)?'你已对本选手 PASS，请等待下一名选手。':l.excluded[state.myTeam]||'请等待当前队伍响应或主持推进。';}}
 function setup(){const d=state.draft;$('setup').innerHTML='<h2>队伍与教练</h2><p class="muted">关联教练选手与账号，设置预算和人数。</p><div class="config">'+state.teams.filter(t=>t.active).map(t=>{let r=d?.teams.find(x=>x.teamId===t.id),preset=t.draftSettings||{};return `<div class="team-input" data-team="${esc(t.id)}"><label class="team-config-title"><input type="checkbox" class="include" ${r||(!d&&preset.coachPlayerId)?'checked':''}> <strong>${esc(t.name)}</strong></label><label><span>教练选手</span><select class="coach">${options(state.players.filter(p=>p.active&&!p.bond&&(!p.teamId||p.teamId===t.id)),r?.coachPlayerId??preset.coachPlayerId)}</select></label><label>教练账号<input class="username" value="${esc(r?.coachUsername||'')}" autocomplete="off"></label><label>总预算<input class="budget" type="number" min="0" value="${r?.budget??30}"></label><label>教练定价<input class="price" type="number" min="0" value="${r?.coachPrice??preset.coachPrice??0}"></label><label>教练身份<select class="playing"><option value="true" ${(r?.coachPlaying??preset.coachPlaying??true)?'selected':''}>教练</option><option value="false" ${(r?.coachPlaying??preset.coachPlaying??true)?'':'selected'}>全职教练</option></select></label><label>人数上限（含教练）<input class="capacity" type="number" min="2" value="${r?.capacity??preset.capacity??6}"></label></div>`}).join('')+'</div><p id="capacity-summary" role="status"></p><h2>候选池</h2><div class="candidate-tools"><div class="candidate-filter"><input id="candidate-search" type="search" placeholder="搜索选手姓名" aria-label="搜索选手姓名"><span id="candidate-count" role="status"></span></div><div class="candidate-batch"><label>批量起拍价<input id="candidate-batch-price" type="number" min="0" max="1000000" step="1" value="0"></label><button type="button" id="candidate-apply-price">设置搜索结果起拍价</button></div><small>所有候选均参与拍卖；修改后点击底部“保存配置”。</small></div>'+state.players.filter(p=>p.active&&!p.teamId&&!p.bond&&!p.nonPlayingCoach).map(p=>{let c=d?.candidates.find(x=>x.playerId===p.id);return `<div class="candidate" data-player="${esc(p.id)}"><label><span>${esc(p.name)}</span></label><label>起拍价<input class="start-price" type="number" min="0" value="${c?.startPrice??0}"></label><details class="candidate-extra"><summary>介绍 / 历史</summary><div class="candidate-extra-body"><label>选手介绍<textarea class="description" maxlength="2000">${esc(c?.description||'')}</textarea></label></div></details></div>`}).join('')+`<p><label>最小加价步长<input id="step" type="number" min="1" value="${d?.bidStep??1}"></label></p>`}
 function initCandidateTools(){
 const rows=[...document.querySelectorAll('[data-player]')];
@@ -188,24 +604,43 @@ $('link-toggle').onclick=async()=>{try{let data=await request('/api/draft/');$('
 $('link-save').onclick=async()=>{if(!$('event').value)return;if(state.draft&&state.eventId!==$('event').value&&!await askConfirm('更换关联赛事将清空当前选人配置，是否继续？'))return;await send('link',{eventId:$('event').value});$('link-panel').hidden=true};
 
 function askConfirm(message){return new Promise(resolve=>{const dialog=$('confirm-dialog');$('confirm-yes').disabled=false;$('confirm-no').disabled=false;$('confirm-message').textContent=message;dialog.hidden=false;dialog.style.display='flex';const close=value=>{dialog.hidden=true;dialog.style.display='none';resolve(value)};$('confirm-yes').onclick=()=>close(true);$('confirm-no').onclick=()=>close(false);$('confirm-yes').focus()})}
-let configOpen=false,historySelected={};
-$('login').href='/login/?next='+encodeURIComponent(location.pathname);
+let configOpen=false,historySelected={},historyCardLot=null;
+if($('login'))$('login').href='/login/?next='+encodeURIComponent(location.pathname);
 const oldSetup=setup;
 setup=function(){oldSetup();document.querySelectorAll('[data-team]').forEach(row=>{const playing=row.querySelector('.playing'),price=row.querySelector('.price');const sync=()=>{price.readOnly=playing.value==='false';if(price.readOnly)price.value='0';updateCapacitySummary()};playing.addEventListener('change',sync);sync()});$('setup').oninput=updateCapacitySummary;$('setup').onchange=updateCapacitySummary;updateCapacitySummary();document.querySelectorAll('[data-player]').forEach(row=>{const links=state.draft?.historyLinks?.[row.dataset.player]||[];const box=document.createElement('details');box.className='history-config';box.innerHTML='<summary>关联历史成绩</summary><p class="muted">仅展示已公开赛事。选定的是同一人的历史身份；没有确认时请留空。</p>'+(state.historyOptions||[]).map(e=>'<label>'+esc(e.name)+'<select data-history-event="'+esc(e.id)+'">'+options(e.players,links.find(l=>l.eventId===e.id)?.playerId)+'</select></label>').join('');row.querySelector('.candidate-extra-body').appendChild(box)});initCandidateTools()};
 const defaultTeamIcons=[["山岚", "<path opacity=\".28\" d=\"M3 30L16 7l9 15 7-9 6 17Z\"/><path d=\"M6 31L18 11l-4 15 7-7 9 12Z\"/><path opacity=\".5\" d=\"M25 31l5-13 7 13Z\"/>"], ["流泉", "<path opacity=\".28\" d=\"M3 23C9 10 20 7 34 13 20 8 14 19 3 23Z\"/><path d=\"M3 28C14 31 16 9 36 17 21 14 23 36 3 28Z\"/><path opacity=\".5\" d=\"M10 34C22 37 26 22 38 25 27 22 27 39 10 34Z\"/>"], ["竹影", "<path d=\"M17 36l2-30 2-2-1 14-2 18Z\"/><path opacity=\".45\" d=\"M25 36l1-24 2-3-1 27Z\"/><path d=\"M19 17C10 17 7 12 6 7c8 1 12 5 13 10ZM20 23c1-8 7-11 13-12-1 7-7 11-13 12Z\"/><path opacity=\".55\" d=\"M26 28c3-6 7-8 12-8-3 6-7 8-12 8Z\"/>"], ["苍松", "<path d=\"M20 36l-2-15 2-10 2 14 7 11Z\"/><path opacity=\".4\" d=\"M4 21c5-7 12-9 19-4l-3 5ZM17 11c6-7 15-6 20 1l-5 2Z\"/><path d=\"M2 26c4-7 15-11 23-6l8 6-11-1-6 2-8-1ZM13 17c6-7 16-6 22-1l-7 2-5-1-6 2Z\"/>"], ["归鹤", "<path opacity=\".3\" d=\"M4 8c9 1 14 8 16 13C10 18 7 13 4 8Z\"/><path d=\"M3 13c9 1 11 5 17 7 1-8 6-12 15-13-5 5-7 9-8 13l-7 5-3 8-2-2 2-7C10 22 6 18 3 13Z\"/><path d=\"M25 19l8-2 5 2-7 1-5 5Z\"/>"], ["曦光", "<circle cx=\"21\" cy=\"15\" r=\"10\" opacity=\".28\"/><path d=\"M11 17a10 10 0 0117-9c-8-4-13 1-14 9Z\"/><path d=\"M3 26c8-5 12-1 18-2 6-1 10-4 16-2-9 0-10 5-17 5-6 0-10-3-17-1Z\"/><path opacity=\".5\" d=\"M7 32c7-3 15 2 25-2-8 6-17 0-25 2Z\"/>"], ["清扇", "<path opacity=\".25\" d=\"M20 35L3 13Q20-4 37 13Z\"/><path d=\"M20 35L3 13l3-2 14 19L34 11l3 2Z\"/><path opacity=\".55\" d=\"M20 31L11 7l2-1 7 22 7-22 2 1Z\"/><path d=\"M19 5h2l-1 25Z\"/>"], ["荷香", "<path opacity=\".3\" d=\"M4 31c7-7 23-7 32 0-11 6-23 6-32 0Z\"/><path d=\"M20 25C10 21 8 15 10 10c8 3 10 8 10 15ZM21 25c0-9 3-14 10-16 3 7-3 13-10 16Z\"/><path opacity=\".6\" d=\"M20 22C15 13 16 8 21 3c5 7 5 12-1 19Z\"/><path d=\"M19 25h2l-1 8h-1Z\"/>"], ["月泊", "<path d=\"M27 5C11 0 4 18 13 27c5 5 10 4 14 2-10 2-16-6-14-14 2-6 6-9 14-10Z\"/><path opacity=\".28\" d=\"M29 8a12 12 0 010 19c5-7 4-12 0-19Z\"/><path opacity=\".6\" d=\"M4 34c9-4 20 2 33-2-12 7-23 0-33 2Z\"/>"]];
 function logo(tid){const t=state.teams.find(t=>t.id===tid),url=t?.logo,index=Math.max(0,state.teams.findIndex(t=>t.id===tid))%defaultTeamIcons.length,[name,art]=defaultTeamIcons[index];return '<span class="team-logo">'+(url&&url.startsWith('/media/')?'<img src="'+esc(url)+'" alt="'+esc(t?.name||'队标')+'">':'<svg viewBox="0 0 40 40" role="img" aria-label="'+name+'" fill="currentColor">'+art+'<circle cx="35" cy="35" r="1.4" fill="#a34735" opacity=".8"/></svg>')+'</span>'}
 function renderHistory(pid){const rows=state.history?.[pid]||[];if(!rows.length)return '<h3>历史成绩</h3><p class="muted">暂无历史成绩</p>';const chosen=rows.find(r=>r.eventId===historySelected[pid])||rows[0];const fmt=v=>v==null?'未知':Number(v).toFixed(2).replace(/\.00$/,'');return '<label>历史赛事<select id="history-select">'+rows.map(r=>'<option value="'+esc(r.eventId)+'" '+(r===chosen?'selected':'')+'>'+esc(r.name)+'</option>').join('')+'</select></label><div class="history-wrap"><table><thead><tr><th>阶段</th><th>场数</th><th>总 PT</th><th>场均 PT</th><th>平均顺位</th></tr></thead><tbody>'+chosen.stages.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+fmt(r.games)+'</td><td>'+fmt(r.total)+'</td><td>'+fmt(r.average)+'</td><td>'+fmt(r.avgRank)+'</td></tr>').join('')+'</tbody></table></div><p class="muted">按明确选手身份关联；缺失指标保留未知，不含阶段带入。</p>'}
 const oldRenderAuction=renderAuction;
-renderAuction=function(){oldRenderAuction();const d=state.draft,l=d.lot,c=d.candidates.find(c=>c.playerId===l.playerId);$('auction').innerHTML='<div class="hero"><div><span>'+(l.stage===3?'第三轮 · 补选分派':'当前竞拍选手')+'</span><h2>'+esc(player(l.playerId))+'</h2><p>起拍价 <b>'+l.startPrice+'</b> 预算点</p><div class="description">'+esc(c.description||'暂无介绍')+'</div></div><div id="history">'+renderHistory(l.playerId)+'</div><div><span>当前最高报价</span><strong class="quotation">'+(l.price??'—')+'</strong><p>'+ (l.leader?esc(team(l.leader)):'尚无出价')+'</p><strong>'+esc(({preview:'等待主持开始',bidding:'轮到 '+team(l.turn),'awaiting-confirm':l.stage===3?'等待管理员分派':l.leader?'等待确认成交':'无人有效出价，等待确认流拍',settled:l.outcome==='assigned'?'已分派至 '+team(l.assignedTeam):l.outcome==='sold'?'已成交':'已进入第三轮池'})[l.state])+'</strong></div></div>';if($('history-select'))$('history-select').onchange=e=>{historySelected[l.playerId]=e.target.value;render()};};
+renderAuction=function(){oldRenderAuction();const d=state.draft,l=d.lot,c=d.candidates.find(c=>c.playerId===l.playerId),settled=l.state==='settled',assigned=l.outcome==='assigned',unsold=settled&&l.outcome==='unsold',price=assigned?l.assignedPrice:l.price,recipient=assigned?l.assignedTeam:l.leader;const status=({preview:'等待开始',bidding:'竞拍进行中','awaiting-confirm':l.stage===3?'等待分派':l.leader?'等待确认成交':'等待确认流拍',settled:unsold?'进入第三轮池':assigned?'本轮已分派':'本轮已成交'})[l.state];$('auction').innerHTML='<div class="hero reference-auction"><div class="lot-summary"><div class="lot-status">'+esc(status)+'</div><span>本轮竞拍选手</span><h2>'+esc(player(l.playerId))+'</h2><p>起拍价 <b>'+l.startPrice+'</b> 预算点</p><div class="description">'+esc(c.description||'暂无介绍')+'</div></div><div class="lot-price"><span>'+(unsold?'本轮流拍':settled?'成交价':'当前最高报价')+'</span><div class="price-line"><strong class="quotation">'+(unsold?'—':price??'—')+'</strong><small>预算点</small></div><span>'+(settled&&!unsold?'成交队伍':'当前领先队伍')+'</span><p class="recipient">'+(unsold?'等待第三轮补选':recipient?esc(team(recipient)):'尚无出价')+'</p></div><div id="history"><button id="show-player-history" type="button">查看历史成绩 <span>→</span></button></div></div><div id="history-card-view" hidden><div class="history-card-heading"><span>选手历史成绩</span><h2>'+esc(player(l.playerId))+'</h2></div><div class="history-card-content">'+renderHistory(l.playerId)+'</div><button id="back-to-auction" type="button">← 返回竞拍</button></div>';const switchHistory=show=>{historyCardLot=show?l.id:null;$('auction').classList.toggle('showing-history',show);$('auction').querySelector('.reference-auction').hidden=show;$('history-card-view').hidden=!show};switchHistory(historyCardLot===l.id);$('show-player-history').onclick=()=>{switchHistory(true);$('back-to-auction').focus()};$('back-to-auction').onclick=()=>{switchHistory(false);$('show-player-history').focus()};if($('history-select'))$('history-select').onchange=e=>{historySelected[l.playerId]=e.target.value;$('auction').querySelector('.history-card-content').innerHTML=renderHistory(l.playerId);bindHistorySelect()};function bindHistorySelect(){if($('history-select'))$('history-select').onchange=e=>{historySelected[l.playerId]=e.target.value;$('auction').querySelector('.history-card-content').innerHTML=renderHistory(l.playerId);bindHistorySelect()}};};
 const oldRender=render;
-render=function(){['teams','bar','feed'].forEach(id=>$(id).hidden=false);oldRender();document.body.classList.toggle('coach-view',!!state.myTeam&&!state.manager);if(state.myTeam&&!state.manager)$('auction').before($('pick'));else $('auction').after($('pick'));$('more').hidden=!state.manager;$('setup').hidden=!configOpen||state.status!=='setup'||!state.manager;$('more-panel').innerHTML=state.manager?'<b>'+ (state.public?'已公开 · 任何人可只读访问':'私有 · 仅管理员和绑定教练可访问')+'</b><p><button id="visibility">'+(state.public?'关闭公开访问':'公开给观众')+'</button>'+(state.status==='setup'?'<button id="configure-toggle">'+(configOpen?'收起配置':'编辑配置')+'</button><button id="refresh-config">刷新配置</button>':'')+(state.status!=='complete'?'<button id="undo-control">撤销上一步 · 先预览</button>':'')+((state.status==='setup'||state.status==='complete')&&state.eventId?'<button id="unlink-control">解除赛事关联</button>':'')+'</p>':'';if($('visibility'))$('visibility').onclick=async()=>{if(!state.public&&!await askConfirm('公开后，任何持有活动链接的人可查看名单和已公布选人信息。确认公开？'))return;send('publish',{public:!state.public})};if($('configure-toggle'))$('configure-toggle').onclick=()=>{configOpen=!configOpen;render()};if($('refresh-config'))$('refresh-config').onclick=async()=>{if(await askConfirm('刷新会放弃尚未保存的配置输入，继续？'))load(true)};if($('undo-control'))$('undo-control').onclick=()=>controlPreview('undo');if($('unlink-control'))$('unlink-control').onclick=async()=>{if(await askConfirm(state.status==='setup'?'解除关联会清空当前配置，审计保留。继续？':'解除关联保留最终阵容和审计，并允许在赛事管理中清理符合条件的测试赛事。继续？'))send('unlink')};
+render=function(){['teams','bar','feed'].forEach(id=>$(id).hidden=false);oldRender();document.body.classList.toggle('coach-view',!!state.myTeam&&!state.manager);document.body.classList.toggle('board-view',!!state.draft&&!configOpen);$('draft-sidebar').append($('auction'),$('pick')); if(state.myTeam&&!state.manager)$('auction').before($('pick'));else $('auction').after($('pick'));$('more').hidden=!state.manager;$('setup').hidden=!configOpen||state.status!=='setup'||!state.manager;$('more-panel').innerHTML=state.manager?'<b>'+ (state.public?'已公开 · 任何人可只读访问':'私有 · 仅管理员和绑定教练可访问')+'</b><p><button id="visibility">'+(state.public?'关闭公开访问':'公开给观众')+'</button>'+(state.status==='setup'?'<button id="configure-toggle">'+(configOpen?'收起配置':'编辑配置')+'</button><button id="refresh-config">刷新配置</button>':'')+(state.draft?'<button id="edit-candidates">选手定价 / 介绍</button><button id="rollback-stage">回退上一阶段</button>':'')+(state.status!=='complete'?'<button id="undo-control">撤销上一步 · 先预览</button>':'')+((state.status==='setup'||state.status==='complete')&&state.eventId?'<button id="unlink-control">解除赛事关联</button>':'')+'</p>':'';if($('visibility'))$('visibility').onclick=async()=>{if(!state.public&&!await askConfirm('公开后，任何持有活动链接的人可查看名单和已公布选人信息。确认公开？'))return;send('publish',{public:!state.public})};if($('configure-toggle'))$('configure-toggle').onclick=()=>{configOpen=!configOpen;render()};if($('refresh-config'))$('refresh-config').onclick=async()=>{if(await askConfirm('刷新会放弃尚未保存的配置输入，继续？'))load(true)};if($('edit-candidates'))$('edit-candidates').onclick=editCandidates;if($('rollback-stage')){$('rollback-stage').hidden=!!state.canRollbackImport;$('rollback-stage').onclick=()=>controlPreview('rollback')}if($('undo-control'))$('undo-control').onclick=()=>controlPreview('undo');if($('unlink-control'))$('unlink-control').onclick=async()=>{if(await askConfirm(state.status==='setup'?'解除关联会清空当前配置，审计保留。继续？':'解除关联保留最终阵容和审计，并允许在赛事管理中清理符合条件的测试赛事。继续？'))send('unlink')};
 if(state.status==='setup'&&state.manager&&!configOpen){$('bar').querySelector('#save')?.remove();$('bar').insertAdjacentHTML('beforeend','<button id="open-config">编辑配置</button>');$('open-config').onclick=()=>{configOpen=true;render()}}
-const d=state.draft;if(d){document.querySelectorAll('#teams .card').forEach((card,i)=>{const t=d.teams[i];const h=card.querySelector('h3');h.innerHTML=logo(t.teamId)+'<span>'+esc(team(t.teamId))+'</span>';card.classList.toggle('leading',d.lot?.leader===t.teamId);card.classList.toggle('responding',d.lot?.turn===t.teamId);if(d.lot?.leader===t.teamId&&d.lot.state==='awaiting-confirm'){const preview=document.createElement('p');preview.className='badge';preview.textContent='成交后余额 '+(t.balance-d.lot.price);card.appendChild(preview)}});
+const d=state.draft;if(d){document.querySelectorAll('#teams .card').forEach((card,i)=>{const t=d.teams[i];const h=card.querySelector('h3');h.innerHTML=logo(t.teamId)+'<span>'+esc(team(t.teamId))+'</span>';const selectedTeam=d.lot?.outcome==='assigned'?d.lot.assignedTeam:d.lot?.leader;card.classList.toggle('leading',selectedTeam===t.teamId&&! (d.lot?.outcome==='unsold'));if(d.lot?.state==='settled'&&selectedTeam===t.teamId&&d.lot.outcome!=='unsold'){card.querySelector('.badge').textContent='本轮成交';card.querySelector('.badge').classList.add('settled-badge')}else if(['auction-ready','auction','third-ready','review-ready'].includes(d.phase)&&teamIsFull(t.teamId))card.querySelector('.badge').textContent='已满员 · 自动 PASS';else if(card.querySelector('.badge').textContent==='本选手 PASS')card.querySelector('.badge').textContent='本轮已 PASS';card.classList.toggle('responding',d.lot?.turn===t.teamId);if(d.lot?.leader===t.teamId&&d.lot.state==='awaiting-confirm'){const preview=document.createElement('p');preview.className='badge';preview.textContent='成交后余额 '+(t.balance-d.lot.price);card.appendChild(preview)}});
 if(state.manager&&state.status==='active'&&(['auction-ready','third-ready','review-ready'].includes(d.phase)||(d.phase==='auction'&&(['settled','preview','awaiting-confirm'].includes(d.lot?.state))))){$('bar').insertAdjacentHTML('beforeend','<button id="finish-control">最终检查 / 结束</button>');$('finish-control').onclick=()=>controlPreview('finish')}
-if(state.status==='complete'){$('phase').textContent='选人活动已结束';$('progress').textContent='最终阵容与预算只读保存；赛事仍可继续安排比赛。';$('bar').innerHTML='<strong>活动已结束 · 最终阵容</strong>';if(d.completion?.unassigned?.length)$('progress').textContent+=' 未分队：'+d.completion.unassigned.map(p=>p.name).join('、')}}
+if(state.status==='complete'){$('phase').textContent='选人活动已结束';$('progress').textContent='最终阵容已一次性导入原赛事，可回滚本次导入。';$('bar').innerHTML='<strong>活动已结束 · 最终阵容</strong>';if(state.canRollbackImport){$('bar').insertAdjacentHTML('beforeend','<button id="rollback-import">回滚本次导入</button>');$('rollback-import').onclick=()=>controlPreview('rollback-import')};if(d.completion?.unassigned?.length)$('progress').textContent+=' 未分队：'+d.completion.unassigned.map(p=>p.name).join('、')}}
 };
-async function controlPreview(operation){try{const r=await request('/api/draft/'+id+'/',{action:'preview',operation,revision:state.revision}),p=r.preview;const box=$('preview-panel');box.hidden=false;box.innerHTML='<h2>'+(operation==='finish'?'最终检查':'撤销影响预览')+'</h2><p>'+esc(p.message)+'</p>'+(p.teams?'<ul>'+p.teams.map(t=>'<li>'+esc(t.name)+' · '+t.count+'/'+t.capacity+'人 · 余额 '+t.balance+'<br>'+t.members.map(esc).join('、')+'</li>').join('')+'</ul>':'')+(p.rosterChanges?'<p>将恢复到：'+esc(({setup:'准备',nomination:'一选提交',revealed:'一选公布',auction:'竞拍','auction-ready':'待抽取','third-ready':'第三轮待抽取','review-ready':'最终检查'})[p.phase]||'上一步')+' · 撤销 '+esc(({configure:'保存配置',start:'开始一选',nominate:'提交首选','admin-nominate':'管理员更正首选',reveal:'公布选择',roll:'冲突Roll',continue:'推进一选',draw:'抽取选手','draw-third':'抽取第三轮选手','open-bidding':'开始竞拍',bid:'报价',pass:'PASS','confirm-lot':'确认成交或流拍','assign-third':'确认分派','assign-second':'管理员分配','next-lot':'下一位'})[p.action]||'上一步操作')+'</p><ul>'+p.rosterChanges.map(r=>'<li>'+esc(r.player)+'：'+esc(r.fromTeam?team(r.fromTeam):'未分队')+' → '+esc(r.toTeam?team(r.toTeam):'未分队')+'</li>').join('')+'</ul><p>恢复余额：'+p.balances.map(t=>esc(team(t.teamId))+' '+t.balance).join(' / ')+'</p>':'')+(p.unassigned?.length?'<p>保持未分队：'+p.unassigned.map(x=>esc(x.name)).join('、')+'</p>':'')+'<button id="confirm-control" class="primary">确认'+(operation==='finish'?'结束活动':'撤销')+'</button> <button id="cancel-control">取消</button>';$('cancel-control').onclick=()=>box.hidden=true;$('confirm-control').onclick=async()=>{box.hidden=true;await send(operation,{previewToken:p.token})};box.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){error(e)}}
-$('more').onclick=()=>{$('more-panel').hidden=!$('more-panel').hidden};
+function editCandidates(){
+ const editRevision=state.revision;const box=$('preview-panel');box.classList.remove('finish-review');box.removeAttribute('aria-labelledby');box.hidden=false;
+ box.innerHTML='<h2>选手定价与介绍</h2><p>起拍价修改用于后续竞拍；已开始的竞价和已成交金额保持原记录。</p><input id="live-candidate-search" placeholder="搜索选手姓名"><div id="live-candidate-list">'+state.draft.candidates.map(c=>'<div data-live-player="'+esc(c.playerId)+'" style="display:grid;grid-template-columns:120px 100px 1fr;gap:12px;margin:12px 0;align-items:center"><strong>'+esc(player(c.playerId))+'</strong><label>起拍价<input type="number" min="0" max="1000000" value="'+c.startPrice+'"></label><label>介绍<textarea maxlength="2000">'+esc(c.description||'')+'</textarea></label></div>').join('')+'</div><button id="save-live-candidates" class="primary">保存资料</button> <button id="close-live-candidates">取消</button>';
+ $('live-candidate-search').oninput=e=>box.querySelectorAll('[data-live-player]').forEach(row=>row.style.display=player(row.dataset.livePlayer).toLowerCase().includes(e.target.value.trim().toLowerCase())?'grid':'none');
+ $('close-live-candidates').onclick=()=>box.hidden=true;
+ $('save-live-candidates').onclick=async()=>{const rows=[...box.querySelectorAll('[data-live-player]')];if(rows.some(row=>!row.querySelector('input').reportValidity()||row.querySelector('input').value===''))return;const candidates=rows.map(row=>({playerId:row.dataset.livePlayer,startPrice:Number(row.querySelector('input').value),description:row.querySelector('textarea').value}));await send('edit-candidates',{candidates,revision:editRevision});if($('error').style.display==='none')box.hidden=true};
+}
+function finishReviewMarkup(p){const teams=p.teams||[],count=teams.reduce((n,t)=>n+t.count,0),capacity=teams.reduce((n,t)=>n+t.capacity,0),balance=teams.reduce((n,t)=>n+t.balance,0);return '<div class="finish-heading"><div><span>指名大会 · 收尾确认</span><h2 id="finish-title">最终阵容检查</h2></div><button id="cancel-control" aria-label="关闭最终检查">关闭</button></div><div class="finish-body"><div class="finish-stats"><div><small>已入队人数</small><strong>'+count+'<span> / '+capacity+'</span></strong></div><div class="'+(p.vacancies?'has-vacancy':'')+'"><small>剩余空缺</small><strong>'+p.vacancies+'<span> 人</span></strong></div><div><small>队伍剩余预算合计</small><strong>'+balance+'<span> 点</span></strong></div></div><p class="finish-notice">'+esc(p.message)+'</p><div class="finish-team-grid">'+teams.map(t=>'<article class="finish-team '+(t.count<t.capacity?'short-team':'')+'"><div class="finish-team-heading">'+logo(t.teamId)+'<strong>'+esc(t.name)+'</strong><span>'+ (t.count<t.capacity?'缺 '+(t.capacity-t.count)+' 人':'已满员')+'</span></div><div class="finish-team-meta"><span>阵容 '+t.count+' / '+t.capacity+'</span><span>余额 <b>'+t.balance+'</b></span></div><div class="finish-members">'+t.members.map(n=>'<span>'+esc(n)+'</span>').join('')+'</div></article>').join('')+'</div>'+(p.unassigned?.length?'<div class="finish-notice">未分队选手：'+p.unassigned.map(x=>esc(x.name)).join('、')+'</div>':'')+'</div><div class="finish-actions"><span>'+(p.vacancies?'仍有空缺，请核对后确认':'阵容检查已完成')+'</span><button id="finish-cancel">取消</button><button id="confirm-control" class="primary">结束并导入赛事</button></div>'}
+async function controlPreview(operation){try{const r=await request('/api/draft/'+id+'/',{action:'preview',operation,revision:state.revision}),p=r.preview;const box=$('preview-panel');box.classList.toggle('finish-review',operation==='finish');box.hidden=false;box.innerHTML='<h2>'+(operation==='finish'?'最终检查':operation==='rollback'?'回退阶段影响预览':operation==='rollback-import'?'整批导入回滚预览':'撤销影响预览')+'</h2><p>'+esc(p.message)+'</p>'+(p.teams?'<ul>'+p.teams.map(t=>'<li>'+esc(t.name)+' · '+t.count+'/'+t.capacity+'人 · 余额 '+t.balance+'<br>'+t.members.map(esc).join('、')+'</li>').join('')+'</ul>':'')+(p.rosterChanges?'<p>将恢复到：'+esc(({setup:'准备',nomination:'一选提交',revealed:'一选公布',auction:'竞拍','auction-ready':'待抽取','third-ready':'第三轮待抽取','review-ready':'最终检查'})[p.phase]||'上一步')+' · 撤销 '+esc(({configure:'保存配置',start:'开始一选',nominate:'提交首选','admin-nominate':'管理员更正首选',reveal:'公布选择',roll:'冲突Roll',continue:'推进一选',draw:'抽取选手','draw-third':'抽取第三轮选手','open-bidding':'开始竞拍',bid:'报价',pass:'PASS','confirm-lot':'确认成交或流拍','assign-third':'确认分派','assign-second':'管理员分配','admin-third':'第三轮管理员指定','mark-unsold':'管理员确认流拍','rollback':'本阶段及后续操作','rollback-import':'整批导入','next-lot':'下一位'})[p.action]||'上一步操作')+'</p><ul>'+p.rosterChanges.map(r=>'<li>'+esc(r.player)+'：'+esc(r.fromTeam?team(r.fromTeam):'未分队')+' → '+esc(r.toTeam?team(r.toTeam):'未分队')+'</li>').join('')+'</ul><p>恢复余额：'+p.balances.map(t=>esc(team(t.teamId))+' '+t.balance).join(' / ')+'</p>':'')+(p.unassigned?.length?'<p>保持未分队：'+p.unassigned.map(x=>esc(x.name)).join('、')+'</p>':'')+'<button id="confirm-control" class="primary">确认'+(operation==='finish'?'结束活动':operation==='rollback'?'回退阶段':operation==='rollback-import'?'回滚导入':'撤销')+'</button> <button id="cancel-control">取消</button>';if(operation==='finish'){box.innerHTML=finishReviewMarkup(p);box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-labelledby','finish-title');$('finish-cancel').onclick=()=>box.hidden=true}else{box.removeAttribute('aria-modal');box.removeAttribute('aria-labelledby')} $('cancel-control').onclick=()=>box.hidden=true;box.onkeydown=e=>{if(e.key==='Escape'){box.hidden=true;$('finish-control')?.focus()}if(e.key==='Tab'&&operation==='finish'){const items=[...box.querySelectorAll('button:not(:disabled)')],first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}};if(operation==='finish')$('cancel-control').focus();$('confirm-control').onclick=async()=>{box.hidden=true;await send(operation,{previewToken:p.token})};box.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){error(e)}}
+
+const renderBeforeStageLabels=render;
+render=function(){const moreButton=$('more');document.querySelector('header').append(moreButton);renderBeforeStageLabels();$('bar').append(moreButton);moreButton.textContent='更多操作';moreButton.setAttribute('aria-controls','more-panel');moreButton.setAttribute('aria-expanded',String(!$('more-panel').hidden));if(!state.manager)$('more-panel').hidden=true;const d=state.draft;if(!d)return;const l=d.lot,phase=d.phase,third=phase==='third-ready'||(phase==='auction'&&l?.stage===3),second=phase==='auction-ready'||(phase==='auction'&&l?.stage!==3);
+if(second||third){$('phase').textContent=third?'第三轮 · 补选分派':'第二轮 · 竞拍分配';const pool=d.candidates.filter(c=>c.state===(third?'third-pool':'available')).length,unsettled=l&&l.state!=='settled',remaining=Math.max(0,pool-(unsettled?1:0));
+if(l?.state==='settled'&&pool===0){const hasThird=d.candidates.some(c=>c.state==='third-pool');$('progress').textContent=second&&hasThird?'第二轮已完成 · 待管理员进入第三轮':'本轮已完成 · 待最终检查';if($('next-lot'))$('next-lot').textContent=second&&hasThird?'进入第三轮':'进入最终检查'}
+else{$('progress').textContent=(l?(l.state==='settled'?'本选手已处理':'当前选手处理中'):'等待抽取选手')+' · '+remaining+' 人待抽取';if($('next-lot'))$('next-lot').textContent='下一位选手'}
+}else if(phase==='review-ready'){$('phase').textContent='收尾 · 最终检查';$('progress').textContent='选手分配已完成，待管理员核对并结束活动'}
+};
+$('more').onclick=()=>{const panel=$('more-panel');panel.hidden=!panel.hidden;$('more').setAttribute('aria-expanded',String(!panel.hidden))};
+document.addEventListener('click',e=>{if(!$('more-panel').hidden&&!$('more-panel').contains(e.target)&&!$('more').contains(e.target)){$('more-panel').hidden=true;$('more').setAttribute('aria-expanded','false')}});
+$('more-panel').addEventListener('click',e=>{if(e.target.closest('button')){$('more-panel').hidden=true;$('more').setAttribute('aria-expanded','false')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('more-panel').hidden){$('more-panel').hidden=true;$('more').setAttribute('aria-expanded','false');$('more').focus()}});
 window.addEventListener('online',()=>load(true));
 window.addEventListener('offline',()=>{$('connection').textContent='连接中断 · 恢复后自动同步（不会自动 PASS）'});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});

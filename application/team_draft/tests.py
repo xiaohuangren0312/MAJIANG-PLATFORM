@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from league.models import Event,Audit
@@ -19,6 +19,8 @@ class ActivityTests(TestCase):
         self.payload=dict(teams=[dict(teamId='t'+str(i),coachUserId=u.pk,coachPlayerId='c'+str(i),coachPrice=3) for i,u in enumerate(self.users)],candidates=[dict(playerId='p'+str(i)) for i in range(3)])
     def call(self,action,user=None,**body):
         self.activity.refresh_from_db();self.activity=mutate(self.activity.pk,user or self.admin,self.activity.revision,action,body);return self.activity
+    # Legacy fixtures retain immediate-write semantics for compatibility coverage.
+    @override_settings(HQL_DRAFT_STAGED=False)
     def setup_activity(self):
         self.call('link',eventId=str(self.event.pk));self.call('configure',**self.payload)
     def test_activity_created_unlinked(self):

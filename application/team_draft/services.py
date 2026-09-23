@@ -130,6 +130,7 @@ def projection(activity,user):
         choices=draft.pop('nominations',{})
         draft['submitted']=list(choices);draft['myPick']=choices.get(own)
         if admin:
+            if draft.get('phase') == 'nomination':draft['adminChoices']=choices
             accounts=dict(get_user_model().objects.filter(pk__in=[r['coachUserId'] for r in draft['teams']]).values_list('pk','username'))
             for row in draft['teams']:row['coachUsername']=accounts.get(row['coachUserId'],'')
         else:

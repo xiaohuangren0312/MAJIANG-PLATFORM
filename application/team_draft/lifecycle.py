@@ -6,7 +6,7 @@ from league.domain import require, find
 from league.models import Event, Audit
 from .models import DraftActivity, DraftAudit
 
-UNDO_ACTIONS={'configure','start','nominate','reveal','roll','continue','draw','draw-third','open-bidding','bid','pass','confirm-lot','assign-third','assign-second','next-lot'}
+UNDO_ACTIONS={'configure','start','nominate','admin-nominate','reveal','roll','continue','draw','draw-third','open-bidding','bid','pass','confirm-lot','assign-third','assign-second','next-lot'}
 
 def finish_review(activity):
     d=activity.document

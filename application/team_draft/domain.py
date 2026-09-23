@@ -92,6 +92,15 @@ def first_pick(document, action, payload, team_id=None):
         require(any(r['playerId'] == pid and r['state'] == 'available' for r in draft['candidates']), '候选不可选')
         require(team_id not in draft['nominations'], '已提交，请等待管理员公布')
         draft['nominations'][team_id] = pid
+    elif action == 'admin-nominate':
+        target=payload.get('teamId');pid=payload.get('playerId')
+        require(phase=='nomination' and target in draft['pending'], '该队伍当前无需提交一选')
+        require(any(r['playerId']==pid and r['state']=='available' for r in draft['candidates']), '候选不可选')
+        player=find(d['players'],pid)
+        require(player.get('active',True) and not player.get('teamId') and not player.get('bond') and not player.get('nonPlayingCoach'), '候选归属或状态已变化')
+        row=next(t for t in draft['teams'] if t['teamId']==target)
+        require(not exclusion(d,row,0), '队伍已满员或不可参与选择')
+        draft['nominations'][target]=pid
     elif action == 'reveal':
         require(phase == 'nomination' and set(draft['pending']) == set(draft['nominations']), '请等待全部教练提交')
         groups = {}

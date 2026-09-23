@@ -6,7 +6,7 @@ from league.domain import require, find
 from league.models import Event, Audit
 from .models import DraftActivity, DraftAudit
 
-UNDO_ACTIONS={'configure','start','nominate','reveal','roll','continue','draw','draw-third','open-bidding','bid','pass','confirm-lot','assign-third','next-lot'}
+UNDO_ACTIONS={'configure','start','nominate','reveal','roll','continue','draw','draw-third','open-bidding','bid','pass','confirm-lot','assign-third','assign-second','next-lot'}
 
 def finish_review(activity):
     d=activity.document
@@ -41,7 +41,8 @@ def finish_review(activity):
             require(not p.get('teamId') and p.get('active',True) and not p.get('bond'),'未分派候选已被外部修改，请先核对')
             remaining.append(dict(playerId=p['id'],name=p['name']))
     require(not remaining or all(r['count']==r['capacity'] for r in rows),'仍有候选且队伍有空位，请完成第三轮分派；无有效报价时允许以0点分派')
-    return dict(operation='finish',teams=rows,unassigned=remaining,message='仅结束选人活动，不归档赛事。'+('所有名额已满，以下候选保持未分队。' if remaining else '全部候选已处理。'))
+    vacancies=sum(t['capacity']-t['count'] for t in rows)
+    return dict(operation='finish',teams=rows,unassigned=remaining,vacancies=vacancies,message='仅结束选人活动，不归档赛事。'+('所有名额已满，以下候选保持未分队。' if remaining else '全部候选已处理。')+(f' 队伍合计仍缺{vacancies}人，请核对后再结束。' if vacancies else ''))
 
 def undo_review(activity):
     require(activity.status!='complete','已结束活动只读，不能撤销')

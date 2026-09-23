@@ -1,6 +1,6 @@
 function qualificationChoices(stageId,played=false){
  const d=event.document,stage=d.stages.find(s=>s.id===stageId),incoming=d.settlements.find(c=>c.target===stageId),kind=event.kind==='team'?'team':'player';
- let items=(kind==='team'?d.teams:d.players).filter(x=>x.active);
+ let items=(kind==='team'?d.teams:d.players).filter(x=>x.active&&(kind==='team'||!x.nonPlayingCoach));
  if(stage&&d.stages.indexOf(stage)>0)items=incoming?items.filter(x=>Object.hasOwn(incoming.rows,x.id)):[];
  if(played)items=items.filter(x=>d.matches.some(m=>m.stageId===stageId&&m.state==='published'&&m.seats.some(s=>s[kind+'Id']===x.id)));
  return items;

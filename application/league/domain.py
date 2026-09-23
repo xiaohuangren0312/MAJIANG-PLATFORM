@@ -59,6 +59,7 @@ def validate_lineup(d,kind,seats,complete,historical=False,stage_id=None):
         else: require(not tid,'个人赛不能设置队伍')
         if pid:
             p=find(d['players'],pid);require(historical or p['active'],'选手已停用')
+            require(historical or not p.get('nonPlayingCoach'), '全职教练不参与比赛')
             require(historical or kind!='team' or (p.get('bondStages',{}).get(stage_id) if p.get('bond') else p['teamId'])==tid,'选手不属于所选队伍')
             player_ids.append(pid)
         else: require(not complete,'请补齐四名出战选手')

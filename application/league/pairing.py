@@ -12,7 +12,7 @@ def context(d,kind,b):
     require(not d.get('historySnapshot'),'历史导入赛事不生成新赛程')
     require(not d.get('archive'),'赛事已归档')
     stage=live_stage(d,b.get('stageId'));eligible=eligible_ids(d,kind,stage['id'])
-    players=[p for p in d['players'] if p['active'] and p['id'] in eligible]
+    players=[p for p in d['players'] if p['active'] and not p.get('nonPlayingCoach') and p['id'] in eligible]
     require(len(players)>=4 and len(players)%4==0,'参赛人数必须至少4人且为4的倍数，请先处理名单；不会自动补人或轮空')
     require(not any(m['state']=='draft' and m['stageId']==stage['id'] for m in d['matches']),'本阶段还有未发布或未取消的对局，请先完成上一轮所有桌')
     day=b.get('date');time=b.get('time')

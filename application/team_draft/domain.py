@@ -23,17 +23,20 @@ def configuration(document, kind, payload):
         require(coach.get('teamId') in (None, '', team['id']), '教练已属于其他队伍')
         require(team['id'] not in seen_teams and user_id not in seen_users and coach['id'] not in seen_coaches, '队伍、教练账号或教练选手重复')
         budget = integer(row.get('budget', 30), '总预算', 0, 1000000)
+        playing = row.get('coachPlaying', not coach.get('nonPlayingCoach', False))
+        require(type(playing) is bool, '请选择教练是否参赛')
         price = integer(row.get('coachPrice', 0), '教练定价', 0, budget)
-        capacity = integer(row.get('capacity', 7), '含教练人数上限', 2, 100)
+        require(playing or price == 0, '不参赛教练定价必须为0')
+        capacity = integer(row.get('capacity', team.get('draftSettings', {}).get('capacity', 6)), '含教练人数上限', 2, 100)
         members = {p['id'] for p in document['players'] if p.get('teamId') == team['id'] and not p.get('bond')}
         members.add(coach['id'])
         require(len(members) <= capacity, '现有名单超过人数上限')
-        teams.append(dict(teamId=team['id'], coachUserId=user_id, coachPlayerId=coach['id'], budget=budget, coachPrice=price, balance=budget-price, capacity=capacity))
+        teams.append(dict(teamId=team['id'], coachUserId=user_id, coachPlayerId=coach['id'], budget=budget, coachPrice=price, coachPlaying=playing, balance=budget-price, capacity=capacity))
         seen_teams.add(team['id']); seen_users.add(user_id); seen_coaches.add(coach['id'])
     pool, seen_players = [], set()
     for row in candidates:
         player = find(document['players'], row.get('playerId'))
-        require(player.get('active', True) and not player.get('bond') and not player.get('teamId'), '候选必须为本赛事启用且未分队的正式选手')
+        require(player.get('active', True) and not player.get('bond') and not player.get('nonPlayingCoach') and not player.get('teamId'), '候选必须为本赛事启用且未分队的正式选手')
         require(player['id'] not in seen_players and player['id'] not in seen_coaches, '候选重复或包含教练')
         description = row.get('description', player.get('bio', ''))
         require(isinstance(description, str) and len(description) <= 2000, '选手介绍最多2000字')
@@ -49,7 +52,7 @@ def allocate(document, team_id, player_id, method, price=0):
     team = next(r for r in draft['teams'] if r['teamId'] == team_id)
     player = find(document['players'], player_id)
     candidate = next((r for r in draft['candidates'] if r['playerId'] == player_id), None)
-    require(candidate and candidate['state'] == ('third-pool' if method == 'third-round' else 'available') and not player.get('teamId') and player.get('active', True) and not player.get('bond'), '选手已归队或不可选')
+    require(not player.get('nonPlayingCoach') and candidate and candidate['state'] == ('third-pool' if method == 'third-round' else 'available') and not player.get('teamId') and player.get('active', True) and not player.get('bond'), '选手已归队或不可选')
     require(find(document['teams'], team_id).get('active', True), '队伍已停用')
     members = [p for p in document['players'] if p.get('teamId') == team_id and not p.get('bond')]
     require(len(members) < team['capacity'], '队伍人数已满')
@@ -76,10 +79,12 @@ def first_pick(document, action, payload, team_id=None):
             require(coach.get('active', True) and not coach.get('bond') and coach.get('teamId') in (None, '', row['teamId']), '教练归属已变化，请重新配置')
             require(find(d['teams'], row['teamId']).get('active', True), '队伍已停用')
             coach['teamId'] = row['teamId']
+            if not row.get('coachPlaying', True): coach['nonPlayingCoach'] = True
+            else: coach.pop('nonPlayingCoach', None)
             require(sum(p.get('teamId') == row['teamId'] and not p.get('bond') for p in d['players']) < row['capacity'], '队伍必须保留一选名额')
         for row in draft['candidates']:
             player = find(d['players'], row['playerId'])
-            require(player.get('active', True) and not player.get('teamId') and not player.get('bond'), '候选归属已变化，请重新配置')
+            require(player.get('active', True) and not player.get('teamId') and not player.get('bond') and not player.get('nonPlayingCoach'), '候选归属已变化，请重新配置')
         draft.update(phase='nomination', round=1, pending=[r['teamId'] for r in draft['teams']], nominations={}, conflicts=[], reveals=[], rolls=[])
     elif action == 'nominate':
         require(phase == 'nomination' and team_id in draft['pending'], '当前队伍无需提交一选')
@@ -123,7 +128,7 @@ def first_pick(document, action, payload, team_id=None):
 
 
 
-AUCTION_ACTIONS = {'draw', 'open-bidding', 'bid', 'pass', 'confirm-lot', 'next-lot', 'draw-third', 'assign-third'}
+AUCTION_ACTIONS = {'draw', 'open-bidding', 'bid', 'pass', 'confirm-lot', 'next-lot', 'draw-third', 'assign-third', 'assign-second'}
 
 
 def exclusion(document, row, minimum):
@@ -171,7 +176,7 @@ def auction(document, action, payload, team_id=None):
         # A stale roster must be corrected explicitly, never silently overwritten.
         for row in pool:
             player = find(d['players'], row['playerId'])
-            require(player.get('active', True) and not player.get('teamId') and not player.get('bond'), '候选名单已变化，请先核对')
+            require(player.get('active', True) and not player.get('teamId') and not player.get('bond') and not player.get('nonPlayingCoach'), '候选名单已变化，请先核对')
         chosen = secrets.choice(pool)
         count = len(draft.get('lots', []))
         draft['lot'] = dict(id=uid(), stage=3 if third else 2, playerId=chosen['playerId'], startPrice=chosen['startPrice'], price=None, leader=None, state='preview', passed=[], excluded={}, turn=None, firstIndex=count % len(draft['teams']), bids=[], minimum=chosen['startPrice'])
@@ -209,6 +214,35 @@ def auction(document, action, payload, team_id=None):
             candidate['state'] = 'third-pool';lot['outcome'] = 'unsold'
         lot['state'] = 'settled'
         draft.setdefault('lots', []).append(copy.deepcopy(lot))
+    elif action == 'assign-second':
+        require(lot.get('stage', 2) == 2 and lot['state'] in {'preview','bidding','awaiting-confirm','settled'}, '当前选手不在第二阶段')
+        target=payload.get('teamId')
+        require(any(t['teamId']==target for t in draft['teams']), '接收队伍不属于本活动')
+        price=integer(payload.get('price'), '分配金额', 0, 1000000)
+        previous=dict(state=lot['state'],leader=lot.get('leader'),price=lot.get('price'),outcome=lot.get('outcome'),assignedTeam=lot.get('assignedTeam'),assignedPrice=lot.get('assignedPrice'))
+        was_settled=lot['state']=='settled'
+        if was_settled:
+            require(draft.get('lots') and draft['lots'][-1]['id']==lot['id'], '成交记录已变化，请刷新核对')
+            candidate=next(r for r in draft['candidates'] if r['playerId']==lot['playerId'])
+            player=find(d['players'],lot['playerId'])
+            if lot.get('outcome') in {'sold','assigned'}:
+                require(draft['allocations'] and draft['allocations'][-1]['playerId']==lot['playerId'], '分配记录已变化，请先核对')
+                allocation=draft['allocations'][-1]
+                prior_team=lot.get('assignedTeam') if lot.get('outcome')=='assigned' else lot['leader']
+                prior_price=lot.get('assignedPrice') if lot.get('outcome')=='assigned' else lot['price']
+                require(allocation['teamId']==prior_team and allocation['price']==prior_price and player.get('teamId')==prior_team and candidate['state']=='allocated', '选手归属或成交记录已变化，请先核对')
+                source=next(t for t in draft['teams'] if t['teamId']==prior_team)
+                source['balance']+=allocation['price']
+                require(source['balance']<=source['budget']-source['coachPrice'], '原队伍余额不一致')
+                draft['allocations'].pop();player['teamId']=None
+            else:
+                require(lot.get('outcome')=='unsold' and candidate['state']=='third-pool' and not player.get('teamId'), '流拍记录已变化')
+            candidate['state']='available'
+        allocate(d,target,lot['playerId'],'admin-second',price)
+        lot.setdefault('adminChanges',[]).append(dict(before=previous,teamId=target,price=price))
+        lot.update(state='settled',outcome='assigned',assignedTeam=target,assignedPrice=price,turn=None)
+        if was_settled:draft['lots'][-1]=copy.deepcopy(lot)
+        else:draft.setdefault('lots',[]).append(copy.deepcopy(lot))
     elif action == 'assign-third':
         require(lot.get('stage', 2) == 3 and lot['state'] == 'awaiting-confirm', '请先完成第三轮竞价')
         target = payload.get('teamId')

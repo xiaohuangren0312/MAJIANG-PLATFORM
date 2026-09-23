@@ -46,7 +46,7 @@ def projection(e,user,now=None):
             tid=seat['teamId']
             if tid not in ids:continue
             entry=m.get('coachLineups',{}).get(tid)
-            options=[dict(id=p['id'],name=p['name'],bond=p.get('bond',False)) for p in d['players'] if p['active'] and assigned_team(d,p,m['stageId'])==tid]
+            options=[dict(id=p['id'],name=p['name'],bond=p.get('bond',False)) for p in d['players'] if p['active'] and not p.get('nonPlayingCoach') and assigned_team(d,p,m['stageId'])==tid]
             rows.append(dict(matchId=m['id'],teamId=tid,teamName=find(d['teams'],tid)['name'],date=m['date'],time=m['time'],number=m['number'],stageName=stage['name'],playerId=seat.get('playerId'),players=options,mode=(entry or {}).get('mode','default'),defaultPublishAt=release_at(d,m,{'mode':'default'}).isoformat(),publishAt=release_at(d,m,entry or {'mode':'default'}).isoformat(),published=bool(seat.get('playerId') and visible(d,m,seat,now)),scheduled=bool(entry),locked=bool(stage.get('locked') or start(m)<=now or any('score' in s for s in m['seats']) or m.get('penalties') or m.get('yakuman'))))
     return dict(id=str(e.pk),name=e.name,revision=e.revision,rows=rows)
 

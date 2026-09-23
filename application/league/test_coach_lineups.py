@@ -101,3 +101,14 @@ class CoachLineupTests(TestCase):
         self.assertEqual(self.post(rows=[{'matchId':d['matches'][-1]['id'],'teamId':self.tid,'playerId':self.pid}]).status_code,400)
         self.e.refresh_from_db();self.e.document['matches'][0]['state']='cancelled';self.e.save()
         self.assertEqual(self.post().status_code,400)
+
+    def test_nonplaying_coach_hidden_and_server_rejects_selection(self):
+        self.e.document['players'][0]['nonPlayingCoach']=True
+        self.e.save()
+        self.client.force_login(self.coach)
+        response=self.client.get(f'/api/coach/lineups/{self.e.pk}/')
+        self.assertEqual(response.status_code,200)
+        self.assertTrue(all(self.pid not in [p['id'] for p in row['players']] for row in response.json()['rows']))
+        response=self.post()
+        self.assertEqual(response.status_code,400)
+        self.assertIn('全职教练',response.json()['error'])

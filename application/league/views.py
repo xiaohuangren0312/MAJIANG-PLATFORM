@@ -72,10 +72,13 @@ def manage(request):
     if not request.user.is_superuser and not allowed(request.user).exists():return redirect('/')
     return render(request,'manage.html',{'history_backfill_enabled':settings.HISTORY_BACKFILL_ENABLED})
 
+from django.views.decorators.gzip import gzip_page
+
+@gzip_page
 @require_GET
 def public_data(request):
-    response=JsonResponse({'demo':False,'updatedAt':timezone.now().isoformat(),'tournaments':[public_event(e) for e in Event.objects.filter(public=True)]+[rank_metrics(x.payload) for x in HistoricalArchive.objects.filter(public=True)]},json_dumps_params={'ensure_ascii':False})
-    response['Cache-Control']='no-store';return response
+    from .public_feed import response
+    return response(request)
 
 @api
 def events(request):

@@ -172,5 +172,16 @@ function homeNextMatchDay(){
  return `<section id="home-next-matchday" class="home-next-matchday ${day.matches.length?'illustrated-matchday':''}"><div class="section-head"><h2>${ended?'赛事已结束':day.state==='today'?'今日比赛日':'下一比赛日'}</h2><a href="${href('schedule',day.date?{from:day.date,to:day.date}:{})}">完整赛程 →</a></div>${day.date?`<p class="matchday-date">${esc(day.date)} <small>${day.matches.length} 场对局</small></p>`:''}${day.matches.length?`<div class="home-fixtures">${day.matches.map(m=>`<article class="home-fixture" data-fixture-id="${esc(m.id)}"><div class="home-fixture-head"><strong>${esc(m.time||'时间待定')}</strong><span>${esc(stageName(m.stageId))} · ${esc(displayTable(m.table))}桌</span></div><div class="home-fixture-lineup">${scheduleLineup(m,true)}</div>${m.resources?.commentators?.length?`<p class="note">解说：${esc(m.resources.commentators.join('、'))}</p>`:''}${m.resultId?`<a href="${href('result',{id:m.resultId})}" class="home-fixture-result">查看赛果</a>`:m.live?`<div class="home-fixture-result">${matchdayLive(m)}</div>`:''}</article>`).join('')}</div>${tournament.type==='team'?'<p class="fixture-switch-hint">点击卡片切换队伍 / 选手<span class="fixture-order-desktop"> · 已定座次从左至右：东、南、西、北</span><span class="fixture-order-mobile"> · 已定座次：上排东、南，下排西、北</span></p>':''}`:`<p class="note">${ended?'本赛事已完结。':'后续赛程尚未公布。'}</p>`}</section>`;
 }
 
-// Reveal scheduled lineups on an already-open spectator page without a manual reload.
-setInterval(async()=>{if(document.hidden||!data?.tournaments?.length)return;try{const r=await fetch('./data.json',{cache:'no-store'});if(!r.ok)return;const next=await r.json();const schedules=x=>JSON.stringify(x.tournaments.map(t=>[t.id,t.schedule,t.matchdayLive]));if(schedules(data)!==schedules(next)&&!document.querySelector('dialog[open]')){data=next;render()}}catch(_){}},30000);
+// Revalidate cached public data; never overlap refreshes or redraw an open dialog.
+let publicRefreshBusy=false, pendingPublicData=null;
+setInterval(async()=>{
+ if(document.hidden||publicRefreshBusy||!data)return;
+ publicRefreshBusy=true;
+ try{
+  const r=await fetch('./data.json',{cache:'no-cache'});
+  if(!r.ok)return;
+  const next=await r.json();
+  if(JSON.stringify(data.tournaments)!==JSON.stringify(next.tournaments))pendingPublicData=next;
+  if(pendingPublicData&&!document.querySelector('dialog[open]')){data=pendingPublicData;pendingPublicData=null;render()}
+ }catch(_){}finally{publicRefreshBusy=false}
+},30000);

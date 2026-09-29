@@ -146,3 +146,24 @@ img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0
 .home-fixture>.home-fixture-result,.home-fixture>.home-fixture-result:hover,.schedule-result-link,.schedule-result-link:hover,.matchday-live{text-decoration:none}.home-fixture>a.home-fixture-result:hover,.schedule-result-link:hover{color:#ba3c30}.matchday-live.is-live:hover{color:#1d663a}
 
 .schedule-tools .schedule-month{border:0;background:transparent;border-radius:0}.schedule-tools .schedule-month button,.schedule-tools .schedule-month select{background:transparent;box-shadow:none}.schedule-tools .schedule-filter-toggle{border:0;background:transparent;box-shadow:none}.schedule-tools .schedule-month button:hover:not(:disabled),.schedule-tools .schedule-filter-toggle:hover{background:#eee8df;color:#ba3c30;border-radius:5px}
+
+/* Touch layouts: readable fields and paired, explicit filter actions. */
+.filter-action-label{display:none}
+@media(max-width:640px){
+ .context-bar label{min-width:0}
+ .context-bar select{font-size:16px;min-height:44px;width:0;flex:1;padding:9px 10px}
+ .filters{padding:14px;background:#fffdf8;border:1px solid var(--line);border-radius:12px;gap:12px}
+ .filters label{font-size:12px;gap:6px}
+ .filters input:not([type=checkbox]),.filters select{font-size:16px;line-height:1.4;min-width:0;max-width:100%;width:100%;height:46px;padding:10px}
+ .filters input[type=date]{appearance:none;-webkit-appearance:none;min-inline-size:0}
+ .filters label:has(#team),.filters label:has(#state),.filters label:has(#search){grid-column:1/-1}
+ .filters .filter-icon-button{width:100%;min-width:0;height:44px;gap:8px;font-size:14px;border-radius:8px}
+ .filters .filter-action-label{display:inline}
+ .filters .checkbox{white-space:normal}
+ .schedule-month{min-width:0}
+ .schedule-month select{font-size:16px;min-width:0;min-height:44px}
+}
+
+@media(max-width:480px){
+ .filters label:has(input[type=date]){grid-column:1/-1}
+}

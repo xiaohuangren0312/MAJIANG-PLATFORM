@@ -186,3 +186,5 @@ img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0
 .search-filter-panel input[type=date]{appearance:none;-webkit-appearance:none;min-inline-size:0}
 .search-filter-panel .button{width:100%}
 @media(max-width:480px){.search-toolbar{gap:2px}.search-toolbar button,.search-toolbar summary{padding:0 8px;font-size:12px}.search-toolbar .search-submit{width:28px;flex-basis:28px;padding:0}.search-toolbar-input input{font-size:16px}.search-filter-panel{width:100%}}
+
+img.team-mark{object-fit:contain;background:transparent;border-radius:0;aspect-ratio:1;height:auto}

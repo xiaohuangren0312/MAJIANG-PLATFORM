@@ -31,7 +31,7 @@ def listing(e,user):
         for row in d.get('teams' if kind=='team' else 'players',[]):
             try:permitted(e,user,kind,row['id'])
             except PermissionDenied:continue
-            out.append({k:row.get(k) for k in ['id','name','color','bio','imageUrl','teamId','bond']})
+            out.append({k:row.get(k) for k in ['id','name','color','bio','imageUrl','imageSourceUrl','imageCrop','teamId','bond']})
     return dict(id=str(e.pk),name=e.name,revision=e.revision,teams=teams,players=players)
 
 @login_required

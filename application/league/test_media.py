@@ -31,3 +31,39 @@ class MediaTests(TestCase):
   with self.assertRaises(Invalid):update(d,{'id':'m','videos':[{'url':'javascript:alert(1)'}]})
   with self.assertRaises(Invalid):update(d,{'id':'other'})
   self.assertEqual(project({'results':[{'id':'m'}]},new)['results'][0]['resources']['commentators'],['解说甲'])
+
+ def test_team_crop_original_reuse_validation_and_privacy(self):
+  import json
+  user=get_user_model().objects.create_user('crop-admin',is_superuser=True)
+  outsider=get_user_model().objects.create_user('crop-viewer')
+  d=apply(initial(),'team','team',{'name':'裁剪队伍'})
+  e=Event.objects.create(name='裁剪测试',kind='team',document=d,public=True)
+  tid=d['teams'][0]['id'];buf=io.BytesIO()
+  im=Image.new('RGBA',(120,80),(255,0,0,255));im.putpixel((60,40),(0,0,0,0));im.save(buf,format='PNG')
+  with tempfile.TemporaryDirectory(dir='/data/majiang/dev/tmp') as tmp,override_settings(ENV_ROOT=Path(tmp)):
+   self.client.force_login(user)
+   def post(crop,**extra):
+    e.refresh_from_db()
+    return self.client.post(f'/api/events/{e.id}/image/',{'kind':'team','entityId':tid,'revision':e.revision,'crop':json.dumps(crop),**extra})
+   crop={'x':20,'y':0,'size':80,'shape':'circle'}
+   r=post(crop,image=SimpleUploadedFile('a.png',buf.getvalue(),'image/png'));self.assertEqual(r.status_code,200,r.content)
+   e.refresh_from_db();row=e.document['teams'][0];original=row['imageSourceUrl'];first=row['imageUrl']
+   folder=Path(tmp)/'uploads'/'roster'/str(e.id)
+   with Image.open(folder/first.rsplit('/',1)[-1]) as out:
+    self.assertEqual(out.size,(512,512));self.assertEqual(out.getpixel((0,0))[3],0)
+   with Image.open(folder/original.rsplit('/',1)[-1]) as source:self.assertEqual(source.size,(120,80))
+   self.assertEqual(self.client.get(original).status_code,200)
+   self.client.logout();self.assertEqual(self.client.get(first).status_code,200);self.assertEqual(self.client.get(original).status_code,404)
+   self.client.force_login(outsider);self.assertEqual(self.client.get(original).status_code,403)
+   self.assertEqual(post(crop,reuseSource='1').status_code,403)
+   self.client.force_login(user)
+   r=post({**crop,'shape':'square'},reuseSource='1');self.assertEqual(r.status_code,200,r.content)
+   e.refresh_from_db();self.assertEqual(e.document['teams'][0]['imageSourceUrl'],original)
+   with Image.open(folder/r.json()['imageUrl'].rsplit('/',1)[-1]) as out:self.assertEqual(out.getpixel((0,0))[3],255)
+   before=e.document.copy();count=len(list(folder.iterdir()))
+   for bad in [{**crop,'size':121},{**crop,'x':-1},{**crop,'size':float('nan')},{**crop,'shape':'bad'}]:
+    self.assertEqual(post(bad,reuseSource='1').status_code,400)
+   self.assertEqual(len(list(folder.iterdir())),count)
+   e.refresh_from_db();self.assertEqual(e.document,before)
+   r=self.client.post(f'/api/events/{e.id}/image/',{'kind':'team','entityId':tid,'revision':0,'reuseSource':'1','crop':json.dumps(crop)})
+   self.assertEqual(r.status_code,400)

@@ -2,6 +2,8 @@ function matchdayLive(m){const live=m.live;return live?`<a class="matchday-live 
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>n===null?'未记录':(n>0?'+':'')+(n/10).toFixed(1),cl=n=>n>=0?'positive':'negative',pct=n=>n===null?'—':(n*100).toFixed(1)+'%',fixed=n=>n===null?'—':n.toFixed(2);
 let data,tournament,route,params;
+function latestTournament(items){return [...items].sort((a,b)=>String(b.season||b.name).localeCompare(String(a.season||a.name),'zh-CN',{numeric:true}))[0]}
+function seasonRoute(current){return ({player:'players',team:'teams',result:'results'})[current]||(['home','schedule','results','teams','players'].includes(current)?current:'home')}
 const navs={home:'赛事首页',schedule:'赛程',results:'赛果',teams:'队伍榜',players:'个人榜'};
 const player=id=>tournament.players.find(p=>p.id===id),team=id=>tournament.teams.find(t=>t.id===id),stageName=id=>tournament.stages.find(s=>s.id===id)?.name||'全部阶段';
 function href(page,extra={}){const query=new URLSearchParams({event:tournament.id,...extra});return '#'+page+'?'+query.toString()}
@@ -30,7 +32,7 @@ function bindResultCards(){document.querySelectorAll('[data-result-card]').forEa
 
 
 function render(){
- const fragment=location.hash.slice(1)||'home',parts=fragment.split('?');route=parts[0];params=new URLSearchParams(parts[1]||'');tournament=data.tournaments.find(t=>t.id===params.get('event'))||data.tournaments[0];
+ const fragment=location.hash.slice(1)||'home',parts=fragment.split('?');route=parts[0];params=new URLSearchParams(parts[1]||'');tournament=data.tournaments.find(t=>t.id===params.get('event'))||latestTournament(data.tournaments);
  if(!tournament){$('content').innerHTML=empty('暂时没有公开赛事');return}
  const banner=$('event-banner');if(banner){banner.hidden=false;const match=tournament.name.match(/^(.*?)(S\d+)$/i);$('event-banner-name').innerHTML=match?`${esc(match[1].trim())} <span>${esc(match[2])}</span>`:esc(tournament.name);$('event-banner-subtitle').textContent=tournament.type==='team'?'HUAN QUE LOU · TEAM LEAGUE':'HUAN QUE LOU · INDIVIDUAL CHAMPIONSHIP'}
  const brandImage=document.querySelector('.brand img');if(brandImage){brandImage.onload=()=>brandImage.closest('.brand').classList.toggle('brand-wide',brandImage.naturalWidth/brandImage.naturalHeight>1.6);brandImage.src=tournament.logoUrl||'/brand/logo';brandImage.alt=tournament.name+' Logo'}
@@ -43,7 +45,7 @@ function render(){
  bindFixtureCards();bindResultCards();
  window.scrollTo(0,0);
 }
-$('event-select').onchange=e=>location.hash='#home?event='+encodeURIComponent(e.target.value);
+$('event-select').onchange=e=>location.hash='#'+seasonRoute(route)+'?event='+encodeURIComponent(e.target.value);
 function home(){if(tournament.historical){historyHome();return}const t=tournament,latest=sortedResults().slice(0,3),kind=t.type==='team'?'team':'player',standings=(kind==='team'?teamBoardContext(t).rows:getStats(kind).filter(r=>r.games>0)).map((r,i,a)=>({...r,rank:a.findIndex(x=>x.total===r.total)+1})),leader=getStats('player').filter(r=>r.games>0)[0];
  $('content').innerHTML=`${homeNextMatchDay()}<section><div class="section-head"><div><div class="eyebrow">LATEST RESULTS</div><h2>最近赛果</h2></div><a href="${href('results')}">最新赛果 →</a></div><div class="match-grid">${latest.map(resultCard).join('')||empty('赛果发布后，将在这里与你见面。')}</div></section><div class="home-columns"><section><div class="section-head"><div><div class="eyebrow">RANKING</div><h2>${t.type==='team'?(teamBoardContext(t).finished?'最终排名':'实时排行'):'个人积分榜'}</h2></div><a href="${href(t.type==='team'?'teams':'players')}">完整排名 →</a></div><div class="card">${standings.slice(0,4).map((r,i)=>`<a class="rank-row" href="${href(kind==='team'?'team':'player',{id:r.id})}"><span class="identity"><span class="rank ${i===0?'first':''}">${r.rank}</span>${kind==='team'?teamMark(r.id):avatar(r.id)}<span><strong>${esc(r.name)}</strong><small style="display:block;font-size:10px">${r.games} 场 · ${kind==='team'?esc(stageName(teamBoardContext(t).stage))+' · 含带入':'原始累计'}</small></span></span><strong class="num ${cl(r.total)}" style="font-size:23px">${fmt(r.total)}</strong></a>`).join('')}</div></section><section><div class="section-head"><div><div class="eyebrow">PLAYER SPOTLIGHT</div><h2>选手聚焦</h2></div><a href="${href('players')}">所有选手 →</a></div>${leader?`<a class="spotlight" style="display:block" href="${href('player',{id:leader.id})}"><div class="eyebrow">当前个人积分领先</div><div class="identity" style="margin-top:10px">${avatar(leader.id)}<h3>${esc(leader.name)}</h3></div><p>${t.type==='team'?esc(team(player(leader.id).teamId)?.name||'参赛选手'):'个人参赛'} · ${leader.games} 场 · 平均顺位 ${fixed(leader.avgRank)}</p><div class="number">${fmt(leader.total)} <small style="font-size:12px">pt</small></div></a>`:empty('等待首场成绩')}</section></div>`;
 }

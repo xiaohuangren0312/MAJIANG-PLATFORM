@@ -60,8 +60,12 @@ class MediaTests(TestCase):
    r=post({**crop,'shape':'square'},reuseSource='1');self.assertEqual(r.status_code,200,r.content)
    e.refresh_from_db();self.assertEqual(e.document['teams'][0]['imageSourceUrl'],original)
    with Image.open(folder/r.json()['imageUrl'].rsplit('/',1)[-1]) as out:self.assertEqual(out.getpixel((0,0))[3],255)
+   r=post({'x':-20,'y':-40,'size':160,'shape':'square'},reuseSource='1');self.assertEqual(r.status_code,200,r.content)
+   with Image.open(folder/r.json()['imageUrl'].rsplit('/',1)[-1]) as out:
+    self.assertEqual(out.getpixel((0,0))[3],0);self.assertGreater(out.getpixel((200,200))[3],0)
+   e.refresh_from_db()
    before=e.document.copy();count=len(list(folder.iterdir()))
-   for bad in [{**crop,'size':121},{**crop,'x':-1},{**crop,'size':float('nan')},{**crop,'shape':'bad'}]:
+   for bad in [{**crop,'size':321},{**crop,'x':-81},{**crop,'size':float('nan')},{**crop,'shape':'bad'}]:
     self.assertEqual(post(bad,reuseSource='1').status_code,400)
    self.assertEqual(len(list(folder.iterdir())),count)
    e.refresh_from_db();self.assertEqual(e.document,before)

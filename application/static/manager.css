@@ -286,3 +286,5 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .logo-editor fieldset{display:flex;gap:16px;border:0;padding:0;margin:12px 0}.logo-editor fieldset label{display:flex;align-items:center;gap:5px;min-height:44px;margin:0}.logo-editor fieldset input{margin:0;min-height:0;width:auto}
 .logo-editor-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}.logo-editor-actions button{min-height:44px;padding:8px 12px}
 .profile-heading .team-picture,.roster-picture.team-picture{object-fit:contain;background:transparent;border-radius:0}
+
+.logo-zoom{display:flex;align-items:center;gap:8px;margin-top:14px}.logo-zoom button{flex:0 0 44px;min-height:44px;font-size:22px;padding:0}.logo-zoom input[type=range]{flex:1;min-width:0;margin:0}.logo-zoom output{min-width:46px;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}.logo-editor canvas{transition:border-radius .15s;outline:1px solid #c7bca9;outline-offset:2px}

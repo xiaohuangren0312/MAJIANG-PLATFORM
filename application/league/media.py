@@ -58,7 +58,7 @@ def _upload(request,id):
             require(isinstance(crop,dict) and set(crop)=={'x','y','size','shape'},'裁剪参数错误')
             require(all(type(crop[k]) in [int,float] and math.isfinite(crop[k]) for k in ['x','y','size']),'裁剪参数错误')
             x,y,size=[crop[k] for k in ['x','y','size']]
-            require(size>=1 and x>=0 and y>=0 and x+size<=im.width+.01 and y+size<=im.height+.01,'裁剪范围超出原图')
+            require(1<=size<=min(im.width,im.height)*4+.01 and -size<=x<=im.width and -size<=y<=im.height,'裁剪范围超出允许范围')
             require(crop['shape'] in ['square','rounded','circle'],'队标形状错误')
             im=im.transform((512,512),Image.Transform.EXTENT,(x,y,x+size,y+size),Image.Resampling.BICUBIC)
             if crop['shape']!='square':

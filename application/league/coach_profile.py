@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render,get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Event,Audit
-from .domain import require,find
+from .domain import require,find,label
 from .views import api,body
 from .coach_lineups import team_ids,manager,assigned_team
 from .permissions import authorize
@@ -56,13 +56,19 @@ def detail(request,id):
     if request.method=='GET':
         response=JsonResponse(listing(e,request.user));response['Cache-Control']='no-store';return response
     require(request.method=='POST','请求方法不支持');data=body(request)
-    require(set(data)<= {'revision','kind','entityId','bio','color'},'仅可修改简介和代表色')
+    require(set(data)<= {'revision','kind','entityId','bio','color','name'},'仅可修改队伍名称、简介和代表色')
     if data.get('revision')!=e.revision:return JsonResponse({'error':'资料已更新，请刷新后重试'},status=409)
     kind=data.get('kind');require(kind in ['team','player'],'资料对象错误')
     permitted(e,request.user,kind,data.get('entityId'))
     before=copy.deepcopy(e.document)
     if e.document.get('historySnapshot') and not e.document.get('historyCurrent'):e.document['historyCurrent']=copy.deepcopy(e.document['historySnapshot'])
     d=source(e);row=find(d['teams' if kind=='team' else 'players'],data['entityId'])
+    if 'name' in data:
+        require(kind=='team','选手姓名请联系赛事管理员修改')
+        require(not e.document.get('historySnapshot'),'历史赛事队伍名称请联系赛事管理员修改')
+        name=label(data['name'])
+        require(not any(t['id']!=row['id'] and t['name']==name for t in d['teams']),'队伍名称重复')
+        row['name']=name
     bio=data.get('bio','');require(isinstance(bio,str) and len(bio)<=500,'简介最多500字');row['bio']=bio.strip()
     if kind=='team' and 'color' in data:
         import re

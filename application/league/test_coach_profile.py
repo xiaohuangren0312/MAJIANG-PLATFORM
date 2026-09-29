@@ -42,3 +42,21 @@ class CoachProfileTests(TestCase):
         self.assertEqual([x['id'] for x in r.json()['players']],[self.pid])
         self.e.document['coachAccounts'][str(self.coach.pk)]['active']=False;self.e.save()
         self.assertEqual(self.post(self.coach,'team',self.tid).status_code,403)
+
+    def test_coach_team_rename_preserves_roster_and_audits(self):
+        from .models import Audit
+        before=copy.deepcopy(self.e.document)
+        r=self.post(self.coach,'team',self.tid,name=' 新队伍 ')
+        self.assertEqual(r.status_code,200,r.content)
+        self.e.refresh_from_db()
+        self.assertEqual(next(t for t in self.e.document['teams'] if t['id']==self.tid)['name'],'新队伍')
+        self.assertEqual(self.e.document['players'],before['players'])
+        self.assertEqual(self.e.document['matches'],before['matches'])
+        self.assertEqual(Audit.objects.filter(event=self.e).latest('revision').actor,self.coach)
+        self.assertEqual(self.post(self.coach,'team',self.other_tid,name='别队').status_code,403)
+        self.assertEqual(self.post(self.coach,'player',self.pid,name='改姓名').status_code,400)
+        self.assertEqual(self.post(self.coach,'team',self.tid,name=' ').status_code,400)
+        self.assertEqual(self.post(self.coach,'team',self.tid,name='x'*121).status_code,400)
+        other=next(t['name'] for t in self.e.document['teams'] if t['id']==self.other_tid)
+        self.assertEqual(self.post(self.coach,'team',self.tid,name=other).status_code,400)
+        self.assertEqual(self.post(self.coach,'team',self.tid,name='新队',revision=0).status_code,409)

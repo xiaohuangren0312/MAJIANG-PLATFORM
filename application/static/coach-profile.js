@@ -21,13 +21,15 @@ async function prepareImage(file){
  }finally{URL.revokeObjectURL(url)}
 }
 
-async function editLogo(source,saved){
+async function editLogo(source,saved,kind='team'){
+ const caption=kind==='team'?'队标':'头像';
  const local=source instanceof Blob,url=local?URL.createObjectURL(source):source;
  try{
   const image=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error('无法读取队标原图，请重新上传'));im.src=url});
-  const base=Math.min(image.naturalWidth,image.naturalHeight);let zoom=saved?base/saved.size:1,x=saved?.x??(image.naturalWidth-base)/2,y=saved?.y??(image.naturalHeight-base)/2,shape=saved?.shape||'rounded';
+  const base=Math.min(image.naturalWidth,image.naturalHeight);let zoom=saved?base/saved.size:1,x=saved?.x??(image.naturalWidth-base)/2,y=saved?.y??(image.naturalHeight-base)/2,shape=saved?.shape||(kind==='team'?'rounded':'circle');
   const dialog=document.createElement('dialog');dialog.className='logo-editor';dialog.setAttribute('aria-labelledby','logo-editor-title');
   dialog.innerHTML='<div class="logo-editor-heading"><h2 id="logo-editor-title">调整队标</h2><button type="button" data-cancel aria-label="关闭裁剪">×</button></div><p>拖动定位 · 双指缩放</p><div class="logo-preview-stage"><canvas width="512" height="512" tabindex="0" aria-label="队标裁剪预览，可用方向键移动图片"></canvas></div><div class="logo-zoom"><button type="button" data-zoom-out aria-label="缩小队标">−</button><input type="range" min="0.25" max="5" step="0.01" aria-label="队标缩放"><button type="button" data-zoom-in aria-label="放大队标">＋</button><output aria-live="polite"></output></div><fieldset><legend>显示形状</legend><label><input type="radio" name="logo-shape" value="square"><span class="logo-shape-icon square" aria-hidden="true"></span><span>方形</span></label><label><input type="radio" name="logo-shape" value="rounded"><span class="logo-shape-icon rounded" aria-hidden="true"></span><span>圆角</span></label><label><input type="radio" name="logo-shape" value="circle"><span class="logo-shape-icon circle" aria-hidden="true"></span><span>圆形</span></label></fieldset><div class="logo-editor-actions"><button type="button" data-reset>居中重置</button><button type="button" data-cancel>取消</button><button type="button" class="primary" data-save>保存队标</button></div>';
+  dialog.innerHTML=dialog.innerHTML.replaceAll('队标',caption);
   document.body.append(dialog);const canvas=dialog.querySelector('canvas'),ctx=canvas.getContext('2d'),slider=dialog.querySelector('[type=range]');
   slider.value=zoom;dialog.querySelector('[value="'+shape+'"]').checked=true;
   function draw(){const size=base/zoom;x=Math.max(-size,Math.min(image.naturalWidth,x));y=Math.max(-size,Math.min(image.naturalHeight,y));canvas.style.borderRadius=shape==='circle'?'50%':shape==='rounded'?'15.625%':'0';dialog.querySelector('output').textContent=Math.round(zoom*100)+'%';ctx.clearRect(0,0,512,512);ctx.save();ctx.beginPath();if(shape==='circle')ctx.arc(256,256,256,0,Math.PI*2);else if(shape==='rounded')ctx.roundRect(0,0,512,512,80);else ctx.rect(0,0,512,512);ctx.clip();ctx.drawImage(image,x,y,size,size,0,0,512,512);ctx.restore()}
@@ -46,7 +48,7 @@ async function editLogo(source,saved){
  }finally{if(local)URL.revokeObjectURL(url)}
 }
 async function load(){const n=++seq,id=$('#profile-event').value;current=null;if(!id){$('#profile-content').textContent='暂无可编辑的队伍资料';return}const data=await request('/api/coach/profile/'+id+'/');if(n!==seq)return;current=data;render()}
-function render(){const group=(title,kind,rows)=>rows.length?`<h2 style="margin:24px 0 14px">${title}</h2><div class="profile-grid">${rows.map(r=>`<article class="card"><div class="profile-heading">${r.imageUrl||kind!=='team'?`<img class="profile-image ${kind==='team'?'team-picture':''}" src="${esc(r.imageUrl||'/assets/player-default.png')}" alt="${esc(r.name)}">`:`<span class="profile-image roster-placeholder" style="display:grid;place-items:center;${kind==='team'?'background:'+esc(r.color)+';color:white':''}">${kind==='team'?esc(r.name.slice(0,2)):'头像'}</span>`}<h2>${esc(r.name)}${r.bond?' · 羁绊':''}</h2></div><form data-profile="${kind}" data-id="${esc(r.id)}">${kind==='team'?`<label>队伍名称<input name="name" value="${esc(r.name)}" maxlength="120" required></label><label>代表色<input name="color" type="color" value="${esc(r.color)}"></label>`:''}<label>${kind==='team'?'队伍简介':'选手简介'}<textarea name="bio" maxlength="500" rows="3">${esc(r.bio)}</textarea></label><button>保存资料</button></form><form class="profile-upload" data-image="${kind}" data-id="${esc(r.id)}"><label>${kind==='team'?'队标':'头像'} · PNG / JPEG / WebP，大图自动压缩<input name="image" type="file" accept="image/png,image/jpeg,image/webp" required></label><button>${kind==='team'?'裁剪并上传队标':'上传头像'}</button>${kind==='team'&&r.imageUrl?'<button type="button" data-recrop>调整队标</button>':''}</form></article>`).join('')}</div>`:'';$('#profile-content').innerHTML=group('队伍','team',current.teams)+group('选手','player',current.players)||'<p>暂无可编辑资料</p>';
+function render(){const group=(title,kind,rows)=>rows.length?`<h2 style="margin:24px 0 14px">${title}</h2><div class="profile-grid">${rows.map(r=>`<article class="card"><div class="profile-heading">${r.imageUrl||kind!=='team'?`<img class="profile-image ${r.imageUrl?'custom-picture':''}" src="${esc(r.imageUrl||'/assets/player-default.png')}" alt="${esc(r.name)}">`:`<span class="profile-image roster-placeholder" style="display:grid;place-items:center;${kind==='team'?'background:'+esc(r.color)+';color:white':''}">${kind==='team'?esc(r.name.slice(0,2)):'头像'}</span>`}<h2>${esc(r.name)}${r.bond?' · 羁绊':''}</h2></div><form data-profile="${kind}" data-id="${esc(r.id)}">${kind==='team'?`<label>队伍名称<input name="name" value="${esc(r.name)}" maxlength="120" required></label><label>代表色<input name="color" type="color" value="${esc(r.color)}"></label>`:''}<label>${kind==='team'?'队伍简介':'选手简介'}<textarea name="bio" maxlength="500" rows="3">${esc(r.bio)}</textarea></label><button>保存资料</button></form><form class="profile-upload" data-image="${kind}" data-id="${esc(r.id)}"><label>${kind==='team'?'队标':'头像'} · PNG / JPEG / WebP，大图自动压缩<input name="image" type="file" accept="image/png,image/jpeg,image/webp" required></label><button>裁剪并上传${kind==='team'?'队标':'头像'}</button>${r.imageUrl?`<button type="button" data-recrop>调整${kind==='team'?'队标':'头像'}</button>`:''}</form></article>`).join('')}</div>`:'';$('#profile-content').innerHTML=group('队伍','team',current.teams)+group('选手','player',current.players)||'<p>暂无可编辑资料</p>';
 
  async function save(f,reuse=false){
   if(busy)return;busy=true;const id=current.id,revision=current.revision,position=scrollY;
@@ -54,13 +56,13 @@ function render(){const group=(title,kind,rows)=>rows.length?`<h2 style="margin:
   try{
    const data=new FormData(f);
    if(f.dataset.image){
-    if(f.dataset.image==='team'){
-     const row=current.teams.find(r=>r.id===f.dataset.id),file=reuse?null:await prepareImage(data.get('image'));
-     const crop=await editLogo(file||row.imageSourceUrl||row.imageUrl,reuse?row.imageCrop:null);
+    {
+     const row=current[f.dataset.image==='team'?'teams':'players'].find(r=>r.id===f.dataset.id),file=reuse?null:await prepareImage(data.get('image'));
+     const crop=await editLogo(file||row.imageSourceUrl||row.imageUrl,reuse?row.imageCrop:null,f.dataset.image);
      if(!crop)return;
      if(reuse){data.delete('image');data.set('reuseSource','1')}else data.set('image',file);
      data.set('crop',JSON.stringify(crop));
-    }else data.set('image',await prepareImage(data.get('image')));
+    }
     notice('正在保存图片…');data.set('kind',f.dataset.image);data.set('entityId',f.dataset.id);data.set('revision',revision);
     await request('/api/events/'+id+'/image/',data);
    }else await request('/api/coach/profile/'+id+'/',{...Object.fromEntries(data),revision,kind:f.dataset.profile,entityId:f.dataset.id});

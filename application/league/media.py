@@ -31,7 +31,6 @@ def _upload(request,id):
         folder=settings.ENV_ROOT/'uploads'/'roster'/str(e.id);folder.mkdir(parents=True,exist_ok=True)
         file=request.FILES.get('image')
         reuse=request.POST.get('reuseSource')=='1'
-        require(not reuse or kind=='team','仅队标支持重新裁剪')
         if reuse:
             original=row.get('imageSourceUrl') or row.get('imageUrl','')
             import re
@@ -52,14 +51,13 @@ def _upload(request,id):
         source_image=im.copy()
         crop=None
         if 'crop' in request.POST:
-            require(kind=='team','仅队标支持裁剪')
             try:crop=json.loads(request.POST['crop'])
             except (ValueError,TypeError):require(False,'裁剪参数错误')
             require(isinstance(crop,dict) and set(crop)=={'x','y','size','shape'},'裁剪参数错误')
             require(all(type(crop[k]) in [int,float] and math.isfinite(crop[k]) for k in ['x','y','size']),'裁剪参数错误')
             x,y,size=[crop[k] for k in ['x','y','size']]
             require(1<=size<=min(im.width,im.height)*4+.01 and -size<=x<=im.width and -size<=y<=im.height,'裁剪范围超出允许范围')
-            require(crop['shape'] in ['square','rounded','circle'],'队标形状错误')
+            require(crop['shape'] in ['square','rounded','circle'],'图片形状错误')
             im=im.transform((512,512),Image.Transform.EXTENT,(x,y,x+size,y+size),Image.Resampling.BICUBIC)
             if crop['shape']!='square':
                 mask=Image.new('L',(2048,2048),0);draw=ImageDraw.Draw(mask)
@@ -75,10 +73,8 @@ def _upload(request,id):
             return f'/media/roster/{e.id}/{path.name}'
         try:
             row['imageUrl']=save_image(im)
-            if kind=='team':
-                if not reuse:row['imageSourceUrl']=save_image(source_image,original=True)
-                elif not row.get('imageSourceUrl'):row['imageSourceUrl']=save_image(source_image,original=True)
-                row['imageCrop']=crop
+            if not reuse or not row.get('imageSourceUrl'):row['imageSourceUrl']=save_image(source_image,original=True)
+            row['imageCrop']=crop
             e.document=d;e.revision+=1;e.save(update_fields=['document','revision'])
             Audit.objects.create(event=e,actor=request.user,revision=e.revision,action='roster-image',before={'document':before},after={'document':d})
         except Exception:
@@ -92,10 +88,11 @@ def serve(request,id,name):
     e=get_object_or_404(Event,pk=id)
     from .coach_profile import source,permitted
     original_allowed=False
-    for row in source(e).get('teams',[]):
-        if row.get('imageSourceUrl')==f'/media/roster/{e.pk}/{name}':
-            if not request.user.is_authenticated:raise Http404
-            permitted(e,request.user,'team',row['id']);original_allowed=True
+    for kind,key in [('team','teams'),('player','players')]:
+        for row in source(e).get(key,[]):
+            if row.get('imageSourceUrl')==f'/media/roster/{e.pk}/{name}':
+                if not request.user.is_authenticated:raise Http404
+                permitted(e,request.user,kind,row['id']);original_allowed=True
     if name.endswith('_source.png') and not original_allowed:raise Http404
     if not e.public and not(request.user.is_authenticated and (request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists())):
         if not request.user.is_authenticated:raise Http404

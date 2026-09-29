@@ -60,3 +60,24 @@ class CoachProfileTests(TestCase):
         other=next(t['name'] for t in self.e.document['teams'] if t['id']==self.other_tid)
         self.assertEqual(self.post(self.coach,'team',self.tid,name=other).status_code,400)
         self.assertEqual(self.post(self.coach,'team',self.tid,name='新队',revision=0).status_code,409)
+
+    def test_player_crop_reuse_is_scoped_and_original_private(self):
+        import json
+        buf=io.BytesIO();Image.new('RGBA',(100,80),(200,30,20,255)).save(buf,format='PNG')
+        self.e.public=True;self.e.save();before=copy.deepcopy(self.e.document['matches'])
+        with tempfile.TemporaryDirectory(dir='/data/majiang/dev/tmp') as tmp,override_settings(ENV_ROOT=Path(tmp)):
+            self.client.force_login(self.coach)
+            def crop(pid,**extra):
+                self.e.refresh_from_db()
+                return self.client.post(f'/api/events/{self.e.pk}/image/',{'revision':self.e.revision,'kind':'player','entityId':pid,'crop':json.dumps({'x':10,'y':0,'size':80,'shape':'circle'}),**extra})
+            r=crop(self.pid,image=SimpleUploadedFile('avatar.png',buf.getvalue(),'image/png'))
+            self.assertEqual(r.status_code,200,r.content)
+            self.e.refresh_from_db();row=next(p for p in self.e.document['players'] if p['id']==self.pid);original=row['imageSourceUrl'];url=row['imageUrl']
+            self.assertEqual(self.client.get(original).status_code,200)
+            r=crop(self.pid,reuseSource='1');self.assertEqual(r.status_code,200,r.content)
+            self.assertEqual(crop(self.other_pid,reuseSource='1').status_code,403)
+            with Image.open(Path(tmp)/'uploads/roster'/str(self.e.pk)/r.json()['imageUrl'].rsplit('/',1)[-1]) as im:
+                self.assertEqual(im.size,(512,512));self.assertEqual(im.getpixel((0,0))[3],0)
+            self.client.force_login(self.other);self.assertEqual(self.client.get(original).status_code,403)
+            self.client.logout();self.assertEqual(self.client.get(original).status_code,404);self.assertEqual(self.client.get(url).status_code,200)
+            self.e.refresh_from_db();self.assertEqual(self.e.document['matches'],before)

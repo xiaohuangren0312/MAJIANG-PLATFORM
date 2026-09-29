@@ -15,7 +15,7 @@ const stage=params=>params.get('stage')||'all';
 function getStats(kind,whichStage='all',metric='raw'){return tournament.statistics[whichStage]?.[metric]?.[kind]||[]}
 function sortedResults(){return [...tournament.results].sort((a,b)=>b.date.localeCompare(a.date)||(b.time||'').localeCompare(a.time||'')||b.number-a.number)}
 function teamMark(id){const x=team(id);return x?.imageUrl?`<img class="team-mark" src="${esc(x.imageUrl)}" alt="${esc(x.name)}" style="object-fit:contain">`:x?`<span class="team-mark team-feather" style="--team:${esc(x.color)}" role="img" aria-label="${esc(x.name)}默认队标"><svg viewBox="0 0 48 56" aria-hidden="true"><path d="M7 49C7 30 20 22 34 10C38 7 40 3 40 1C47 17 39 26 24 31C15 34 10 40 7 49Z"/><path d="M10 51C14 36 28 35 39 27C39 39 28 42 20 45C16 47 12 49 10 51Z"/><path d="M15 53C20 46 31 46 36 41C34 50 25 53 15 53Z"/></svg></span>`:''}
-function avatar(id){return `<img class="avatar" src="${esc(player(id)?.imageUrl||'/assets/player-default.png')}" alt="${esc(player(id)?.name||'选手')}头像" style="object-fit:cover">`}
+function avatar(id){return `<img class="avatar" src="${esc(player(id)?.imageUrl||'/assets/player-default.png')}" alt="${esc(player(id)?.name||'选手')}头像" style="${player(id)?.imageUrl?'object-fit:contain;border-radius:0;background:transparent':'object-fit:cover'}">`}
 const resultScoreViews=new Map();
 function resultCard(m){
  const winds='东南西北',known=m.seats.length===4&&new Set(m.seats.map(s=>s.wind)).size===4&&m.seats.every(s=>winds.includes(s.wind||'?')),seats=[...m.seats];if(known)seats.sort((a,b)=>winds.indexOf(a.wind)-winds.indexOf(b.wind));

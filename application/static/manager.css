@@ -301,6 +301,6 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .logo-editor .logo-editor-actions button{min-height:44px;padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:none;margin:0}
 .logo-editor .logo-editor-actions [data-reset]{margin-right:auto;padding-left:0;border:0;background:transparent;color:#8a7c68}
 .logo-editor .logo-editor-actions [data-save]{background:#ad3b2e;border-color:#ad3b2e;color:white;min-width:108px}
-.profile-heading .team-picture,.roster-picture.team-picture{object-fit:contain;background:transparent;border-radius:0}
+.profile-heading .custom-picture,img.roster-picture{object-fit:contain;background:transparent;border-radius:0}
 @media(max-width:480px){.logo-editor{padding:18px;border-radius:16px}.logo-preview-stage{padding:18px}.logo-editor p{margin-bottom:14px}.logo-editor-heading h2{font-size:20px}.logo-zoom{margin:8px 0 12px}.logo-editor fieldset{margin-bottom:16px}.logo-editor .logo-editor-actions button{padding:10px 12px}.logo-editor .logo-editor-actions [data-save]{min-width:98px}}
 @media(max-height:700px){.logo-editor canvas{max-width:210px}.logo-preview-stage{padding:12px}.logo-editor{padding:16px}.logo-editor p{margin-bottom:10px}.logo-editor fieldset{margin-bottom:12px}.logo-zoom{margin:4px 0 8px}}

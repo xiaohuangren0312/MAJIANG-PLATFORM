@@ -167,3 +167,22 @@ img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0
 @media(max-width:480px){
  .filters label:has(input[type=date]){grid-column:1/-1}
 }
+
+/* One-row search, with advanced criteria kept out of the results area. */
+.search-toolbar{position:relative;display:flex;align-items:center;gap:4px;margin:14px 0 18px;padding:4px;border:1px solid #d6cfc4;border-radius:10px;background:#fffdf8;min-width:0}
+.search-toolbar:focus-within{border-color:#9b7b55;box-shadow:0 0 0 2px #9b7b5515}
+.search-toolbar-input{display:flex;align-items:center;flex:1;min-width:0}
+.search-toolbar-input input{width:100%;min-width:0;border:0;background:transparent;font-size:16px;padding:8px 2px;outline:none;box-shadow:none}
+.search-toolbar button,.search-toolbar summary{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:6px;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer;margin:0;padding:0 12px}
+.search-toolbar .search-submit{background:transparent;color:#827360;padding:0;width:36px;flex:0 0 36px}
+.search-tool-button{background:transparent;color:#766653}
+.search-toolbar summary{list-style:none;background:#efe9dd;color:#584630}
+.search-toolbar summary::-webkit-details-marker{display:none}
+.search-filter-panel{position:absolute;right:0;top:calc(100% + 8px);z-index:30;width:340px;max-width:100%;padding:16px;background:#fffdf8;border:1px solid #d6cfc4;border-radius:10px;box-shadow:0 8px 25px #30291d20;display:grid;gap:14px;max-height:65vh;overflow:auto}
+.search-filter-panel label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#766653;min-width:0}
+.search-filter-panel input,.search-filter-panel select{width:100%;min-width:0;min-height:44px;font-size:16px;box-sizing:border-box}
+.search-filter-panel .checkbox{flex-direction:row;align-items:center;min-height:36px}
+.search-filter-panel input[type=checkbox]{width:18px;min-height:18px;height:18px;margin:0 4px 0 0}
+.search-filter-panel input[type=date]{appearance:none;-webkit-appearance:none;min-inline-size:0}
+.search-filter-panel .button{width:100%}
+@media(max-width:480px){.search-toolbar{gap:2px}.search-toolbar button,.search-toolbar summary{padding:0 8px;font-size:12px}.search-toolbar .search-submit{width:28px;flex-basis:28px;padding:0}.search-toolbar-input input{font-size:16px}.search-filter-panel{width:100%}}

@@ -42,7 +42,7 @@ function render(){
  document.title=(navs[active]||'赛事详情')+' · 欢雀楼赛事';
  if(route==='home')home();else if(route==='schedule')schedule();else if(route==='results')results();else if(route==='teams'||route==='players')board();else if(route==='result')resultDetail();else if(route==='team'||route==='player')profile();else $('content').innerHTML=title('未找到页面','请使用顶部导航浏览赛事。');
  if(tournament.archived){const f=tournament.finalStandings;$('content').insertAdjacentHTML('afterbegin',`<section class="card archive-summary"><h2>比赛已归档 · ${esc(f.stageName)}最终排名</h2><div class="final-standings">${f.rows.map(r=>`<div><span>${r.rank} · ${esc(r.name)}</span><strong>${fmt(r.total)} PT</strong></div>`).join('')}</div></section>`)}
- bindFixtureCards();bindResultCards();
+ compactFilters();bindFixtureCards();bindResultCards();
  window.scrollTo(0,0);
 }
 $('event-select').onchange=e=>location.hash='#'+seasonRoute(route)+'?event='+encodeURIComponent(e.target.value);
@@ -177,7 +177,7 @@ function homeNextMatchDay(){
 // Revalidate cached public data; never overlap refreshes or redraw an open dialog.
 let publicRefreshBusy=false, pendingPublicData=null;
 setInterval(async()=>{
- if(document.hidden||publicRefreshBusy||!data)return;
+ if(document.hidden||publicRefreshBusy||!data||document.activeElement?.closest('.search-toolbar')||document.querySelector('.search-filter-menu[open]'))return;
  publicRefreshBusy=true;
  try{
   const r=await fetch('./data.json',{cache:'no-cache'});
@@ -187,3 +187,32 @@ setInterval(async()=>{
   if(pendingPublicData&&!document.querySelector('dialog[open]')){data=pendingPublicData;pendingPublicData=null;render()}
  }catch(_){}finally{publicRefreshBusy=false}
 },30000);
+
+// Reuse the page's existing filter handlers in one compact search toolbar.
+function compactFilters(){
+ const filters=document.querySelector('.filters'),search=$('search');if(!filters||!search)return;
+ const apply=$('apply'),reset=$('reset'),labels=[...filters.querySelectorAll(':scope > label')].filter(x=>!x.contains(search));
+ const bar=document.createElement('div');bar.className='search-toolbar';
+ const searchBox=document.createElement('div');searchBox.className='search-toolbar-input';
+ search.setAttribute('aria-label','搜索选手或队伍');search.placeholder='搜索选手 / 队伍';
+ const submit=document.createElement('button');submit.type='button';submit.className='search-submit';submit.setAttribute('aria-label','搜索');submit.title='搜索';submit.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg>';
+ submit.onclick=()=>apply.click();search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();apply.click()}};
+ searchBox.append(submit,search);bar.append(searchBox);
+ if(labels.length){
+  const details=document.createElement('details');details.className='search-filter-menu';
+  const summary=document.createElement('summary');summary.textContent='筛选';summary.setAttribute('aria-label','展开筛选条件');
+  const panel=document.createElement('div');panel.className='search-filter-panel';panel.append(...labels);
+  apply.textContent='应用筛选';apply.className='button';panel.append(apply);details.append(summary,panel);bar.append(details);
+ }
+ reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='重置';reset.className='search-tool-button';reset.removeAttribute('style');bar.append(reset);
+ const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='刷新';refresh.onclick=async()=>{
+  if(publicRefreshBusy)return;publicRefreshBusy=true;refresh.disabled=true;refresh.textContent='刷新中';
+  try{const r=await fetch('./data.json',{cache:'no-cache'});if(!r.ok)throw Error();data=await r.json();pendingPublicData=null;render()}
+  catch(_){const message=$('filter-message');if(message)message.textContent='刷新失败，请重试'}
+  finally{publicRefreshBusy=false;refresh.disabled=false;refresh.textContent='刷新'}
+ };bar.append(refresh);
+ filters.replaceWith(bar);
+ const oldToggle=$('toggle-schedule-filters');if(oldToggle)oldToggle.remove();const oldPanel=$('schedule-filter-panel');if(oldPanel)oldPanel.hidden=false;
+}
+document.addEventListener('click',e=>{document.querySelectorAll('.search-filter-menu[open]').forEach(d=>{if(!d.contains(e.target))d.open=false})});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.search-filter-menu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});

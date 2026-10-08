@@ -54,7 +54,8 @@ function bindStages(){document.querySelectorAll('[data-stage]').forEach(b=>b.onc
 function queryFilters(forResults){return `<div class="filters"><label>开始日期<input id="from" type="date" value="${esc(params.get('from')||'')}"></label><label>结束日期<input id="to" type="date" value="${esc(params.get('to')||'')}"></label><label>选手 / 队伍<input id="search" placeholder="搜索名字" value="${esc(params.get('search')||'')}"></label>${forResults?`<label class="checkbox"><input type="checkbox" id="yakuman-only" ${params.get('yakuman')==='yes'?'checked':''}>仅看役满</label><label class="checkbox"><input type="checkbox" id="penalty-only" ${params.get('penalty')==='yes'?'checked':''}>含积分调整</label>`:`<label>赛程状态<select id="state">${opts([{id:'all',name:'全部'},{id:'scheduled',name:'待开始'},{id:'completed',name:'已完赛'}],params.get('state')||'all')}</select></label>`}<button class="button filter-icon-button" id="apply" title="筛选" aria-label="筛选"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg><span class="filter-action-label">筛选</span></button><button class="button filter-icon-button" style="background:#e8eedf;color:var(--green)" id="reset" title="重置" aria-label="重置"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2.5 8M3 4v6h6"/></svg><span class="filter-action-label">重置</span></button></div><p id="filter-message" class="note" role="status"></p>`}
 function bindQuery(forResults){
  $('apply').onclick=()=>{if($('from').value&&$('to').value&&$('from').value>$('to').value){$('filter-message').textContent='开始日期不能晚于结束日期';return}navigate(route,{...(params.get('month')?{month:params.get('month')}:{}),stage:stage(params),from:$('from').value,to:$('to').value,search:$('search').value.trim(),...(forResults?{yakuman:$('yakuman-only').checked?'yes':'',penalty:$('penalty-only').checked?'yes':''}:{state:$('state').value})})};$('reset').onclick=()=>navigate(route);bindStages()}
-function matchesQuery(m,seats){const name=params.get('search')||'';return (stage(params)==='all'||m.stageId===stage(params))&&(!params.get('from')||m.date>=params.get('from'))&&(!params.get('to')||m.date<=params.get('to'))&&(!name||seats.some(s=>(player(s.playerId)?.name||'').includes(name)||(team(s.teamId)?.name||'').includes(name)))}
+const searchWords=value=>String(value||'').trim().split(/\s+/).filter(Boolean);
+function matchesQuery(m,seats){const names=searchWords(params.get('search'));return (stage(params)==='all'||m.stageId===stage(params))&&(!params.get('from')||m.date>=params.get('from'))&&(!params.get('to')||m.date<=params.get('to'))&&names.every(name=>seats.some(s=>(player(s.playerId)?.name||'').toLowerCase().includes(name.toLowerCase())||(team(s.teamId)?.name||'').toLowerCase().includes(name.toLowerCase())))}
 function results(){
  const filtered=sortedResults().filter(m=>matchesQuery(m,m.seats)&&(params.get('yakuman')!=='yes'||m.yakuman.length)&&(params.get('penalty')!=='yes'||m.penalties.length));
  const months=[...new Set(filtered.map(m=>m.date.slice(0,7)))].sort(),chosen=params.get('month'),month=chosen==='all'?'all':months.includes(chosen)?chosen:months.at(-1)||'',index=months.indexOf(month),rows=filtered.filter(m=>month==='all'||m.date.startsWith(month));
@@ -99,7 +100,7 @@ function board(){const kind=route==='teams'?'team':'player';if(kind==='team'&&to
  const qualification=qualificationMap(tournament,kind,selected);
  const qualificationBadge=r=>qualification?.rows[r.id]?.pending?'<small class="badge" style="display:block;width:max-content;margin-top:4px">待出场</small>':'';
  const qualificationBoundary=(r,i)=>qualification&&metric==='competitive'&&sort==='total'&&!search&&!params.get('team')&&min<=1&&i>0&&qualification.rows[rows[i-1].id]?.rank<=qualification.count&&qualification.rows[r.id]?.rank>qualification.count?'<tr class="qualification-divider"><td colspan="12" style="border-top:2px solid #a58650;color:#85642c;font-weight:bold">晋级线 · 同分压线一并计入</td></tr>':'';
- const rows=stats.filter(r=>r.name.includes(search)&&(!params.get('team')||(player(r.id)?.bondStages?.[selected]||player(r.id)?.teamId)===params.get('team')));
+ const rows=stats.filter(r=>searchWords(search).every(word=>r.name.toLowerCase().includes(word.toLowerCase()))&&(!params.get('team')||(player(r.id)?.bondStages?.[selected]||player(r.id)?.teamId)===params.get('team')));
  $('content').innerHTML=title(kind==='team'?(teamContext.live?(teamContext.finished?'最终排名':'实时排行'):metric==='raw'?'队伍累计得分':'阶段实时排行'):(playerLive?(tournament.archived||tournament.historical?'个人最终排名':'个人实时排行'):'阶段个人榜'),kind==='team'?(metric==='competitive'?`${stageName(selected)}`: '未经阶段折算的净得分累计，仅作统计。'):`${stageName(selected)} · 阶段竞技分`)+stages()+`<div class="filters">${kind==='player'?`<label>排名指标<select id="sort">${opts([{id:'total',name:'总积分'},{id:'best',name:'最高终局点数'},{id:'avgRank',name:'平均顺位'},{id:'topRate',name:'头名率'},{id:'topTwo',name:'连对率'},{id:'avoidLast',name:'避四率'}],sort)}</select></label><label>至少出场<input id="min" type="number" min="0" step="1" value="${Number.isFinite(min)?min:1}"></label>${tournament.type==='team'?`<label>当前所属队伍<select id="team">${opts([{id:'',name:'全部队伍'},...tournament.teams],params.get('team')||'')}</select></label>`:''}`:''}<label>名称搜索<input id="search" placeholder="选手或队伍名" value="${esc(search)}"></label><button class="button filter-icon-button" id="apply" title="筛选" aria-label="筛选"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg><span class="filter-action-label">筛选</span></button><button class="button filter-icon-button" style="background:#e8eedf;color:var(--green)" id="reset" title="重置" aria-label="重置"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2.5 8M3 4v6h6"/></svg><span class="filter-action-label">重置</span></button></div><p class="note">${qualification?`晋级线：前 ${qualification.count} 名（同分并列）`:''}</p><p class="note" id="filter-message" role="status"></p>`;
  if(metric==='competitive'&&selected==='all')$('content').insertAdjacentHTML('beforeend',empty('请选择一个阶段查看竞技分；全赛事请使用原始累计。'));
  else if(!rows.length)$('content').insertAdjacentHTML('beforeend',empty('暂无符合条件的排名数据。'));
@@ -194,22 +195,31 @@ function compactFilters(){
  const apply=$('apply'),reset=$('reset'),labels=[...filters.querySelectorAll(':scope > label')].filter(x=>!x.contains(search));
  const bar=document.createElement('div');bar.className='search-toolbar';
  const searchBox=document.createElement('div');searchBox.className='search-toolbar-input';
- search.setAttribute('aria-label','搜索选手或队伍');search.placeholder='搜索选手 / 队伍';
+ search.type='hidden';
+ const entry=document.createElement('input');entry.type='search';entry.setAttribute('aria-label','添加搜索关键词');entry.placeholder=params.get('search')?'继续搜索选手 / 队伍':'搜索选手 / 队伍';
+ const chips=document.createElement('div');chips.className='search-chips';
+ function chip(label,remove){const item=document.createElement('span');item.className='search-chip';const text=document.createElement('span');text.textContent=label;const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','移除 '+label);close.onclick=remove;item.append(text,close);chips.append(item)}
+ const words=searchWords(params.get('search'));
+ words.forEach((word,i)=>chip(word,()=>{const q=Object.fromEntries(params),remaining=words.filter((_,n)=>n!==i);if(remaining.length)q.search=remaining.join(' ');else delete q.search;navigate(route,q)}));
+ const fields={from:'开始',to:'结束',state:'状态',team:'队伍',min:'至少出场',sort:'指标',yakuman:'仅看役满',penalty:'含积分调整',month:'月份',stage:'阶段'};
+ Object.entries(fields).forEach(([key,label])=>{const value=params.get(key);if(!value||value==='all'||value==='live'||key==='min'&&(route==='teams'||value==='0')||key==='sort'&&value==='total')return;const control=$(key);const text=control?.tagName==='SELECT'?control.selectedOptions[0]?.textContent:key==='stage'?stageName(value):value;chip(key==='yakuman'||key==='penalty'?label:label+'：'+text,()=>{const q=Object.fromEntries(params);delete q[key];navigate(route,q)})});
+ const existingApply=apply.onclick;
+ apply.onclick=()=>{search.value=[...new Set([...words,...searchWords(entry.value)])].join(' ');existingApply()};
  const submit=document.createElement('button');submit.type='button';submit.className='search-submit';submit.setAttribute('aria-label','搜索');submit.title='搜索';submit.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg>';
- submit.onclick=()=>apply.click();search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();apply.click()}};
- searchBox.append(submit,search);bar.append(searchBox);
+ submit.onclick=()=>apply.click();entry.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();apply.click()}};
+ searchBox.append(submit,chips,entry,search);bar.append(searchBox);
  if(labels.length){
   const details=document.createElement('details');details.className='search-filter-menu';
-  const summary=document.createElement('summary');summary.textContent='筛选';summary.setAttribute('aria-label','展开筛选条件');
+  const summary=document.createElement('summary');summary.textContent='+ 添加筛选条件';summary.setAttribute('aria-label','展开筛选条件');
   const panel=document.createElement('div');panel.className='search-filter-panel';panel.append(...labels);
   apply.textContent='应用筛选';apply.className='button';panel.append(apply);details.append(summary,panel);bar.append(details);
  }
- reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='重置';reset.className='search-tool-button';reset.removeAttribute('style');bar.append(reset);
- const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='刷新';refresh.onclick=async()=>{
-  if(publicRefreshBusy)return;publicRefreshBusy=true;refresh.disabled=true;refresh.textContent='刷新中';
+ reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='↺';reset.title='重置全部条件';reset.setAttribute('aria-label','重置全部条件');reset.className='search-tool-button';reset.removeAttribute('style');bar.append(reset);
+ const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='⟳';refresh.title='刷新数据';refresh.setAttribute('aria-label','刷新数据');refresh.onclick=async()=>{
+  if(publicRefreshBusy)return;publicRefreshBusy=true;refresh.disabled=true;refresh.textContent='…';
   try{const r=await fetch('./data.json',{cache:'no-cache'});if(!r.ok)throw Error();data=await r.json();pendingPublicData=null;render()}
   catch(_){const message=$('filter-message');if(message)message.textContent='刷新失败，请重试'}
-  finally{publicRefreshBusy=false;refresh.disabled=false;refresh.textContent='刷新'}
+  finally{publicRefreshBusy=false;refresh.disabled=false;refresh.textContent='⟳'}
  };bar.append(refresh);
  filters.replaceWith(bar);
  const oldToggle=$('toggle-schedule-filters');if(oldToggle)oldToggle.remove();const oldPanel=$('schedule-filter-panel');if(oldPanel)oldPanel.hidden=false;

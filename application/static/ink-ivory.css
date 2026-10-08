@@ -188,3 +188,16 @@ img.team-mark{object-fit:contain;background:transparent;border:0;border-radius:0
 @media(max-width:480px){.search-toolbar{gap:2px}.search-toolbar button,.search-toolbar summary{padding:0 8px;font-size:12px}.search-toolbar .search-submit{width:28px;flex-basis:28px;padding:0}.search-toolbar-input input{font-size:16px}.search-filter-panel{width:100%}}
 
 img.team-mark{object-fit:contain;background:transparent;border-radius:0;aspect-ratio:1;height:auto}
+
+/* Applied criteria remain visible as removable tokens inside the search bar. */
+.search-toolbar{gap:6px;padding:5px 8px;border-radius:10px}
+.search-toolbar-input{gap:6px;flex-wrap:wrap}
+.search-toolbar-input input[type=search]{flex:1 1 150px;width:150px}
+.search-chips{display:contents}
+.search-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:0 0 0 9px;min-height:32px;background:#f5f1e9;border:1px solid #ded5c5;border-radius:6px;font-size:12px;color:#66563f}
+.search-chip>span{overflow-wrap:anywhere;min-width:0}
+.search-toolbar .search-chip button{min-height:32px;width:30px;padding:0;background:transparent;color:#958774;flex-shrink:0;font-size:17px}
+.search-toolbar summary{background:transparent;color:#796143;font-size:12px;padding:0 8px}
+.search-toolbar .search-tool-button{width:34px;padding:0;flex-shrink:0;font-size:20px;color:#938574}
+.search-toolbar .search-submit{width:24px;flex-basis:24px}
+@media(max-width:640px){.search-toolbar{flex-wrap:nowrap;gap:2px}.search-toolbar-input{flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.search-chip{flex-shrink:0}.search-toolbar-input input[type=search]{flex:1 0 110px}.search-filter-menu{margin-left:auto}.search-toolbar summary{min-height:36px;font-size:0;padding:0 6px}.search-toolbar summary::after{content:"+ 筛选";font-size:12px}.search-toolbar .search-tool-button{min-height:36px}}

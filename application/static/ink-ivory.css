@@ -201,3 +201,126 @@ img.team-mark{object-fit:contain;background:transparent;border-radius:0;aspect-r
 .search-toolbar .search-tool-button{width:34px;padding:0;flex-shrink:0;font-size:20px;color:#938574}
 .search-toolbar .search-submit{width:24px;flex-basis:24px}
 @media(max-width:640px){.search-toolbar{flex-wrap:nowrap;gap:2px}.search-toolbar-input{flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.search-chip{flex-shrink:0}.search-toolbar-input input[type=search]{flex:1 0 110px}.search-filter-menu{margin-left:auto}.search-toolbar summary{min-height:36px;font-size:0;padding:0 6px}.search-toolbar summary::after{content:"+ 筛选";font-size:12px}.search-toolbar .search-tool-button{min-height:36px}}
+
+
+/* Public browsing: preserve brand artwork, give records the first screen. */
+.search-toolbar .search-tool-button[hidden]{display:none}
+.ranking-wait{padding:11px 14px;margin:10px 0;background:#eee9df;border-radius:8px;color:#62594e;font-size:13px;line-height:1.6}
+.ranking-actions{justify-content:flex-end;margin:8px 0}
+.ranking-actions .button{background:transparent;color:#655747;border:1px solid var(--line);min-height:36px;padding:5px 12px;font-size:12px}
+body[data-public-page=teams] .page-title .eyebrow,body[data-public-page=players] .page-title .eyebrow{display:none}
+@media(max-width:640px){
+ body[data-public-page]:not([data-public-page=home]) .event-banner-inner{min-height:112px;padding:18px}
+ body[data-public-page]:not([data-public-page=home]) .event-banner h2{font-size:24px}
+ body[data-public-page] .context-bar{padding:8px 0;gap:8px}
+ body[data-public-page] .context-bar select{min-height:40px;padding:7px 8px}
+ body[data-public-page] #context-info{display:none}
+ body[data-public-page] .page-title{margin:8px 0;padding:0;border:0}
+ body[data-public-page] .page-title h1{font-size:22px;margin:4px 0}
+ body[data-public-page] .page-title p{font-size:12px;margin:4px 0;color:#6b6256}
+ .schedule-heading h1{font-size:22px;margin:8px 0}
+ .schedule-tools{flex-wrap:nowrap;gap:6px;margin-bottom:8px;padding-bottom:4px}
+ .schedule-tools .stage-nav{flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin}
+ .schedule-tools .stage-nav button{font-size:12px;padding:10px 6px}
+ .schedule-tools .schedule-month{flex:none;margin:0}
+ .schedule-tools .schedule-month select{font-size:12px;padding:0 2px;min-height:40px}
+ .schedule-tools .schedule-month button{padding:0 5px}
+ .search-toolbar{margin:8px 0 12px}
+ .refined-schedule h2{font-size:21px;margin:16px 0 8px}
+ .refined-schedule .schedule-row{padding:13px 12px;gap:6px;grid-template-columns:1fr}
+ .refined-schedule h3{margin:0 0 10px;font-size:12px}
+ .refined-schedule .schedule-lineup{gap:8px 12px}
+ .refined-schedule .schedule-contender{min-height:38px;gap:7px}
+ .refined-schedule .team-mark,.refined-schedule .avatar{width:28px;height:32px}
+ .refined-schedule .schedule-contender strong{font-size:12px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ .schedule-actions:empty{display:none}
+ body[data-public-page=teams] .leader-banner,body[data-public-page=players] .leader-banner{display:none}
+ .ranking-table table{width:100%;min-width:0}
+ .ranking-table th,.ranking-table td{padding:12px 8px;font-size:12px}
+ .ranking-table [data-column]{display:none}
+ .ranking-table [data-column="0"],.ranking-table [data-column="1"]{display:table-cell}
+ body[data-public-page=teams] .ranking-table [data-column="6"],body[data-public-page=players] .ranking-table [data-column="6"]{display:table-cell;white-space:nowrap}
+ .ranking-table table .identity{min-width:0;gap:7px}
+ .ranking-table td:first-child{width:64%;position:static}
+ .ranking-table .identity>strong{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+ .ranking-table .team-mark{width:27px;height:30px;flex:0 0 27px}
+ .ranking-table .identity>strong>small{display:none!important}
+ .ranking-table .points-large{font-size:17px}
+ .ranking-table .rank{flex:0 0 18px;font-size:15px}
+ .ranking-actions{margin:4px 0 8px}
+}
+
+.ranking-view-tools{display:flex;gap:8px;align-items:center;margin-top:8px}
+.ranking-view-tools button{background:transparent;color:#625747;border:1px solid var(--line);border-radius:6px;padding:6px 10px;min-height:36px;font-size:12px;cursor:pointer}
+.ranking-detail-toggle{display:none}
+@media(max-width:640px){
+ .ranking-detail-toggle{display:inline-flex;align-items:center}
+ .ranking-expanded [data-column]{display:table-cell}
+ .ranking-expanded table{min-width:950px}
+ .ranking-expanded td:first-child{width:auto}
+ .ranking-expanded table .identity{min-width:150px}
+ body[data-public-page=teams] .page-title,body[data-public-page=players] .page-title{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 8px}
+ .ranking-view-tools{grid-column:2;grid-row:1/3;margin:0;gap:5px}
+}
+
+.fixture-view-toggle{display:block;border:0;background:transparent;color:#77654d;font-size:11px;min-height:32px;padding:4px 0;cursor:pointer}
+@media(max-width:760px){.refined-schedule .schedule-time{display:flex;align-items:center;justify-content:space-between}.fixture-view-toggle{padding:4px 8px}.home-fixture-head .fixture-view-toggle{margin-left:auto}}
+
+/* Match the approved ink-header preview with one compact fixture heading. */
+.ranking-controls{display:flex;align-items:center;gap:8px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.ranking-controls .stage-nav{flex:1;min-width:0;margin:0;border:0;overflow:auto;white-space:nowrap}
+.ranking-controls .ranking-view-tools{margin:0;flex-shrink:0}
+.schedule-preview>.card{background:transparent;border:0;box-shadow:none;overflow:visible}
+.schedule-preview .schedule-row{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fffdf8;display:block;padding:12px}
+.fixture-heading{display:flex;align-items:center;gap:9px;margin-bottom:8px;min-width:0}
+.fixture-heading .schedule-time{flex-shrink:0}
+.fixture-heading h3{flex:1;margin:0;font-weight:400;line-height:1.5;color:#756b5b}
+.fixture-heading .schedule-result-link{border:0;padding:4px 0;flex:none;font-size:11px;white-space:nowrap;color:#78664b}
+.schedule-preview .fixture-view-toggle{display:none}
+.schedule-preview .schedule-seat-order{margin:0 0 5px}
+.schedule-preview .schedule-actions:not(:empty){margin-top:8px}
+.fixture-viewbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 8px;color:#756e61;font-size:11px}
+.fixture-switch{display:flex;padding:3px;background:#eee9df;border-radius:6px;gap:3px}
+.fixture-switch button{border:0;background:transparent;color:#756b5b;font-size:11px;padding:5px 9px;border-radius:4px;cursor:pointer}
+.fixture-switch button[aria-pressed=true]{background:#fffdf8;color:#332f29;box-shadow:0 1px 3px #40342112}
+@media(max-width:640px){
+ body[data-public-page] .site-header{min-height:58px;padding:6px 18px;box-sizing:border-box}
+ body[data-public-page] .brand img{max-height:42px;width:auto;object-fit:contain}
+ body[data-public-page] .context-bar{margin:0;padding:6px 18px;background:#eee9df;border-bottom:1px solid var(--line);min-height:38px}
+ body[data-public-page] .context-bar label{font-size:0;gap:0}
+ body[data-public-page] .context-bar select{border:0;background:transparent;font-size:14px;font-weight:600;min-height:30px;height:30px;padding:3px 0}
+ body[data-public-page]:not([data-public-page=home]) .event-banner-inner{min-height:120px}
+ body[data-public-page] main{margin-top:0}
+ body[data-public-page] .schedule-heading h1,body[data-public-page] .page-title h1{font-size:22px;margin:10px 0 8px}
+ body[data-public-page=teams] .page-title,body[data-public-page=players] .page-title{display:block;margin:0}
+ body[data-public-page=teams] .page-title>p,body[data-public-page=players] .page-title>p{display:none}
+ .ranking-controls .stage-nav button{padding:8px 6px;font-size:12px}
+ .ranking-view-tools button{border:0;padding:5px;min-height:32px;font-size:11px}
+ .search-toolbar{padding:3px 7px;min-height:43px;box-sizing:border-box;margin:0 0 12px}
+ .search-toolbar-input input[type=search]{font-size:13px;min-height:32px;padding:4px 0}
+ .search-toolbar .search-submit{min-height:32px}
+ .search-toolbar summary,.search-toolbar .search-tool-button{min-height:32px}
+ .refined-schedule h2{margin:12px 0 8px}
+ .schedule-preview .schedule-row{padding:10px 12px}
+ .schedule-preview .schedule-time{display:block;font-size:20px}
+ .schedule-preview .schedule-main{display:block}
+ .schedule-preview .schedule-main h3{margin:0}
+ .schedule-preview .schedule-lineup{gap:8px 10px}
+ .schedule-preview .schedule-contender{min-height:35px}
+ .schedule-preview .schedule-contender strong{font-size:13px;font-weight:500}
+ .schedule-preview .fixture-heading h3{font-size:11px}
+ .schedule-preview .fixture-heading .badge{font-size:10px;padding:2px 4px}
+ .ranking-wait{font-size:12px;margin:8px 0 10px;padding:10px 12px}
+ .ranking-table td,.ranking-table th{padding:9px 8px}
+ .ranking-table .identity>strong{font-weight:500}
+ .ranking-table td{height:52px}
+}
+
+.ranking-table .compact-rank{display:none}
+@media(max-width:640px){
+ .ranking-table:not(.ranking-expanded) .compact-rank{display:table-cell;width:34px;position:static;background:transparent;color:#807666;text-align:center;border-right:0}
+ .ranking-table:not(.ranking-expanded) .rank{display:none}
+ .ranking-table:not(.ranking-expanded) th[data-compact-label]{font-size:0}
+ .ranking-table:not(.ranking-expanded) th[data-compact-label]:after{content:attr(data-compact-label);font-size:12px}
+ .ranking-table:not(.ranking-expanded) td[data-column="0"]{width:auto}
+}

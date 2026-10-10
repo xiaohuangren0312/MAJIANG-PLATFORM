@@ -42,7 +42,7 @@ function render(){
  document.title=(navs[active]||'赛事详情')+' · 欢雀楼赛事';
  if(route==='home')home();else if(route==='schedule')schedule();else if(route==='results')results();else if(route==='teams'||route==='players')board();else if(route==='result')resultDetail();else if(route==='team'||route==='player')profile();else $('content').innerHTML=title('未找到页面','请使用顶部导航浏览赛事。');
  if(tournament.archived){const f=tournament.finalStandings;$('content').insertAdjacentHTML('afterbegin',`<section class="card archive-summary"><h2>比赛已归档 · ${esc(f.stageName)}最终排名</h2><div class="final-standings">${f.rows.map(r=>`<div><span>${r.rank} · ${esc(r.name)}</span><strong>${fmt(r.total)} PT</strong></div>`).join('')}</div></section>`)}
- compactFilters();bindFixtureCards();bindResultCards();
+ compactFilters();refinePublicLayout();bindFixtureCards();alignSchedulePreview();bindResultCards();
  window.scrollTo(0,0);
 }
 $('event-select').onchange=e=>location.hash='#'+seasonRoute(route)+'?event='+encodeURIComponent(e.target.value);
@@ -75,7 +75,8 @@ function bindFixtureCards(){
  if(tournament.type!=='team')return;
  document.querySelectorAll('[data-fixture-id]').forEach(card=>{const m=tournament.schedule.find(x=>x.id===card.dataset.fixtureId);if(!m)return;
  card.tabIndex=0;card.setAttribute('aria-label',`${m.date} ${m.time} ${displayTable(m.table)}桌，按回车切换队伍或选手`);
- const toggle=()=>{const key=tournament.id+':'+m.id;fixtureViews.set(key,fixtureView(m,card.classList.contains('home-fixture'))==='player'?'team':'player');card.querySelector('.schedule-seat-order')?.remove();card.querySelector('.schedule-lineup').outerHTML=scheduleLineup(m,card.classList.contains('home-fixture'));card.dataset.view=fixtureViews.get(key)};
+ const toggle=()=>{const key=tournament.id+':'+m.id;fixtureViews.set(key,fixtureView(m,card.classList.contains('home-fixture'))==='player'?'team':'player');card.querySelector('.schedule-seat-order')?.remove();card.querySelector('.schedule-lineup').outerHTML=scheduleLineup(m,card.classList.contains('home-fixture'));card.dataset.view=fixtureViews.get(key);const button=card.querySelector('.fixture-view-toggle');if(button)button.textContent=card.dataset.view==='player'?'查看队伍':'查看选手';document.querySelectorAll('.fixture-switch button').forEach(b=>b.setAttribute('aria-pressed','false'))};
+ const viewButton=document.createElement('button');viewButton.type='button';viewButton.className='fixture-view-toggle';viewButton.textContent=fixtureView(m,card.classList.contains('home-fixture'))==='player'?'查看队伍':'查看选手';viewButton.onclick=()=>toggle();(card.querySelector('.schedule-time')||card.querySelector('.home-fixture-head')).append(viewButton);
  card.onclick=e=>{if(e.target.closest('a,button,input,select,textarea')||window.getSelection()?.toString())return;toggle()};
  card.onkeydown=e=>{if(e.target===card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle()}};
  });
@@ -214,7 +215,7 @@ function compactFilters(){
   const panel=document.createElement('div');panel.className='search-filter-panel';panel.append(...labels);
   apply.textContent='应用筛选';apply.className='button';panel.append(apply);details.append(summary,panel);bar.append(details);
  }
- reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='↺';reset.title='重置全部条件';reset.setAttribute('aria-label','重置全部条件');reset.className='search-tool-button';reset.removeAttribute('style');bar.append(reset);
+ reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='×';reset.title='重置全部条件';reset.setAttribute('aria-label','重置全部条件');reset.className='search-tool-button';reset.removeAttribute('style');reset.hidden=!chips.childElementCount;bar.append(reset);
  const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='⟳';refresh.title='刷新数据';refresh.setAttribute('aria-label','刷新数据');refresh.onclick=async()=>{
   if(publicRefreshBusy)return;publicRefreshBusy=true;refresh.disabled=true;refresh.textContent='…';
   try{const r=await fetch('./data.json',{cache:'no-cache'});if(!r.ok)throw Error();data=await r.json();pendingPublicData=null;render()}
@@ -226,3 +227,69 @@ function compactFilters(){
 }
 document.addEventListener('click',e=>{document.querySelectorAll('.search-filter-menu[open]').forEach(d=>{if(!d.contains(e.target))d.open=false})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.search-filter-menu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
+
+
+// Keep the event artwork and real logo while prioritizing the public records.
+function refinePublicLayout(){
+ document.body.dataset.publicPage=route;
+ if(!['teams','players'].includes(route))return;
+ const content=$('content');
+ const heading=content.querySelector('.page-title h1');if(heading)heading.textContent=route==='teams'?'队伍榜':'个人榜';
+ const table=content.querySelector('.table-scroll');
+ if(table){
+  const tools=document.createElement('div');tools.className='ranking-view-tools';
+  const detail=document.createElement('button');detail.type='button';detail.className='ranking-detail-toggle';detail.textContent='详细数据';detail.setAttribute('aria-expanded','false');
+  detail.onclick=()=>{const expanded=table.classList.toggle('ranking-expanded');detail.setAttribute('aria-expanded',String(expanded));detail.textContent=expanded?'精简数据':'详细数据'};
+  tools.append(detail);const stageNav=content.querySelector('.stage-nav');const controls=document.createElement('div');controls.className='ranking-controls';if(stageNav){stageNav.before(controls);controls.append(stageNav,tools)}
+  const trend=$('all-team-trend');if(trend)tools.prepend(trend);
+  table.classList.add('ranking-table');
+  table.querySelectorAll('tr').forEach(row=>[...row.children].forEach((cell,index)=>{
+   if(cell.colSpan>1)return;
+   cell.dataset.column=String(index);
+  }));
+  table.querySelectorAll('tr').forEach(row=>{
+   if(row.children.length<2)return;
+   const first=row.firstElementChild,rank=first.querySelector('.rank');
+   const cell=document.createElement(first.tagName==='TH'?'th':'td');cell.className='compact-rank';cell.textContent=rank?.textContent||'名次';row.prepend(cell);
+   if(first.tagName==='TH')first.dataset.compactLabel=route==='teams'?'队伍':'选手';
+  });
+ }
+ const selected=route==='teams'?teamBoardContext(tournament,params.get('stage')||'live',params.get('metric')).stage:(!params.get('stage')||['all','live'].includes(params.get('stage'))?tournament.currentStage:params.get('stage'));
+ const records=getStats(route==='teams'?'team':'player',selected,'competitive');
+ if(!records.some(r=>r.games>0)){
+  content.querySelectorAll('.leader-banner,.player-top').forEach(el=>el.remove());
+  const note=document.createElement('p');note.className='ranking-wait';note.textContent='等待首场成绩 · 排名将在赛果发布后更新';
+  (table||content.querySelector('.empty'))?.before(note);
+  table?.querySelectorAll('.rank,tbody .compact-rank').forEach(el=>el.textContent='—');
+ }
+ const head=content.querySelector('.section-head:has(#all-team-trend)');
+ if(head)head.remove();
+ content.querySelectorAll('.section-head').forEach(el=>{if(el.textContent.trim()==='队伍积分')el.remove()});
+ if($('all-team-trend'))$('all-team-trend').textContent='积分走势';
+}
+
+
+function alignSchedulePreview(){
+ if(route!=='schedule')return;
+ const groups=document.querySelectorAll('.refined-schedule');
+ groups.forEach(group=>{
+  group.classList.add('schedule-preview');
+  group.querySelectorAll('.schedule-row').forEach(card=>{
+   const head=document.createElement('div');head.className='fixture-heading';
+   head.append(card.querySelector('.schedule-time'),card.querySelector('h3'));
+   const result=card.querySelector('.schedule-result-link');if(result)head.append(result);
+   card.prepend(head);
+  });
+ });
+ if(tournament.type!=='team'||!groups.length)return;
+ const bar=document.createElement('div');bar.className='fixture-viewbar';
+ const caption=document.createElement('span');caption.textContent='已定座次：东 · 南 · 西 · 北';
+ const switcher=document.createElement('div');switcher.className='fixture-switch';switcher.setAttribute('aria-label','赛程展示方式');
+ ['team','player'].forEach(mode=>{const button=document.createElement('button');button.type='button';button.textContent=mode==='team'?'队伍':'选手';button.setAttribute('aria-pressed',String(mode==='team'));button.onclick=()=>{
+  document.querySelectorAll('.schedule-row[data-fixture-id]').forEach(card=>{const m=tournament.schedule.find(x=>x.id===card.dataset.fixtureId);if(m&&fixtureView(m)!==mode)card.querySelector('.fixture-view-toggle')?.click()});
+  switcher.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ };switcher.append(button)});
+ bar.append(caption,switcher);groups[0].querySelector('h2').after(bar);
+ const modes=[...groups].flatMap(g=>[...g.querySelectorAll('[data-fixture-id]')]).map(c=>fixtureView(tournament.schedule.find(m=>m.id===c.dataset.fixtureId)));
+ switcher.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(modes.every(m=>m===(i?'player':'team')))));
+}

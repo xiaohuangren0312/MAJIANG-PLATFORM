@@ -21,17 +21,20 @@ function resultCard(m){
  const winds='东南西北',known=m.seats.length===4&&new Set(m.seats.map(s=>s.wind)).size===4&&m.seats.every(s=>winds.includes(s.wind||'?')),seats=[...m.seats];if(known)seats.sort((a,b)=>winds.indexOf(a.wind)-winds.indexOf(b.wind));
  const raw=resultScoreViews.get(tournament.id+':'+m.id)===true;
  const icon=k=>k==='videos'?'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3Z"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6Z M14 3v5h5 M9 12h7 M9 16h7"/></svg>';
- return `<article class="card match-card" data-result-card="${esc(m.id)}"><div class="match-meta"><span>${esc(m.date)} · ${esc(stageName(m.stageId))}${m.table?` · ${esc(displayTable(m.table))}桌`:''}</span><span class="badge">已完赛</span></div><div class="result-score-heading">${known?'':'<small>座次未知</small>'}<span>${raw?'终局点数':'得点 PT'}</span></div>${seats.map(s=>`<div class="scoreline"><span class="identity"><span class="team-dot" style="--team:${esc(team(s.teamId)?.color||'#698667')}"></span><span class="result-person"><span class="result-player">${esc(player(s.playerId)?.name||'选手未记录')} ${s.bond?'· 羁绊':''}</span>${tournament.type==='team'?`<small class="result-team">${esc(team(s.teamId)?.name||'队伍待核对')}</small>`:''}</span><small>${s.rank==null?'顺位未记录':(s.tied?'并列':'')+s.rank+'位'}</small></span><button type="button" class="result-score-toggle num ${cl(raw?s.score:s.points)}" data-result-score="${esc(m.id)}" aria-label="${raw?'终局点数，点击切换得点':'得点，点击切换终局点数'}" title="点击切换得点 / 终局点数">${raw?(s.score==null?'未记录':s.score.toLocaleString()):fmt(s.points)}</button>${s.wind?`<span class="seat-wind result-seat">${esc(s.wind)}</span>`:''}</div>`).join('')}<div class="result-card-tags">${m.yakuman.length?'<span class="badge gold">役满 '+m.yakuman.length+'</span>':''}${m.penalties.length?'<span class="badge red">含积分调整</span>':''}</div><footer class="result-card-footer"><div class="result-media">${[['videos','视频'],['records','牌谱']].flatMap(([k,label])=>(m.resources?.[k]||[]).map(x=>`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" aria-label="${label}${x.title?'：'+esc(x.title):''}" title="${label}${x.title?'：'+esc(x.title):''}">${icon(k)}</a>`)).join('')}</div><a class="result-detail-link" href="${href('result',{id:m.id})}">查看详情</a></footer></article>`;
+ return `<article class="card match-card" data-result-card="${esc(m.id)}"><div class="match-meta"><span>${esc(m.date)} · ${esc(stageName(m.stageId))}${m.table?` · ${esc(displayTable(m.table))}桌`:''}</span><span class="badge">已完赛</span></div><div class="result-score-heading">${known?'':'<small>座次未知</small>'}<div class="result-mode" aria-label="得分展示方式"><button type="button" data-score-mode="points" aria-pressed="${!raw}">积分 PT</button><button type="button" data-score-mode="raw" aria-pressed="${raw}">终局点数</button></div></div>${seats.map(s=>`<div class="scoreline"><span class="identity"><span class="team-dot" style="--team:${esc(team(s.teamId)?.color||'#698667')}"></span><span class="result-person"><span class="result-player">${esc(player(s.playerId)?.name||'选手未记录')} ${s.bond?'· 羁绊':''}</span>${tournament.type==='team'?`<small class="result-team">${esc(team(s.teamId)?.name||'队伍待核对')}</small>`:''}</span><small>${s.rank==null?'顺位未记录':(s.tied?'并列':'')+s.rank+'位'}</small></span><button type="button" class="result-score-toggle num ${cl(raw?s.score:s.points)}" data-result-score="${esc(m.id)}" aria-label="${raw?'终局点数，点击切换得点':'得点，点击切换终局点数'}" title="点击切换得点 / 终局点数">${raw?(s.score==null?'未记录':s.score.toLocaleString()):fmt(s.points)}</button>${s.wind?`<span class="seat-wind result-seat">${esc(s.wind)}</span>`:''}</div>`).join('')}<div class="result-card-tags">${m.yakuman.length?'<span class="badge gold">役满 '+m.yakuman.length+'</span>':''}${m.penalties.length?'<span class="badge red">含积分调整</span>':''}</div><footer class="result-card-footer"><div class="result-media">${[['videos','视频'],['records','牌谱']].flatMap(([k,label])=>(m.resources?.[k]||[]).map(x=>`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" aria-label="${label}${x.title?'：'+esc(x.title):''}" title="${label}${x.title?'：'+esc(x.title):''}">${icon(k)}</a>`)).join('')}</div><a class="result-detail-link" href="${href('result',{id:m.id})}">查看详情</a></footer></article>`;
 }
 function bindResultCards(){document.querySelectorAll('[data-result-card]').forEach(card=>{
  card.tabIndex=0;card.setAttribute('aria-label','点击卡片切换得点 PT / 终局点数');
- const toggle=()=>{const m=tournament.results.find(x=>x.id===card.dataset.resultCard);if(!m)return;const key=tournament.id+':'+m.id;resultScoreViews.set(key,!resultScoreViews.get(key));const holder=document.createElement('div');holder.innerHTML=resultCard(m);const next=holder.firstElementChild;card.replaceWith(next);bindResultCards();next.focus({preventScroll:true})};
+ const toggle=(mode)=>{const m=tournament.results.find(x=>x.id===card.dataset.resultCard);if(!m)return;const key=tournament.id+':'+m.id;resultScoreViews.set(key,mode===undefined?!resultScoreViews.get(key):mode);const holder=document.createElement('div');holder.innerHTML=resultCard(m);const next=holder.firstElementChild;card.replaceWith(next);bindResultCards();next.focus({preventScroll:true})};
+ card.querySelectorAll('[data-score-mode]').forEach(button=>button.onclick=e=>{e.stopPropagation();toggle(button.dataset.scoreMode==='raw')});
  card.onclick=e=>{if(e.target.closest('a,input,select,textarea')||window.getSelection()?.toString())return;toggle()};
  card.onkeydown=e=>{if(e.target===card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle()}};
 })}
 
 
-function render(){
+function render(options={}){
+ const savedScroll=options.preserveScroll?{x:window.scrollX,y:window.scrollY}:null;
+ $('content').classList.remove('has-profile');
  const fragment=location.hash.slice(1)||'home',parts=fragment.split('?');route=parts[0];params=new URLSearchParams(parts[1]||'');tournament=data.tournaments.find(t=>t.id===params.get('event'))||latestTournament(data.tournaments);
  if(!tournament){$('content').innerHTML=empty('暂时没有公开赛事');return}
  const banner=$('event-banner');if(banner){banner.hidden=false;const match=tournament.name.match(/^(.*?)(S\d+)$/i);$('event-banner-name').innerHTML=match?`${esc(match[1].trim())} <span>${esc(match[2])}</span>`:esc(tournament.name);$('event-banner-subtitle').textContent=tournament.type==='team'?'HUAN QUE LOU · TEAM LEAGUE':'HUAN QUE LOU · INDIVIDUAL CHAMPIONSHIP'}
@@ -42,8 +45,8 @@ function render(){
  document.title=(navs[active]||'赛事详情')+' · 欢雀楼赛事';
  if(route==='home')home();else if(route==='schedule')schedule();else if(route==='results')results();else if(route==='teams'||route==='players')board();else if(route==='result')resultDetail();else if(route==='team'||route==='player')profile();else $('content').innerHTML=title('未找到页面','请使用顶部导航浏览赛事。');
  if(tournament.archived){const f=tournament.finalStandings;$('content').insertAdjacentHTML('afterbegin',`<section class="card archive-summary"><h2>比赛已归档 · ${esc(f.stageName)}最终排名</h2><div class="final-standings">${f.rows.map(r=>`<div><span>${r.rank} · ${esc(r.name)}</span><strong>${fmt(r.total)} PT</strong></div>`).join('')}</div></section>`)}
- compactFilters();refinePublicLayout();bindFixtureCards();alignSchedulePreview();bindResultCards();
- window.scrollTo(0,0);
+ compactFilters();refinePublicLayout();refineProfile();bindFixtureCards();alignSchedulePreview();bindResultCards();
+ if(savedScroll)window.scrollTo(savedScroll.x,savedScroll.y);else window.scrollTo(0,0);
 }
 $('event-select').onchange=e=>location.hash='#'+seasonRoute(route)+'?event='+encodeURIComponent(e.target.value);
 function home(){if(tournament.historical){historyHome();return}const t=tournament,latest=sortedResults().slice(0,3),kind=t.type==='team'?'team':'player',standings=(kind==='team'?teamBoardContext(t).rows:getStats(kind).filter(r=>r.games>0)).map((r,i,a)=>({...r,rank:a.findIndex(x=>x.total===r.total)+1})),leader=getStats('player').filter(r=>r.games>0)[0];
@@ -59,8 +62,8 @@ function matchesQuery(m,seats){const names=searchWords(params.get('search'));ret
 function results(){
  const filtered=sortedResults().filter(m=>matchesQuery(m,m.seats)&&(params.get('yakuman')!=='yes'||m.yakuman.length)&&(params.get('penalty')!=='yes'||m.penalties.length));
  const months=[...new Set(filtered.map(m=>m.date.slice(0,7)))].sort(),chosen=params.get('month'),month=chosen==='all'?'all':months.includes(chosen)?chosen:months.at(-1)||'',index=months.indexOf(month),rows=filtered.filter(m=>month==='all'||m.date.startsWith(month));
- $('content').innerHTML=title('赛果中心','查看每一场已发布战果，以及牌桌上的高光时刻。')+`<div class="schedule-tools">${stages()}<div class="schedule-month"><button id="result-month-prev" aria-label="上一个有赛果的月份" ${index<=0?'disabled':''}>‹</button><select id="result-month" aria-label="赛果月份" ${!months.length?'disabled':''}>${months.map(x=>`<option value="${x}" ${x===month?'selected':''}>${x.slice(0,4)}年${Number(x.slice(5))}月</option>`).join('')}<option value="all" ${month==='all'?'selected':''}>全部月份</option></select><button id="result-month-next" aria-label="下一个有赛果的月份" ${index<0||index>=months.length-1?'disabled':''}>›</button></div></div>`+queryFilters(true)+`<div class="section-head"><p>共 ${rows.length} 场已发布对局</p></div><div class="match-grid results-grid">${rows.map(resultCard).join('')}</div>`+(!rows.length?empty('没有符合条件的赛果，试试调整筛选。'):'');bindQuery(true);
- const move=month=>navigate('results',{...Object.fromEntries(params),month});$('result-month').onchange=e=>move(e.target.value);$('result-month-prev').onclick=()=>move(months[index-1]);$('result-month-next').onclick=()=>move(months[index+1]);
+ $('content').innerHTML=title('赛果','')+`<div class="schedule-tools">${stages()}<div class="schedule-month"><button id="result-month-prev" aria-label="上一个有赛果的月份" ${index<=0?'disabled':''}>‹</button><select id="result-month" aria-label="赛果月份" ${!months.length?'disabled':''}>${months.map(x=>`<option value="${x}" ${x===month?'selected':''}>${x.slice(0,4)}年${Number(x.slice(5))}月</option>`).join('')}<option value="all" ${month==='all'?'selected':''}>全部月份</option></select><button id="result-month-next" aria-label="下一个有赛果的月份" ${index<0||index>=months.length-1?'disabled':''}>›</button></div></div>`+queryFilters(true)+`<div class="match-grid results-grid">${rows.map(resultCard).join('')}</div>`+(!rows.length?empty('没有符合条件的赛果，试试调整筛选。'):'');bindQuery(true);
+ addFilterFeedback(rows.length,'场已发布对局');const move=month=>navigate('results',{...Object.fromEntries(params),month});$('result-month').onchange=e=>move(e.target.value);$('result-month-prev').onclick=()=>move(months[index-1]);$('result-month-next').onclick=()=>move(months[index+1]);
 }
 
 function scheduleSeats(m){return m.players.map(p=>({...p,playerId:(p.lineupPublished===true||m.lineupPublished===true||!!m.resultId)?p.playerId:null}))}
@@ -89,7 +92,7 @@ function schedule(){
  $('content').innerHTML=`<div class="schedule-heading"><h1>赛程</h1></div><div class="schedule-tools">${stages()}<div class="schedule-month"><button id="month-prev" aria-label="上一个有赛程的月份" ${index<=0?'disabled':''}>‹</button><select id="schedule-month" aria-label="赛程月份">${months.map(x=>`<option value="${x}" ${x===month?'selected':''}>${x.slice(0,4)}年${Number(x.slice(5))}月</option>`).join('')}</select><button id="month-next" aria-label="下一个有赛程的月份" ${index>=months.length-1?'disabled':''}>›</button></div><button class="schedule-filter-toggle filter-icon-button" id="toggle-schedule-filters" aria-expanded="false" title="筛选" aria-label="筛选"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg></button></div><div id="schedule-filter-panel" hidden>${queryFilters(false)}</div>`+Object.entries(groups).map(([date,ms])=>`<section class="schedule-group refined-schedule"><h2>${esc(date.slice(5).replace('-','.'))} <small>周${'日一二三四五六'[new Date(date+'T12:00:00+08:00').getUTCDay()]} · ${ms.length} 场对局</small></h2><div class="card">${ms.map(m=>{
  const seats=scheduleSeats(m),known=m.seatOrderKnown!==false&&seats.length===4&&new Set(seats.map(p=>p.wind)).size===4&&seats.every(p=>'东南西北'.includes(p.wind||'?'));if(known)seats.sort((a,b)=>'东南西北'.indexOf(a.wind)-'东南西北'.indexOf(b.wind));
  return `<div class="schedule-row" data-fixture-id="${esc(m.id)}"><div class="schedule-time">${esc(m.time)}</div><div class="schedule-main"><h3>${esc(stageName(m.stageId))} · ${esc(displayTable(m.table))}桌${m.pairingRound?` · 第 ${m.pairingRound} 轮`:''} <span class="badge">${m.state==='completed'?'已完赛':m.state==='cancelled'?'已取消':m.lineupPublished?'出战已公布':'待开始'}</span></h3>${scheduleLineup(m)}${m.resources?.commentators?.length?`<p class="note">解说：${esc(m.resources.commentators.join('、'))}</p>`:''}</div><div class="schedule-actions">${m.resultId?`<a class="schedule-result-link" href="${href('result',{id:m.resultId})}">查看赛果</a>`:m.state==='completed'?'<small>仅当日合计</small>':matchdayLive(m)}${[['videos','比赛回放'],['records','牌谱']].flatMap(([k,label])=>(m.resources?.[k]||[]).map(r=>`<a class="schedule-resource" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${label}${r.title?' · '+esc(r.title):''}</a>`)).join('')}</div></div>`}).join('')}</div></section>`).join('')+(!rows.length?empty('暂无符合条件的赛程。'):'');
- bindQuery(false);const move=i=>navigate('schedule',{...Object.fromEntries(params),month:months[i]});$('month-prev').onclick=()=>move(index-1);$('month-next').onclick=()=>move(index+1);$('schedule-month').onchange=e=>navigate('schedule',{...Object.fromEntries(params),month:e.target.value});$('toggle-schedule-filters').onclick=()=>{const panel=$('schedule-filter-panel');panel.hidden=!panel.hidden;$('toggle-schedule-filters').setAttribute('aria-expanded',String(!panel.hidden))};if(['from','to','search','state'].some(k=>params.get(k))){$('schedule-filter-panel').hidden=false;$('toggle-schedule-filters').setAttribute('aria-expanded','true')}
+ addFilterFeedback(rows.filter(m=>m.date.startsWith(month)).length,'场对局');bindQuery(false);const move=i=>navigate('schedule',{...Object.fromEntries(params),month:months[i]});$('month-prev').onclick=()=>move(index-1);$('month-next').onclick=()=>move(index+1);$('schedule-month').onchange=e=>navigate('schedule',{...Object.fromEntries(params),month:e.target.value});$('toggle-schedule-filters').onclick=()=>{const panel=$('schedule-filter-panel');panel.hidden=!panel.hidden;$('toggle-schedule-filters').setAttribute('aria-expanded',String(!panel.hidden))};if(['from','to','search','state'].some(k=>params.get(k))){$('schedule-filter-panel').hidden=false;$('toggle-schedule-filters').setAttribute('aria-expanded','true')}
 }
 
 function board(){const kind=route==='teams'?'team':'player';if(kind==='team'&&tournament.type!=='team'){$('content').innerHTML=title('个人赛事','本赛事以个人参赛，请查看个人榜。')+`<a class="button" href="${href('players')}">前往个人榜</a>`;return}
@@ -178,17 +181,7 @@ function homeNextMatchDay(){
 
 // Revalidate cached public data; never overlap refreshes or redraw an open dialog.
 let publicRefreshBusy=false, pendingPublicData=null;
-setInterval(async()=>{
- if(document.hidden||publicRefreshBusy||!data||document.activeElement?.closest('.search-toolbar')||document.querySelector('.search-filter-menu[open]'))return;
- publicRefreshBusy=true;
- try{
-  const r=await fetch('./data.json',{cache:'no-cache'});
-  if(!r.ok)return;
-  const next=await r.json();
-  if(JSON.stringify(data.tournaments)!==JSON.stringify(next.tournaments))pendingPublicData=next;
-  if(pendingPublicData&&!document.querySelector('dialog[open]')){data=pendingPublicData;pendingPublicData=null;render()}
- }catch(_){}finally{publicRefreshBusy=false}
-},30000);
+setInterval(()=>refreshPublicData(false),30000);
 
 // Reuse the page's existing filter handlers in one compact search toolbar.
 function compactFilters(){
@@ -216,12 +209,7 @@ function compactFilters(){
   apply.textContent='应用筛选';apply.className='button';panel.append(apply);details.append(summary,panel);bar.append(details);
  }
  reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='×';reset.title='重置全部条件';reset.setAttribute('aria-label','重置全部条件');reset.className='search-tool-button';reset.removeAttribute('style');reset.hidden=!chips.childElementCount;bar.append(reset);
- const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='⟳';refresh.title='刷新数据';refresh.setAttribute('aria-label','刷新数据');refresh.onclick=async()=>{
-  if(publicRefreshBusy)return;publicRefreshBusy=true;refresh.disabled=true;refresh.textContent='…';
-  try{const r=await fetch('./data.json',{cache:'no-cache'});if(!r.ok)throw Error();data=await r.json();pendingPublicData=null;render()}
-  catch(_){const message=$('filter-message');if(message)message.textContent='刷新失败，请重试'}
-  finally{publicRefreshBusy=false;refresh.disabled=false;refresh.textContent='⟳'}
- };bar.append(refresh);
+ const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='⟳';refresh.title='刷新数据';refresh.setAttribute('aria-label','刷新数据');refresh.onclick=()=>refreshPublicData(true);bar.append(refresh);
  filters.replaceWith(bar);
  const oldToggle=$('toggle-schedule-filters');if(oldToggle)oldToggle.remove();const oldPanel=$('schedule-filter-panel');if(oldPanel)oldPanel.hidden=false;
 }
@@ -292,4 +280,73 @@ function alignSchedulePreview(){
  bar.append(caption,switcher);groups[0].querySelector('h2').after(bar);
  const modes=[...groups].flatMap(g=>[...g.querySelectorAll('[data-fixture-id]')]).map(c=>fixtureView(tournament.schedule.find(m=>m.id===c.dataset.fixtureId)));
  switcher.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(modes.every(m=>m===(i?'player':'team')))));
+}
+
+
+function addFilterFeedback(count,unit){
+ const active=['search','from','to','state','yakuman','penalty','month','stage'].some(k=>params.get(k)&&!['all','live'].includes(params.get(k)));
+ const feedback=document.createElement('div');feedback.className='filter-feedback';feedback.setAttribute('role','status');
+ const text=document.createElement('span');text.textContent=`当前月份 · ${active?'找到':'共'} ${count} ${unit}`;if(params.get('month')==='all')text.textContent=`全部月份 · ${count} ${unit}`;
+ feedback.append(text);
+ const clear=()=>navigate(route);
+ if(active){const button=document.createElement('button');button.type='button';button.textContent='清除条件';button.onclick=clear;feedback.append(button)}
+ const anchor=$('schedule-filter-panel')||document.querySelector('.filters');anchor?.after(feedback);
+ if(!count&&active){const emptyBox=$('content').querySelector('.empty');if(emptyBox){const button=document.createElement('button');button.type='button';button.className='button clear-empty';button.textContent='清除筛选';button.onclick=clear;emptyBox.append(button)}}
+}
+
+function refreshNotice(message,error=false){
+ let notice=$('public-refresh-status');if(!notice){notice=document.createElement('div');notice.id='public-refresh-status';notice.className='public-refresh-status';notice.setAttribute('role','status');document.body.append(notice)}
+ notice.replaceChildren(document.createTextNode(message));notice.classList.toggle('is-error',error);
+ if(error){const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.onclick=()=>refreshPublicData(true);notice.append(retry)}
+ clearTimeout(refreshNotice.timer);if(!error)refreshNotice.timer=setTimeout(()=>notice.remove(),3500);
+}
+async function refreshPublicData(manual=false){
+ if(publicRefreshBusy||!data)return;
+ if(!manual&&(document.hidden||document.activeElement?.closest('.search-toolbar')||document.querySelector('.search-filter-menu[open],dialog[open]')))return;
+ const startedHash=location.hash;
+ publicRefreshBusy=true;
+ const button=document.querySelector('[aria-label="刷新数据"]');if(button){button.disabled=true;button.setAttribute('aria-busy','true')}
+ if(manual)refreshNotice('正在更新，当前内容仍可查看');
+ try{
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);let response;try{response=await fetch('./data.json',{cache:'no-cache',signal:controller.signal})}finally{clearTimeout(timeout)}if(!response.ok)throw Error('refresh');
+  const next=await response.json();if(!Array.isArray(next.tournaments))throw Error('invalid data');
+  const changed=JSON.stringify(data.tournaments)!==JSON.stringify(next.tournaments);
+  if(changed)pendingPublicData=next;
+  const editing=document.querySelector('.search-filter-menu[open],dialog[open]')||document.activeElement?.matches('.search-toolbar input');
+  if(pendingPublicData&&!editing&&location.hash===startedHash){
+   const scroll={x:window.scrollX,y:window.scrollY};const expanded=!!document.querySelector('.ranking-expanded'),tab=document.querySelector('.profile-tabs [aria-selected="true"]')?.dataset.profileTab;
+   data=pendingPublicData;pendingPublicData=null;render({preserveScroll:true});
+   if(expanded)document.querySelector('.ranking-detail-toggle')?.click();
+   if(tab)document.querySelector(`[data-profile-tab="${tab}"]`)?.click();
+   window.scrollTo(scroll.x,scroll.y);
+  }
+  if(manual)refreshNotice(pendingPublicData?'数据已获取，结束当前操作后更新':'已更新 · 刚刚');
+ }catch(_){if(manual)refreshNotice('更新失败，已保留当前内容',true)}
+ finally{publicRefreshBusy=false;if(button){button.disabled=false;button.removeAttribute('aria-busy')}}
+}
+
+function refineProfile(){
+ if(!['team','player'].includes(route))return;
+ const content=$('content'),hero=content.querySelector('.detail-hero'),metrics=content.querySelector('.metric-grid');if(!hero||!metrics)return;
+ content.classList.add('has-profile');
+ const core=document.createElement('div');core.className='profile-core';[...metrics.children].slice(0,3).forEach(el=>core.append(el.cloneNode(true)));hero.after(core);
+ if(route==='team'){
+  const ctx=teamBoardContext(tournament,params.get('stage')||'live'),rows=getStats('team',ctx.stage,'competitive'),record=rows.find(r=>r.id===params.get('id'));
+  if(record){const rank=rows.some(r=>r.games>0)?rows.filter(r=>r.total>record.total).length+1:'—';core.innerHTML=[['阶段排名',rank],['阶段竞技分',fmt(record.total)],['已出场',record.games+' 场']].map(([label,value])=>`<div><span>${label}</span><strong>${value}</strong></div>`).join('')}
+ }
+
+ const bio=hero.querySelector('p');if(bio&&bio.textContent.length>90){bio.classList.add('profile-bio');const button=document.createElement('button');button.type='button';button.className='bio-toggle';button.textContent='展开简介';button.setAttribute('aria-expanded','false');button.onclick=()=>{const open=bio.classList.toggle('expanded');button.textContent=open?'收起简介':'展开简介';button.setAttribute('aria-expanded',String(open))};bio.after(button)}
+ const tabs=document.createElement('div');tabs.className='profile-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','资料内容');
+ const records=document.createElement('section'),stats=document.createElement('section'),members=document.createElement('section');
+ records.id='profile-records';stats.id='profile-stats';members.id='profile-members';
+ const all=[...content.children];let section='';
+ all.forEach(el=>{if(el===metrics){stats.append(el);return}if(el.classList.contains('section-head')){section=el.querySelector('h2')?.textContent==='队伍成员与贡献'?'members':el.querySelector('h2')?.textContent==='最近对局'?'records':'stats'}if(section)(section==='members'?members:section==='records'?records:stats).append(el)});
+ const fixtures=document.createElement('section');fixtures.id='profile-fixtures';
+ if(route==='team'){
+  const matches=tournament.schedule.filter(m=>(stage(params)==='all'||m.stageId===stage(params))&&m.players.some(p=>p.teamId===params.get('id'))).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  fixtures.innerHTML=matches.map(m=>`<div class="card profile-fixture" data-fixture-id="${esc(m.id)}"><div class="schedule-time">${esc(m.date)} · ${esc(m.time)}</div><p class="note">${esc(stageName(m.stageId))} · ${esc(displayTable(m.table))}桌 · ${m.state==='completed'?'已完赛':m.state==='cancelled'?'已取消':'待开始'}</p>${scheduleLineup(m)}</div>`).join('')||empty('尚未公布相关赛程');
+ }
+ const panels=route==='team'?[['members','队员',members],['fixtures','赛程',fixtures],['records','战绩',records],['stats','数据统计',stats]]:[['records','比赛记录',records],['stats','数据统计',stats]];
+ panels.forEach(([key,label,panel],index)=>{panel.setAttribute('role','tabpanel');panel.hidden=index!==0;panel.setAttribute('aria-labelledby','tab-'+key);const b=document.createElement('button');b.id='tab-'+key;b.type='button';b.dataset.profileTab=key;b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-controls',panel.id);b.setAttribute('aria-selected',String(index===0));b.onclick=()=>{panels.forEach(([k,,p])=>p.hidden=k!==key);tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x===b)))};tabs.append(b)});
+ content.append(tabs,...panels.map(x=>x[2]));
 }

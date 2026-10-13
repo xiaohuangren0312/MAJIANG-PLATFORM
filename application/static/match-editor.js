@@ -7,7 +7,7 @@ function matchDetail(){
  organizeMatchEditor(m);
  click('#match-resources-shortcut',()=>openResources(m.id));
  const contestants=m.seats.filter(s=>s.playerId).map(s=>({id:s.playerId,name:player(s.playerId)}));
- function dirty(){if($('#publish'))$('#publish').disabled=true;$('#score-dirty').textContent='有未保存修改，请先保存成绩。'}
+ function dirty(){workspaceUI.dirty=true;if($('#publish'))$('#publish').disabled=true;$('#score-dirty').textContent='有未保存修改，请先保存成绩。'}
  function addRow(kind,value={},mark=true){
   const host=$('#'+kind+'-rows'),row=document.createElement('div');row.className='score-event';row.dataset.kind=kind;
   const select=`<label>选手<select data-field="playerId" required>${options([{id:'',name:'请选择'},...contestants],value.playerId||'')}</select></label>`;
@@ -18,23 +18,31 @@ function matchDetail(){
  m.penalties.forEach(p=>addRow('penalty',p,false));m.yakuman.forEach(y=>addRow('yakuman',y,false));
  click('#add-penalty',()=>addRow('penalty'));click('#add-yakuman',()=>addRow('yakuman'));
  $('#score-form').oninput=dirty;$('#lineup-form').oninput=dirty;
- click('#back',()=>{opened=null;render()});
- form('lineup-form',f=>command('lineup',{id:m.id,seats:m.seats.map((s,i)=>({teamId:s.teamId,playerId:f.get('p'+i)}))}));
+ click('#back',async()=>{if(!await workspaceCanLeave())return;opened=null;render()});
+ form('lineup-form',async f=>{
+ const nextSeats=m.seats.map((s,i)=>({teamId:s.teamId,playerId:f.get('p'+i)}));
+ const result=await api('/api/events/'+event.id+'/',{action:'lineup',revision:event.revision,id:m.id,seats:nextSeats});event.revision=result.revision;
+ m.seats=nextSeats;document.querySelectorAll('.workspace-score-pt').forEach(el=>el.textContent='名单已更新，比分待保存');const saved=event.document.matches.find(x=>x.id===m.id);saved.seats=m.seats;
+ contestants.splice(0,contestants.length,...m.seats.filter(s=>s.playerId).map(s=>({id:s.playerId,name:player(s.playerId)})));
+ document.querySelectorAll('#score-form [data-field=playerId]').forEach(select=>{const previous=select.value;select.innerHTML=options([{id:'',name:'请选择'},...contestants],previous)});
+ $('.workspace-lineup-actions').hidden=true;workspaceUI.dirty=true;$('#score-dirty').textContent='名单已公布；请核对并保存比分。';if($('#publish'))$('#publish').disabled=true;notice('出战名单已保存并公布，比分编辑内容已保留');
+ });
  function records(kind){return [...document.querySelectorAll('#'+kind+'-rows .score-event')].map(row=>{const item={};row.querySelectorAll('[data-field]').forEach(el=>item[el.dataset.field]=el.value);if(kind==='penalty')item.amount=Math.round(Number(item.amount)*10);else{item.multiplier=Number(item.multiplier);item.types=item.types.split(/[,，、]/).map(x=>x.trim()).filter(Boolean)}return item})}
- form('score-form',f=>command('save-result',{id:m.id,scores:[0,1,2,3].map(i=>Number(f.get('score'+i))),penalties:records('penalty'),yakuman:records('yakuman'),reason:f.get('correction')||''}));
- click('#publish',()=>command('publish',{id:m.id}));click('#cancel',()=>{if(confirm('确认取消本场对局？'))return command('cancel',{id:m.id})});
+ form('score-form',f=>workspaceSaveScore(m,{id:m.id,scores:[0,1,2,3].map(i=>Number(f.get('score'+i))),penalties:records('penalty'),yakuman:records('yakuman'),reason:f.get('correction')||''}));
+ click('#publish',async()=>{await command('publish',{id:m.id});notice('赛果已发布')});click('#cancel',async()=>{if(!await workspaceCanLeave())return;if(confirm('确认取消本场对局？'))return command('cancel',{id:m.id})});
+ workspaceScore(m);
 }
 
 function pastePanel(m){
  const panel=document.createElement('section');panel.className='card';panel.innerHTML=`<h2>Excel表格粘贴录入</h2><p>上排姓名，下排点数或PT。</p><form id="paste-form"><label>数值类型<select name="mode"><option value="scores">终局点棒（支持省略两位）</option><option value="pt">得点PT（无罚分ML规则）</option></select></label><label>粘贴表格<textarea name="text" rows="4" required placeholder="选手甲&#9;选手乙&#9;选手丙&#9;选手丁&#10;400&#9;300&#9;200&#9;100"></textarea></label><button>解析并预览</button></form><div id="paste-preview"></div>`;$('#score-form').closest('.card').before(panel);
- let token=null,revision=null;const clear=()=>{token=null;$('#paste-preview').innerHTML=''};$('#paste-form').oninput=clear;
- form('paste-form',async f=>{revision=event.revision;const r=await api('/api/events/'+event.id+'/',{action:'paste-preview',revision,id:m.id,...Object.fromEntries(f)});token=r.token;$('#paste-preview').innerHTML=`<h3>核对预览</h3><p>${r.preview.candidates.length>1?'请选择实际结果':'校验通过'}</p>${r.preview.candidates.map((c,i)=>`<div class="card"><label><input type="radio" name="paste-candidate" value="${i}" ${r.preview.candidates.length===1?'checked':''}>候选 ${i+1}</label><div class="table-scroll"><table><tr><th>选手</th><th>终局点棒</th><th>顺位</th><th>净分PT</th></tr>${c.seats.map((s,j)=>`<tr><td>${esc(r.preview.names[j])}</td><td>${s.score.toLocaleString()}</td><td>${s.rank}</td><td class="${s.points<0?'negative':'positive'}">${pt(s.points)}</td></tr>`).join('')}</table></div></div>`).join('')}<button class="primary" id="paste-save" type="button">确认保存战果</button>`;click('#paste-save',async()=>{const selected=$('input[name="paste-candidate"]:checked');if(!token||!selected)throw Error('请先选择预览结果');await api('/api/events/'+event.id+'/',{action:'paste-commit',revision,token,candidate:Number(selected.value)});await load(event.id);notice('表格战果已保存，对应赛程已完赛')})});
+ let token=null,revision=null;const clear=()=>{workspaceUI.dirty=true;token=null;$('#paste-preview').innerHTML=''};$('#paste-form').oninput=clear;
+ form('paste-form',async f=>{revision=event.revision;const r=await api('/api/events/'+event.id+'/',{action:'paste-preview',revision,id:m.id,...Object.fromEntries(f)});token=r.token;$('#paste-preview').innerHTML=`<h3>核对预览</h3><p>${r.preview.candidates.length>1?'请选择实际结果':'校验通过'}</p>${r.preview.candidates.map((c,i)=>`<div class="card"><label><input type="radio" name="paste-candidate" value="${i}" ${r.preview.candidates.length===1?'checked':''}>候选 ${i+1}</label><div class="table-scroll"><table><tr><th>选手</th><th>终局点棒</th><th>顺位</th><th>净分PT</th></tr>${c.seats.map((s,j)=>`<tr><td>${esc(r.preview.names[j])}</td><td>${s.score.toLocaleString()}</td><td>${s.rank}</td><td class="${s.points<0?'negative':'positive'}">${pt(s.points)}</td></tr>`).join('')}</table></div></div>`).join('')}<button class="primary" id="paste-save" type="button">确认保存并发布</button>`;click('#paste-save',async()=>{const selected=$('input[name="paste-candidate"]:checked');if(!token||!selected)throw Error('请先选择预览结果');await api('/api/events/'+event.id+'/',{action:'paste-commit',revision,token,candidate:Number(selected.value)});workspaceUI.dirty=false;await load(event.id);notice('表格战果已保存并发布')})});
 }
 
 function resultView(m){
  const d=event.document,value=n=>n==null?'未知':pt(n);
  $('#content').innerHTML=`<button class="secondary" id="back">← 返回赛程</button><h1>${esc(m.date||'日期未知')} · ${tableLabel(m.number)}桌</h1><p>${esc(m.time)} · ${esc(d.stages.find(s=>s.id===m.stageId)?.name)} · ${{published:'已完赛',draft:'待赛',cancelled:'已取消'}[m.state]}</p><section class="card"><h2>对局成绩</h2><div class="table-scroll"><table><thead><tr><th>队伍</th><th>选手</th><th>终局点数</th><th>顺位</th><th>个人PT</th><th>队伍PT</th></tr></thead><tbody>${m.seats.map(s=>`<tr><td>${esc(s.teamId?team(s.teamId):'未知')}</td><td>${esc(s.playerId?player(s.playerId):'未知')}</td><td>${esc(s.score??'未知')}</td><td>${esc(s.rank??'未知')}</td><td class="${s.points<0?'negative':'positive'}">${value(s.points)}</td><td class="${s.teamPoints<0?'negative':'positive'}">${value(s.teamPoints)}</td></tr>`).join('')}</tbody></table></div>${m.penalties.length?`<h3>罚分</h3>${m.penalties.map(x=>`<p>${esc(player(x.playerId))} · ${value(x.amount)} PT</p>`).join('')}`:''}${m.yakuman.length?`<h3>役满</h3>${m.yakuman.map(x=>`<p>${esc(player(x.playerId))} · ${esc((x.types||[]).join('、'))}</p>`).join('')}`:''}<button class="secondary" id="view-resources">解说与资料</button></section>`;
- click('#back',()=>{opened=null;render()});click('#view-resources',()=>openResources(m.id));matchMetadata(m);
+ click('#back',async()=>{if(!await workspaceCanLeave())return;opened=null;render()});click('#view-resources',()=>openResources(m.id));matchMetadata(m);
 }
 
 function matchMetadata(m){

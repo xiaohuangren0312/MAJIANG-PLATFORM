@@ -112,3 +112,38 @@ class CoachLineupTests(TestCase):
         response=self.post()
         self.assertEqual(response.status_code,400)
         self.assertIn('全职教练',response.json()['error'])
+
+    def test_account_lineup_entry_for_managers_and_coaches(self):
+        root=get_user_model().objects.create_superuser('lineup-root','root@example.test','test-password')
+        for user in (root,self.admin,self.coach):
+            self.client.force_login(user)
+            response=self.client.get('/account/')
+            self.assertEqual(response.status_code,200)
+            self.assertContains(response,'href="/coach/lineups/">出战名单</a>')
+            events=self.client.get('/api/coach/lineups/').json()['events']
+            self.assertIn(str(self.e.pk),[e['id'] for e in events])
+        self.client.force_login(self.viewer)
+        self.assertNotContains(self.client.get('/account/'),'href="/coach/lineups/">出战名单</a>')
+        self.assertEqual(self.client.get('/api/coach/lineups/').json()['events'],[])
+
+    def test_manager_lineup_scope_excludes_other_events(self):
+        foreign=Event.objects.create(name='其他赛事',kind='team',document=copy.deepcopy(self.e.document))
+        self.client.force_login(self.admin)
+        response=self.client.get(f'/api/coach/lineups/{self.e.pk}/')
+        self.assertEqual({r['teamId'] for r in response.json()['rows']},{t['id'] for t in self.e.document['teams']})
+        self.assertEqual(self.client.get(f'/api/coach/lineups/{foreign.pk}/').status_code,403)
+        self.assertEqual(self.post(self.admin,rows=[{'matchId':self.mid,'teamId':self.other_tid,'playerId':self.other_pid}]).status_code,200)
+
+    def test_next_matchday_skips_started_and_reports_own_pending(self):
+        from .coach_lineups import projection
+        d=copy.deepcopy(self.e.document)
+        d=apply(d,'team','match',dict(date='2030-01-03',time='18:30',number=1,stageId=d['stages'][0]['id'],seats=[{'teamId':t['id']} for t in d['teams']]))
+        self.e.document=d;self.e.save()
+        next_day=projection(self.e,self.coach,self.now)['nextMatchDay']
+        self.assertEqual(next_day,dict(date='2030-01-02',time='19:30',matches=2,pending=2))
+        self.assertEqual(self.post().status_code,200)
+        self.e.refresh_from_db()
+        self.assertEqual(projection(self.e,self.coach,self.now)['nextMatchDay']['pending'],1)
+        late=self.now.replace(hour=22)
+        self.assertEqual(projection(self.e,self.coach,late)['nextMatchDay'],dict(date='2030-01-03',time='18:30',matches=1,pending=1))
+        self.assertIsNone(projection(self.e,self.coach,late+datetime.timedelta(days=1))['nextMatchDay'])

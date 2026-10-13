@@ -55,6 +55,8 @@ def signin(request):
             user=authenticate(request,username=name,password=request.POST.get('password',''))
             if user:
                 LoginAttempt.objects.filter(key=key).delete();login(request,user)
+                # Absolute expiry prevents session writes from extending the login.
+                request.session.set_expiry(timezone.now()+datetime.timedelta(seconds=settings.SESSION_COOKIE_AGE))
                 from django.utils.http import url_has_allowed_host_and_scheme
                 destination=request.GET.get('next','')
                 if destination and url_has_allowed_host_and_scheme(destination,allowed_hosts={request.get_host()},require_https=request.is_secure()):return redirect(destination)
@@ -280,13 +282,13 @@ def event_detail(request,id):
 @require_GET
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
-    require_names={'viewer-design.js','viewer-design.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
+    require_names={'viewer-design.js','viewer-design.css','coach-navigation.js','manager-workspace.js','manager-workspace.css','manager-resources.js','manager-resources.css','coach-studio.css','daily-poster-renderer.js','daily-posters.js','posters.js','posters.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
-    require_names.update({'history-backfill.js','table-landscape-a.png','table-landscape-b.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'})
+    require_names.update({'history-backfill.js','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'})
     if name not in require_names:raise Http404
     path=settings.BASE_DIR/'static'/name
-    response=FileResponse(path.open('rb'),content_type='image/png' if name in {'table-landscape-a.png','table-landscape-b.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
+    response=FileResponse(path.open('rb'),content_type='image/png' if name in {'table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
     response['Cache-Control']='no-cache';return response
 
 @require_GET

@@ -29,7 +29,10 @@ class RolePolicyTests(TestCase):
         self.assertFalse(coach.is_superuser or coach.is_staff)
         self.assertFalse(self.e.editors.filter(pk=coach.pk).exists())
         self.client.force_login(coach)
-        self.assertContains(self.client.get('/account/'),'选人大会')
+        # An unbound coach has no draft/team workspace entry. Verify identity, not an obsolete link.
+        account=self.client.get('/account/')
+        self.assertContains(account,'coach-new')
+        self.assertContains(account,'当前身份：教练')
         self.assertRedirects(self.client.get('/manage/'),'/',fetch_redirect_response=False)
         self.assertEqual(self.post(coach,'player',name='越权').status_code,404)
         self.assertEqual(self.post(self.viewer,'player',name='越权').status_code,404)

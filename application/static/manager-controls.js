@@ -4,6 +4,7 @@
  function arrange(){
   observer.disconnect();
   layout();
+  polish();
   document.querySelectorAll('main button,dialog button,main a[download],dialog a[download]').forEach(b=>{
    b.classList.add('ui-button');
    if(!b.matches('.primary,.secondary,.danger'))b.classList.add(b.tagName==='BUTTON'&&b.form&&b.type==='submit'?'primary':'secondary');
@@ -66,5 +67,51 @@
    const buttons=[...row.children].filter(n=>n.tagName==='BUTTON');if(buttons.length){const group=document.createElement('div');group.className='roster-row-actions';row.append(group);buttons.forEach(b=>group.append(b))}
   });
  }
+
+ function polish(){
+  const content=document.querySelector('#content');
+  if(!content)return;
+  const heading=content.querySelector(':scope>h1');
+  if(heading&&!heading.closest('.admin-page-heading')){
+   const hero=document.createElement('div');hero.className='admin-page-heading';
+   const context=document.createElement('small');context.textContent=document.querySelector('#events option:checked')?.textContent||'赛事管理';
+   heading.before(hero);hero.append(context,heading);
+  }
+  const hero=content.querySelector('.admin-page-heading');
+  if(hero&&!hero.querySelector('.admin-page-actions')){const tools=document.createElement('div');tools.className='admin-page-actions';hero.append(tools)}
+  function toolPanel(node,title){
+   if(!node||node.closest('.admin-tool-panel'))return;
+   const card=node.closest('.layout-fold')||node.closest('.card');if(!card)return;
+   const panel=document.createElement('details');panel.className='admin-tool-panel';
+   const summary=document.createElement('summary');summary.textContent=title;panel.append(summary);
+   (hero?.querySelector('.admin-page-actions')||content).append(panel);
+   if(card.matches('details')){[...card.children].filter(n=>n.tagName!=='SUMMARY').forEach(n=>panel.append(n));card.remove()}
+   else panel.append(card);
+   const close=document.createElement('button');close.type='button';close.className='admin-panel-close';close.textContent='关闭 ×';close.setAttribute('aria-label','关闭'+title);close.onclick=()=>{panel.open=false;summary.focus()};panel.lastElementChild.prepend(close);
+  }
+  toolPanel(document.querySelector('#matchday-live-form'),'桌次直播');
+  toolPanel(document.querySelector('#match-form'),'＋ 安排赛程');
+  toolPanel(document.querySelector('#team-form'),'＋ 添加队伍');
+  toolPanel(document.querySelector('#player-form'),'＋ 选手报名');
+  toolPanel(document.querySelector('#bond-form'),'羁绊选手');
+  document.querySelectorAll('.manage-fixture-actions').forEach(actions=>{
+   if(actions.querySelector('.fixture-more'))return;
+   const extras=[...actions.querySelectorAll('button[data-resource-match],button[data-random-seats]')];
+   if(!extras.length)return;
+   const more=document.createElement('details');more.className='fixture-more';const summary=document.createElement('summary');summary.textContent='更多';more.append(summary,...extras);actions.append(more);
+  });
+  if(content.dataset.layoutPage==='overview'){
+   const counts=content.querySelector(':scope>.grid');const title=content.querySelector('.overview-heading');
+   if(counts&&title&&!counts.classList.contains('overview-metrics')){counts.classList.add('overview-metrics');title.after(counts)}
+   const stage=content.querySelector('[data-stage-edit]')?.closest('.card');if(stage)stage.classList.add('stage-directory');
+  }
+  const search=content.querySelector('#roster-search');if(search)search.closest('.card').classList.add('roster-directory');
+  if(content.querySelector('#score-form')){
+   content.classList.add('score-workspace');
+   content.querySelectorAll('#score-form .four>.seat').forEach((seat,i)=>{if(!seat.querySelector('.score-wind')){const wind=document.createElement('span');wind.className='score-wind';wind.textContent='东南西北'[i];seat.prepend(wind)}});
+  }else content.classList.remove('score-workspace');
+ }
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.admin-tool-panel[open],.fixture-more[open]').forEach(p=>{p.open=false;p.querySelector('summary').focus()})});
+ document.addEventListener('click',e=>document.querySelectorAll('.admin-tool-panel[open],.fixture-more[open]').forEach(p=>{if(!p.contains(e.target))p.open=false}));
  const observer=new MutationObserver(arrange);arrange();
 })();

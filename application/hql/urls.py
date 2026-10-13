@@ -13,4 +13,9 @@ from league import coach_lineups
 urlpatterns += [path('coach/lineups/',coach_lineups.page),path('api/coach/lineups/',coach_lineups.events),path('api/coach/lineups/<uuid:id>/',coach_lineups.detail)]
 
 from league import coach_profile
-urlpatterns += [path('coach/profile/',coach_profile.page),path('api/coach/profile/',coach_profile.events),path('api/coach/profile/<uuid:id>/',coach_profile.detail)]
+urlpatterns += [path('coach/',coach_profile.page),path('coach/schedule/',coach_profile.page),path('coach/profile/',coach_profile.page),path('api/coach/profile/',coach_profile.events),path('api/coach/profile/<uuid:id>/',coach_profile.detail)]
+
+from league import posters
+urlpatterns += [path('manage/posters/',posters.page),path('api/posters/',posters.events),path('api/posters/<uuid:id>/',posters.detail)]
+
+urlpatterns += [path('api/posters/<uuid:id>/daily/',posters.daily)]

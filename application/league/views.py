@@ -43,7 +43,7 @@ def api(fn):
     return wrapper
 def body(request):
     value=json.loads(request.body);require(isinstance(value,dict),'请求必须为对象');return value
-def summary(e,user=None):return dict(id=str(e.id),name=e.name,kind=e.kind,public=e.public,revision=e.revision,isTest=e.is_test,archived=bool(e.document.get('archive') or e.document.get('archiveRevision')),**({'role':role_for(e,user),'actions':actions_for(e,user)} if user else {}))
+def summary(e,user=None):return dict(id=str(e.id),name=e.name,kind=e.kind,public=e.public,revision=e.revision,createdAt=e.created_at.isoformat(),isTest=e.is_test,archived=bool(e.document.get('archive') or e.document.get('archiveRevision')),**({'role':role_for(e,user),'actions':actions_for(e,user)} if user else {}))
 
 @ensure_csrf_cookie
 @never_cache

@@ -7,11 +7,12 @@ const pt=n=>(n/10).toFixed(1),team=id=>event.document.teams.find(x=>x.id===id)?.
 function options(items,selected=''){return items.map(x=>`<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.name)}</option>`).join('')}
 function notice(s,error=false){const box=$('#message');box.textContent=(error?'无法保存：':'')+s;box.classList.toggle('error',error);box.setAttribute('role',error?'alert':'status');if(error)box.scrollIntoView({block:'nearest',behavior:'smooth'})}
 async function api(url,body){const csrf=document.cookie.split('; ').find(x=>x.startsWith((window.HQL_BRAND?.csrfCookie||'csrftoken')+'='))?.split('=')[1];const r=await fetch(url,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-CSRFToken':csrf||''},body:body?JSON.stringify(body):undefined});if(r.status===401){location.href='/login/';throw Error('登录已过期')}const data=await r.json();if(!r.ok)throw Error(data.error||'操作失败，请刷新重试');return data}
+function defaultManagementEvent(items){return [...items].sort((a,b)=>Number(a.archived)-Number(b.archived)||(Date.parse(b.createdAt)||0)-(Date.parse(a.createdAt)||0)||String(b.id).localeCompare(String(a.id)))[0]?.id}
 let loadGeneration=0;
 async function load(id){
  $('#overview-tools').hidden=true;const generation=++loadGeneration;$('#content').setAttribute('aria-busy','true');$('#content').innerHTML='<p>正在加载赛事…</p>';$('#nav').querySelectorAll('button').forEach(b=>b.disabled=true);
  const listing=await api('/api/events/');if(generation!==loadGeneration)return;
- const preferred=id||event?.id||new URLSearchParams(location.search).get('event'),chosen=listing.events.some(e=>e.id===preferred)?preferred:listing.events[0]?.id;
+ const preferred=id||event?.id||new URLSearchParams(location.search).get('event'),chosen=listing.events.some(e=>e.id===preferred)?preferred:defaultManagementEvent(listing.events);
  const next=chosen?await api('/api/events/'+chosen+'/'):null;if(generation!==loadGeneration)return;
  events=listing.events;accountAdmin=listing.canManageAccounts;$('#new-event').hidden=!listing.canCreateEvent;event=next;
  if(event?.managementDocument){event.document=event.managementDocument;delete event.managementDocument;delete event.historyDisplay;}

@@ -109,3 +109,14 @@
 .rules-comparison .rules-latest-row{background:#faf5e8}.rules-comparison button{padding:4px;min-height:30px;font-size:12px}
 .rules-versions .rules-version-list{padding:0;overflow:auto}
 @media(max-width:650px){.rules-comparison{min-width:550px}.rules-version-list{max-width:100%}}
+
+/* Overview: concise summary and a single settings hub. */
+.management-page #content .workspace-metrics .card{padding:18px 22px;gap:6px}.workspace-metrics strong{font-size:25px}
+.overview-command-grid{grid-template-columns:minmax(0,1fr) minmax(380px,1fr);margin-top:18px;align-items:start}
+.overview-hub-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.overview-hub-title h2{margin:0!important}
+.overview-brand-row{display:flex;gap:14px;align-items:center;padding:0 0 18px}.overview-brand-row img{object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:10px}.overview-brand-row strong{display:block;font-size:17px}.overview-brand-row small{display:block;margin-top:6px;color:#887a64}
+.overview-setting-section{border-top:1px solid var(--line);padding:0;margin:0}.overview-setting-section>summary{padding:16px 0;cursor:pointer;font-weight:600}.overview-setting-section>.card{border:0!important;padding:0!important;box-shadow:none!important;margin:0!important}.overview-setting-section>p{font-size:13px;color:#887a64}
+.overview-setting-section form{max-width:none!important}.overview-setting-section .event-logo-preview{margin-bottom:14px}
+.overview-venue-button{margin-top:16px;width:100%}.overview-complete{font-size:22px;color:#4c6852;margin:24px 0 10px}.overview-tasks>p:not(.overview-complete){color:#887a64;font-size:13px}
+.overview-tools-compact{display:flex;align-items:center;gap:20px;padding:16px 22px!important}.overview-tools-compact h2{margin:0;font-size:16px}.overview-tools-compact>.overview-default-logo{display:none}.overview-tools-compact>.actions{margin:0}.overview-venue-dialog{width:min(650px,calc(100vw - 32px));max-height:85dvh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:24px;background:#fffdf8}.overview-venue-dialog::backdrop{background:#18251f66}.overview-venue-dialog details>summary{display:none}.overview-venue-dialog form{max-width:100%}
+@media(max-width:1100px){.overview-command-grid{grid-template-columns:1fr}.overview-tools-compact{flex-wrap:wrap}}

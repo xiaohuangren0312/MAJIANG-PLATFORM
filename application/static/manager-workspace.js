@@ -127,16 +127,32 @@ function workspaceScore(m){
  check();
 }
 
+function overviewEditPanel(panel,title){
+ if(!panel)return;
+ const parent=panel.parentNode,next=panel.nextSibling,wasOpen=panel.open;
+ const dialog=document.createElement('dialog');dialog.className='overview-venue-dialog overview-edit-dialog';dialog.setAttribute('aria-label',title);
+ dialog.innerHTML='<div class="overview-hub-title"><h2>'+esc(title)+'</h2><button type="button" class="secondary">关闭</button></div>';
+ panel.hidden=false;panel.open=true;dialog.append(panel);document.body.append(dialog);
+ dialog.querySelector('button').onclick=()=>dialog.close();dialog.onclose=()=>{parent.insertBefore(panel,next);panel.open=wasOpen;panel.hidden=true;dialog.remove()};dialog.showModal();
+}
 function workspaceOverviewSettings(){
  const host=document.querySelector('.workspace-dashboard-grid');if(!host)return;
- host.classList.add('overview-command-grid');const old=host.lastElementChild;old.remove();
- const settings=document.createElement('section');settings.className='card overview-settings-hub';settings.innerHTML=`<div class="overview-hub-title"><h2>赛事设置</h2><span class="tag">${event.public?'已公开':'未公开'}</span></div><div class="overview-brand-row"><img src="/brand/events/${event.id}/logo?v=${event.revision}" width="64" height="64" alt="赛事 Logo"><div><strong>${esc(event.name)}</strong><small>${event.document.eventLogo?'独立赛事 Logo':'沿用场馆 Logo'}</small></div></div><div class="overview-settings-panels"></div>`;host.append(settings);
- const panels=settings.querySelector('.overview-settings-panels');
- const stage=document.querySelector('.workspace-stage-settings');if(stage){stage.classList.add('overview-setting-section');panels.append(stage)}
- const logo=document.querySelector('#event-logo-form')?.closest('details');if(logo){logo.className='overview-setting-section';panels.append(logo)}
- const venue=document.querySelector('.overview-default-logo');if(venue){const button=document.createElement('button');button.type='button';button.className='secondary overview-venue-button';button.textContent='场馆名称与 Logo 设置';button.onclick=()=>{const dialog=document.createElement('dialog');dialog.className='overview-venue-dialog';dialog.innerHTML='<div class="overview-hub-title"><h2>场馆设置</h2><button type="button" class="secondary">关闭</button></div>';const parent=venue.parentNode,next=venue.nextSibling;venue.open=true;dialog.append(venue);document.body.append(dialog);dialog.querySelector('button').onclick=()=>dialog.close();dialog.onclose=()=>{parent.insertBefore(venue,next);venue.open=false;dialog.remove()};dialog.showModal()};settings.append(button)}
- const tools=document.querySelector('#overview-tools');tools.classList.add('overview-tools-compact');
- const title=tools.querySelector('h2');if(title)title.textContent='赛事管理';
- const todo=host.firstElementChild;todo.classList.add('overview-tasks');
+ host.classList.add('overview-command-grid');host.lastElementChild.remove();
+ const d=event.document,stages=d.stages,current=stages.filter(s=>!s.locked).at(-1)||stages.at(-1);
+ const column=document.createElement('div');column.className='overview-settings-column';host.append(column);
+ const settings=document.createElement('section');settings.className='card overview-settings-hub';
+ settings.innerHTML=`<small class="overview-scope-label">当前赛事</small><div class="overview-event-heading"><h3 class="overview-event-name">${esc(event.name)}</h3><span class="tag">${event.public?'已公开':'未公开'}</span></div><section class="overview-direct-section overview-logo-line"><h3>赛事 Logo</h3><div class="overview-direct-row"><div class="overview-brand-row event-logo-preview"><img src="/brand/events/${event.id}/logo?v=${event.revision}" width="64" height="64" alt="赛事 Logo"><div><strong>${d.eventLogo?'独立赛事 Logo':'沿用场馆 Logo'}</strong><small>仅用于当前赛事展示</small></div></div>${can('event-logo')?`<div class="overview-direct-actions"><button type="button" class="secondary" id="overview-change-logo">更换 Logo</button><button type="button" class="secondary" id="overview-reset-logo" ${d.eventLogo?'':'disabled'}>恢复场馆 Logo</button></div>`:''}</div></section><section class="overview-direct-section overview-stage-line"><div class="overview-hub-title"><h3><span class="overview-stage-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="4" height="10" rx="1"/><rect x="10" y="3" width="4" height="18" rx="1"/><rect x="17" y="7" width="4" height="14" rx="1"/></svg></span>比赛阶段</h3><button type="button" class="secondary" id="overview-edit-stages">管理阶段</button></div><div class="overview-stage-track">${stages.map((s,i)=>`${i?'<span aria-hidden="true">→</span>':''}<span class="overview-stage-pill ${s.id===current?.id?'is-current':''}">${esc(s.name)}</span>`).join('')||'<small>尚未设置阶段</small>'}</div><p class="overview-muted">当前阶段：${esc(current?.name||'尚未设置')} · ${event.archived?'已归档':event.completed?'已结束':current?.locked?'已结算':'进行中'}</p></section>`;
+ column.append(settings);
+ const stage=document.querySelector('.workspace-stage-settings'),logo=document.querySelector('#event-logo-form')?.closest('details');
+ for(const panel of [stage,logo])if(panel){panel.hidden=true;settings.append(panel)}
+ click('#overview-edit-stages',()=>overviewEditPanel(stage,'管理阶段'));
+ click('#overview-change-logo',()=>overviewEditPanel(logo,'更换赛事 Logo'));
+ click('#overview-reset-logo',()=>document.querySelector('#reset-event-logo')?.click());
+ const venue=document.querySelector('.overview-default-logo');
+ if(venue){const name=venue.querySelector('[name=name]')?.value||'',english=venue.querySelector('[name=english]')?.value||'';const card=document.createElement('section');card.className='card overview-venue-card';card.innerHTML=`<small class="overview-scope-label">场馆</small><div class="overview-direct-row"><div class="overview-brand-row"><img src="/brand/logo" width="64" height="64" alt="场馆 Logo"><div><strong>${esc(name)}</strong><small>${esc(english)}</small></div></div><button type="button" class="secondary" id="overview-edit-venue">编辑场馆</button></div><p class="overview-muted">场馆名称与默认 Logo，对本场馆赛事生效。</p>`;settings.prepend(card);click('#overview-edit-venue',()=>overviewEditPanel(venue,'场馆设置'))}
+ const tools=document.querySelector('#overview-tools');tools.classList.add('overview-tools-compact');const title=tools.querySelector('h2');if(title)title.textContent='赛事管理';
+ const icons=['<path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/>','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 10h16m-11 5 2 2 4-4"/>','<path d="M12 3v9h9A9 9 0 1 1 9 3m6 0a9 9 0 0 1 6 6h-6V3Z"/>'];
+ document.querySelectorAll('.overview-dashboard .workspace-metrics>article').forEach((card,i)=>{const icon=document.createElement('span');icon.className='overview-metric-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+icons[i]+'</svg>';card.prepend(icon)});
+ const todo=host.firstElementChild;todo.classList.add('overview-tasks');todo.querySelector('h2')?.insertAdjacentHTML('afterbegin','<span class="overview-task-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 9a6 6 0 0 1 12 0v6l2 3H4l2-3V9Zm4 12h4M12 1v2"/></svg></span>');
  if(event.completed||event.archived){todo.innerHTML='<h2>赛事已结束</h2><p class="overview-complete">✓ 本赛季已完成</p><p>查看赛程战果或导出赛事海报。</p><div class="actions"><button type="button" class="secondary" id="overview-results">查看赛程战果</button><a class="button" href="/manage/posters/?event='+encodeURIComponent(event.id)+'">海报中心</a></div>';click('#overview-results',()=>workspaceGo('schedule'))}
 }

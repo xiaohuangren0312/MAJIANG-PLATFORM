@@ -120,3 +120,127 @@
 .overview-venue-button{margin-top:16px;width:100%}.overview-complete{font-size:22px;color:#4c6852;margin:24px 0 10px}.overview-tasks>p:not(.overview-complete){color:#887a64;font-size:13px}
 .overview-tools-compact{display:flex;align-items:center;gap:20px;padding:16px 22px!important}.overview-tools-compact h2{margin:0;font-size:16px}.overview-tools-compact>.overview-default-logo{display:none}.overview-tools-compact>.actions{margin:0}.overview-venue-dialog{width:min(650px,calc(100vw - 32px));max-height:85dvh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:24px;background:#fffdf8}.overview-venue-dialog::backdrop{background:#18251f66}.overview-venue-dialog details>summary{display:none}.overview-venue-dialog form{max-width:100%}
 @media(max-width:1100px){.overview-command-grid{grid-template-columns:1fr}.overview-tools-compact{flex-wrap:wrap}}
+
+/* Explicit event controls with separate venue scope. */
+.overview-settings-column{display:grid;gap:16px;min-width:0}.overview-settings-column>.card{margin:0!important}.overview-event-name{margin:6px 0 20px;font-size:20px}.overview-muted{font-size:12px;color:#887a64;line-height:1.6}
+.overview-direct-section{border-top:1px solid var(--line);padding-top:16px;margin-top:16px}.overview-direct-section h3{font-size:15px;margin:0 0 14px}.overview-direct-section .overview-hub-title h3{margin:0}
+.overview-direct-row{display:flex;align-items:center;justify-content:space-between;gap:14px}.overview-direct-row .overview-brand-row{padding:0;min-width:0}.overview-direct-row .overview-brand-row strong{font-size:15px}.overview-direct-row .overview-brand-row img{flex-shrink:0}
+.overview-direct-actions{display:grid;gap:8px;flex-shrink:0}.overview-direct-actions button,.overview-direct-row>button{white-space:nowrap}.overview-stage-track{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.overview-stage-pill{padding:7px 13px;background:#f0ece3;border-radius:24px;font-size:13px}.overview-stage-pill.is-current{background:#355442;color:#fff}.overview-stage-track>span:not(.overview-stage-pill){color:#a39b8c}
+.overview-edit-dialog details>summary{display:none}.overview-edit-dialog details[hidden]{display:block}.overview-edit-dialog .card{border:0;box-shadow:none;padding:0;margin:0}.overview-settings-hub>details[hidden]{display:none!important}.overview-tools-compact[hidden]{display:none!important}
+@media(max-width:600px){.overview-direct-row{align-items:flex-start;flex-wrap:wrap}.overview-direct-actions{display:flex;width:100%;flex-wrap:wrap}.overview-direct-actions button{flex:1}.overview-settings-column{gap:12px}}
+
+/* Overview flows by row: tasks, then event and venue settings. */
+.overview-command-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+.overview-settings-column{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:start}
+.management-page #content .overview-tasks{display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1fr);align-items:center;gap:22px;margin:0;padding:16px 22px}
+.management-page #content .overview-tasks h2{margin:0;font-size:17px}
+.overview-tasks .workspace-todo{padding:0;border:0;gap:12px}.overview-tasks .workspace-todo+ .workspace-todo{border-left:1px solid var(--line);padding-left:22px}.overview-tasks .workspace-todo>strong{font-size:25px}.overview-tasks .workspace-todo>span{font-size:13px}
+.overview-tasks:has(.overview-complete){grid-template-columns:130px minmax(0,1fr) auto}.overview-tasks .overview-complete{margin:0;font-size:18px}.overview-tasks:has(.overview-complete)>p:not(.overview-complete){display:none}.overview-tasks .actions{margin:0}
+.overview-settings-column .overview-venue-card{padding-bottom:22px}.overview-venue-card>.overview-muted{margin-bottom:0}
+@media(max-width:1100px){.management-page #content .overview-tasks{grid-template-columns:1fr;gap:16px}.overview-tasks .workspace-todo+ .workspace-todo{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}.overview-settings-column{grid-template-columns:1fr 1fr}.overview-tasks:has(.overview-complete){grid-template-columns:1fr}}
+@media(max-width:760px){.overview-settings-column{grid-template-columns:1fr}.overview-tasks .workspace-todo{flex-wrap:wrap}.overview-tasks .workspace-todo button{margin-left:auto}.overview-direct-row{flex-wrap:wrap}}
+
+/* Approved overview: shared metrics and venue-first settings surface. */
+.overview-dashboard .workspace-metrics{gap:0;background:#fffdf9;border:1px solid var(--line);border-radius:12px;overflow:hidden;padding:18px 0}
+.management-page #content .overview-dashboard .workspace-metrics>.card{border:0;border-radius:0;box-shadow:none;background:transparent;margin:0;padding:6px 26px;min-width:0}
+.overview-dashboard .workspace-metrics>.card+.card{border-left:1px solid var(--line)!important}
+.overview-dashboard .workspace-metrics strong{font-size:26px;font-variant-numeric:tabular-nums}
+.overview-settings-column{display:block}
+.management-page #content .overview-settings-hub{padding:24px 28px;margin:0}
+.management-page #content .overview-settings-hub>.overview-venue-card{border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;background:transparent;padding:0 0 22px;margin:0 0 22px!important}
+.overview-scope-label{display:block;color:#7c7568;font-size:13px;margin-bottom:10px}
+.overview-venue-card .overview-brand-row strong{font-family:serif;font-size:25px;color:#29372f}
+.overview-venue-card .overview-brand-row small{letter-spacing:2px;font-size:11px}
+.overview-venue-card>.overview-muted{margin:10px 0 0 78px}
+.overview-event-heading{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.overview-event-heading .overview-event-name{margin:0;font-size:21px;color:#29372f}
+.overview-settings-hub>.overview-direct-section{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:16px;margin:0;padding:18px 0;border-top:1px solid #e8e3d9}
+.overview-settings-hub>.overview-direct-section h3{margin:0;font-size:14px}
+.overview-settings-hub .overview-direct-actions{display:flex;flex-wrap:wrap;gap:8px}
+.overview-settings-hub .overview-brand-row img{width:48px;height:48px;border-radius:8px}
+.overview-settings-hub button{min-height:38px;padding:8px 16px;margin:0;font-size:13px}
+.overview-settings-hub>.overview-direct-section:last-of-type{padding-bottom:0}
+.overview-settings-hub .overview-direct-section>.overview-hub-title{display:contents}
+.overview-settings-hub #overview-edit-stages{grid-column:2;grid-row:1;justify-self:end}
+.overview-settings-hub .overview-stage-track{grid-column:2;grid-row:1;padding-right:130px}
+.overview-settings-hub .overview-direct-section>p{grid-column:2;margin:0}
+.overview-settings-hub .overview-stage-pill{font-size:12px;padding:5px 11px}
+@media(max-width:900px){.overview-settings-hub .overview-direct-row{flex-wrap:wrap}.overview-settings-hub .overview-direct-actions{margin-left:auto}.overview-dashboard .workspace-metrics strong{font-size:22px}}
+@media(max-width:600px){
+.overview-dashboard .workspace-metrics{padding:0;display:grid;grid-template-columns:1fr}
+.management-page #content .overview-dashboard .workspace-metrics>.card{padding:16px 20px}
+.overview-dashboard .workspace-metrics>.card+.card{border-left:0!important;border-top:1px solid var(--line)!important}
+.management-page #content .overview-settings-hub{padding:20px 16px}
+.overview-settings-hub>.overview-direct-section{grid-template-columns:1fr;gap:12px}
+.overview-settings-hub #overview-edit-stages{grid-column:1;grid-row:3;justify-self:start}
+.overview-settings-hub .overview-stage-track{grid-column:1;grid-row:2;padding:0}
+.overview-settings-hub .overview-direct-section>p{grid-column:1}
+.overview-settings-hub .overview-direct-actions{width:100%;margin:0}
+.overview-venue-card>.overview-muted{margin-left:0}
+.overview-venue-card .overview-direct-row{align-items:center}
+.overview-event-heading{gap:10px}.overview-event-heading .overview-event-name{font-size:19px}
+}
+
+/* Keep the stage summary and its action in separate grid cells. */
+.overview-settings-hub>.overview-direct-section:has(#overview-edit-stages){grid-template-columns:100px minmax(0,1fr) auto}
+.overview-settings-hub #overview-edit-stages{grid-column:3}
+.overview-settings-hub .overview-stage-track{padding-right:0}
+@media(max-width:600px){.overview-settings-hub>.overview-direct-section:has(#overview-edit-stages){grid-template-columns:1fr}.overview-settings-hub #overview-edit-stages{grid-column:1}}
+
+/* Match the approved visual: type hierarchy, compact rows and summary icons. */
+.management-page #content .overview-heading h1{font-family:"Noto Serif SC","Songti SC",SimSun,serif;font-size:38px;letter-spacing:1px;line-height:1.3}
+.overview-dashboard .workspace-metrics{padding:20px 0}
+.management-page #content .overview-dashboard .workspace-metrics>.card{position:relative;padding:0 24px 0 80px;gap:6px}
+.overview-metric-icon{position:absolute;left:24px;top:5px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#f8f3e9;color:#75644c}
+.overview-metric-icon svg{width:23px;height:23px}.workspace-metrics article:first-child .overview-metric-icon{color:#a74735}
+.overview-dashboard .workspace-metrics strong{font-size:25px;line-height:1.35}
+.management-page #content .overview-settings-hub{padding:22px 28px}
+.management-page #content .overview-settings-hub>.overview-venue-card{position:relative;padding-bottom:20px;margin-bottom:20px!important}
+.overview-venue-card .overview-brand-row img{width:64px;height:64px}
+.overview-venue-card .overview-brand-row strong{font-size:27px}
+.overview-venue-card>.overview-muted{position:absolute;left:292px;right:140px;top:43px;margin:0;padding-left:24px;border-left:1px solid var(--line)}
+.overview-event-heading{margin-bottom:12px}
+.overview-settings-hub>.overview-direct-section{padding:14px 0;gap:12px}
+.overview-settings-hub .overview-direct-row .overview-brand-row{margin:0}
+.overview-settings-hub .event-logo-preview{margin:0!important}
+.overview-settings-hub .overview-direct-section>p{line-height:1.4}
+.management-page #content .overview-tasks{background:#fcf8f1}
+.overview-tasks .workspace-todo>strong{font-size:28px}
+@media(max-width:1100px){.overview-venue-card>.overview-muted{position:static;border:0;padding:0;margin:10px 0 0 78px}.management-page #content .overview-dashboard .workspace-metrics>.card{padding-left:65px;padding-right:16px}.overview-metric-icon{left:16px;width:34px;height:34px}}
+@media(max-width:600px){.management-page #content .overview-heading h1{font-size:27px}.management-page #content .overview-dashboard .workspace-metrics>.card{padding:16px 18px 16px 66px}.overview-metric-icon{top:20px}.overview-venue-card>.overview-muted{margin:10px 0 0}.management-page #content .overview-settings-hub{padding:20px 16px}}
+
+/* Approved mockup proportions at desktop; retain real content and artwork. */
+@media(min-width:1101px){
+.management-page .workspace{grid-template-columns:264px minmax(0,1fr)}
+.management-page .workspace>main{padding:20px 22px 24px}
+.management-page #content .overview-heading{min-height:184px;margin-bottom:20px;padding:20px 18px 24px;position:relative;background-image:linear-gradient(90deg,#f5f2ea 30%,transparent 65%),url('/assets/matchday-landscape.png');background-size:auto,720px auto;background-position:center,right center;background-repeat:no-repeat}
+.management-page #content .overview-heading h1{font-size:42px;font-weight:700;letter-spacing:1px}
+.management-page #content .overview-heading p{font-size:16px}
+.overview-dashboard .workspace-metrics{padding:22px 0}
+.management-page #content .overview-dashboard .workspace-metrics>.card{padding:0 24px 0 90px;min-height:72px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.overview-dashboard .workspace-metrics article:first-child{display:grid!important;grid-template-columns:auto 1fr;column-gap:12px!important;align-content:center}
+.overview-dashboard .workspace-metrics article:first-child>small{grid-column:1/-1}
+.overview-dashboard .workspace-metrics article:first-child>.tag{grid-column:2;grid-row:2;align-self:center;justify-self:start}
+.overview-metric-icon{left:24px;top:8px;width:44px;height:44px}
+.management-page #content .overview-tasks{padding:16px 24px;grid-template-columns:150px minmax(0,1fr) minmax(0,1fr)}
+.overview-settings-hub>.overview-venue-card{min-height:112px}
+.overview-settings-hub .overview-brand-row img{width:68px;height:54px}
+.overview-settings-hub .overview-venue-card .overview-brand-row img{width:76px;height:76px}
+.overview-venue-card .overview-brand-row{gap:24px}
+.overview-venue-card .overview-brand-row strong{font-size:29px}
+.overview-venue-card>.overview-muted{left:294px;top:52px;font-size:13px}
+.overview-settings-hub>.overview-direct-section{min-height:76px;box-sizing:border-box}
+.overview-settings-hub .overview-event-name{font-size:23px;font-family:serif}
+.overview-settings-hub>.overview-logo-line{grid-template-columns:184px minmax(0,1fr);position:relative;padding-left:98px}
+.overview-logo-line .event-logo-preview img{position:absolute;left:0;top:14px}
+.overview-settings-hub>.overview-logo-line{grid-template-columns:100px minmax(0,1fr)}
+.overview-settings-hub>.overview-stage-line:has(#overview-edit-stages){grid-template-columns:198px minmax(0,1fr) auto}
+.overview-stage-line .overview-stage-track{display:none}
+.overview-settings-hub .overview-stage-line>p{grid-column:2;grid-row:1;font-size:14px;color:#374039}
+.overview-stage-icon{display:inline-grid;place-items:center;width:70px;height:42px;background:#f7f3ea;border-radius:6px;font-size:25px;margin-right:26px;color:#5d5848}
+}
+.overview-task-icon{display:inline-block;color:#ab4331;font-size:24px;margin-right:12px}
+@media(max-width:1100px){.overview-stage-icon{display:none}}
+
+.overview-task-icon svg{width:25px;height:25px;vertical-align:middle}.overview-stage-icon svg{width:25px;height:25px}
+@media(min-width:1101px){.management-page #content .overview-heading{min-height:164px}.overview-stage-line:has(.overview-stage-pill:nth-of-type(2)) .overview-stage-track{display:flex;grid-row:2}.overview-settings-hub .overview-stage-line:has(.overview-stage-pill:nth-of-type(2))>p{grid-row:1}}

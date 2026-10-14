@@ -10,6 +10,7 @@ async function api(url,body){const csrf=document.cookie.split('; ').find(x=>x.st
 function defaultManagementEvent(items){return [...items].sort((a,b)=>Number(a.archived)-Number(b.archived)||(Date.parse(b.createdAt)||0)-(Date.parse(a.createdAt)||0)||String(b.id).localeCompare(String(a.id)))[0]?.id}
 let loadGeneration=0;
 async function load(id){
+ document.querySelectorAll('.overview-edit-dialog[open]').forEach(dialog=>dialog.close());
  $('#overview-tools').hidden=true;const generation=++loadGeneration;$('#content').setAttribute('aria-busy','true');$('#content').innerHTML='<p>正在加载赛事…</p>';$('#nav').querySelectorAll('button').forEach(b=>b.disabled=true);
  const listing=await api('/api/events/');if(generation!==loadGeneration)return;
  const preferred=id||event?.id||new URLSearchParams(location.search).get('event'),chosen=listing.events.some(e=>e.id===preferred)?preferred:defaultManagementEvent(listing.events);

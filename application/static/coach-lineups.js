@@ -4,7 +4,7 @@
  window.coachLineupCanLeave=leave;
  addEventListener("beforeunload",e=>{if(dirty||saving){e.preventDefault();e.returnValue=""}});
  document.addEventListener("click",e=>{if(e.target.closest("a[href]")){if(!leave())e.preventDefault();else dirty=false}});
- const csrf=()=>document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=')[1]||'';
+ const csrf=()=>document.cookie.split('; ').find(x=>x.startsWith((window.HQL_BRAND?.csrfCookie||'csrftoken')+'='))?.split('=')[1]||'';
  function notice(text,error=false){const status=$('#lineup-save-status');if(status){status.textContent=text;status.classList.toggle('error',error)}const message=$('#lineup-message')||$('#message');message.textContent=text;message.classList.toggle('error',error);message.setAttribute('role',error?'alert':'status')}
  async function api(url,body){const r=await fetch(url,{cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf()},body:JSON.stringify(body)}:{})});let d;try{d=await r.json()}catch(_){throw Error('请求失败，请刷新后重试')}if(!r.ok)throw Error(d.error||'无法读取名单');return d}
  const local=v=>{const date=new Date(v);return new Date(date.getTime()+8*3600000).toISOString().slice(0,16)};

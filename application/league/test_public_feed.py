@@ -8,7 +8,7 @@ from .views import public_data
 class PublicFeedTests(SimpleTestCase):
     def setUp(self):
         public_feed._cached = None
-        self.event = SimpleNamespace(pk='event', name='S4', kind='team', document={'matches': []})
+        self.event = SimpleNamespace(pk='event', name='S4', kind='team', created_at=datetime.datetime(2026,1,1,tzinfo=datetime.timezone.utc), document={'matches': []})
         self.events = patch.object(public_feed.Event.objects, 'filter').start()
         self.events.return_value.order_by.return_value = [self.event]
         self.archives = patch.object(public_feed.HistoricalArchive.objects, 'filter').start()

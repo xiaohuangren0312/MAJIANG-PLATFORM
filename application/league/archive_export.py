@@ -1,3 +1,4 @@
+from .roles import venue_admin
 """Excel-readable frozen CSV archive, with safe textual cells."""
 import csv,io
 from django.http import HttpResponse,Http404
@@ -40,7 +41,7 @@ def csv_text(document,name,kind):
 @login_required
 def download(request,id):
     e=get_object_or_404(Event,pk=id)
-    if not(request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists()):raise Http404
+    if not(venue_admin(request.user) or e.editors.filter(pk=request.user.pk).exists()):raise Http404
     a=e.document.get('archive') or e.document.get('archiveRevision')
     if e.document.get('historySnapshot'):content=history_csv(e)
     elif a:content=a.get('csvExport') or csv_text(e.document,e.name,e.kind)

@@ -5,6 +5,7 @@ from django.test import TestCase,override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .test_coach_lineups import CoachLineupTests
 from .projection import public_event
+@override_settings(VENUES={})
 class CoachProfileTests(TestCase):
     setUp=CoachLineupTests.setUp
     def post(self,user,kind,id,**extra):

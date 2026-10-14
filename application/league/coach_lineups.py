@@ -1,9 +1,10 @@
+from .roles import venue_admin
 """Scoped coach lineups. Publication is clock-based, never dependent on a worker job."""
 import copy, datetime
 from zoneinfo import ZoneInfo
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -24,7 +25,7 @@ def visible(d,m,seat,now=None):
     if m['state']=='published' or m.get('lineupPublished'):return True
     entry=m.get('coachLineups',{}).get(seat.get('teamId'))
     return bool(entry and seat.get('playerId') and release_at(d,m,entry)<=(now or timezone.now()))
-def manager(e,user):return user.is_superuser or e.editors.filter(pk=user.pk).exists()
+def manager(e,user):return venue_admin(user) or e.editors.filter(pk=user.pk).exists()
 def team_ids(e,user):
     if manager(e,user):return {t['id'] for t in e.document.get('teams',[])}
     account=e.document.get('coachAccounts',{}).get(str(user.pk))

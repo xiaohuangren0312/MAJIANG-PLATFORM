@@ -1,8 +1,10 @@
+from .roles import venue_admin
+from hql.tenancy import storage_root
 """Event-scoped logos; omission falls back to the platform default."""
 import copy,io,uuid,warnings,re
 from PIL import Image,ImageOps,UnidentifiedImageError
 from django.conf import settings
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.http import FileResponse,JsonResponse,Http404
 from django.shortcuts import get_object_or_404
 from .models import Event,Audit
@@ -12,9 +14,9 @@ from . import brand
 
 def logo(request,id):
     e=get_object_or_404(Event,pk=id)
-    if not e.public and not(request.user.is_authenticated and (request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists())):raise Http404
+    if not e.public and not(request.user.is_authenticated and (venue_admin(request.user) or e.editors.filter(pk=request.user.pk).exists())):raise Http404
     name=e.document.get('eventLogo','')
-    path=settings.ENV_ROOT/'uploads/events'/str(e.id)/name
+    path=storage_root()/'uploads/events'/str(e.id)/name
     if re.fullmatch(r'[0-9a-f]{32}\.png',name) and path.is_file():response=FileResponse(path.open('rb'),content_type='image/png')
     else:response=brand.logo(request)
     response['Cache-Control']='private, no-cache'
@@ -42,7 +44,7 @@ def _upload(request,id):
                     require(im.width*im.height<=16000000,'图片最多1600万像素')
                     im=ImageOps.exif_transpose(im).convert('RGBA');im.thumbnail((512,512));buf=io.BytesIO();im.save(buf,format='PNG')
             except (OSError,UnidentifiedImageError,Image.DecompressionBombError,Image.DecompressionBombWarning):require(False,'图片无法读取')
-            folder=settings.ENV_ROOT/'uploads/events'/str(e.id);folder.mkdir(parents=True,exist_ok=True)
+            folder=storage_root()/'uploads/events'/str(e.id);folder.mkdir(parents=True,exist_ok=True)
             name=uuid.uuid4().hex+'.png';path=folder/name;path.write_bytes(buf.getvalue());path.chmod(0o640);e.document['eventLogo']=name
         try:
             e.revision+=1;e.save(update_fields=['document','revision'])

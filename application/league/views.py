@@ -1,3 +1,5 @@
+from django.views.decorators.cache import never_cache
+from .roles import venue_admin
 from .rule_presets import ML_RULE, ML_TEMPLATE_ID, builtin_templates, resolve_rule
 from .projection import rank_metrics
 from .domain import optional_note
@@ -13,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from .permissions import role_for,actions_for,authorize,ROLES
 import copy
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.db.models import F
 from django.http import JsonResponse,FileResponse,Http404
 from django.shortcuts import render,redirect,get_object_or_404
@@ -27,10 +29,10 @@ from .lifecycle import archive_preview,archive_event,cleanup_preview,cleanup_eve
 
 def coach_account(user):
     from team_draft.models import DraftActivity
-    return Event.objects.filter(document__coachAccounts__has_key=str(user.pk)).exists() or DraftActivity.objects.filter(document__teams__contains=[{'coachUserId':user.pk}]).exists()
+    return Event.objects.filter(document__coachAccounts__has_key=str(user.pk)).exists() or (settings.DRAFT_ENABLED and DraftActivity.objects.filter(document__teams__contains=[{'coachUserId':user.pk}]).exists())
 
 def allowed(user):
-    return Event.objects.all() if user.is_superuser else Event.objects.filter(editors=user)
+    return Event.objects.all() if venue_admin(user) else Event.objects.filter(editors=user)
 def api(fn):
     @wraps(fn)
     def wrapper(request,*a,**kw):
@@ -44,6 +46,7 @@ def body(request):
 def summary(e,user=None):return dict(id=str(e.id),name=e.name,kind=e.kind,public=e.public,revision=e.revision,isTest=e.is_test,archived=bool(e.document.get('archive') or e.document.get('archiveRevision')),**({'role':role_for(e,user),'actions':actions_for(e,user)} if user else {}))
 
 @ensure_csrf_cookie
+@never_cache
 def signin(request):
     error=''
     if request.method=='POST':
@@ -57,13 +60,10 @@ def signin(request):
                 LoginAttempt.objects.filter(key=key).delete();login(request,user)
                 # Absolute expiry prevents session writes from extending the login.
                 request.session.set_expiry(timezone.now()+datetime.timedelta(seconds=settings.SESSION_COOKIE_AGE))
-                from django.utils.http import url_has_allowed_host_and_scheme
-                destination=request.GET.get('next','')
-                if destination and url_has_allowed_host_and_scheme(destination,allowed_hosts={request.get_host()},require_https=request.is_secure()):return redirect(destination)
-                return redirect('/manage/' if user.is_superuser or allowed(user).exists() else '/coach/lineups/' if coach_account(user) else '/')
+                return redirect('/manage/' if venue_admin(user) or allowed(user).exists() else '/coach/lineups/' if coach_account(user) else '/')
             if attempt.updated_at<timezone.now()-datetime.timedelta(minutes=15):attempt.failures=0
             attempt.failures+=1;attempt.save();error='用户名或密码不正确'
-    return render(request,'login.html',{'error':error})
+    return render(request,'login.html',{'error':error,'username':request.POST.get('username','')[:150] if request.method=='POST' else ''})
 
 @require_POST
 def signout(request):logout(request);return redirect('/login/')
@@ -71,7 +71,7 @@ def signout(request):logout(request);return redirect('/login/')
 @login_required
 @ensure_csrf_cookie
 def manage(request):
-    if not request.user.is_superuser and not allowed(request.user).exists():return redirect('/')
+    if not venue_admin(request.user) and not allowed(request.user).exists():return redirect('/')
     return render(request,'manage.html',{'history_backfill_enabled':settings.HISTORY_BACKFILL_ENABLED})
 
 from django.views.decorators.gzip import gzip_page
@@ -84,12 +84,12 @@ def public_data(request):
 
 @api
 def events(request):
-    if request.method=='GET':return JsonResponse({'events':[summary(e,request.user) for e in allowed(request.user)],'canCreateEvent':request.user.is_superuser,'canManageAccounts':request.user.is_superuser})
+    if request.method=='GET':return JsonResponse({'events':[summary(e,request.user) for e in allowed(request.user)],'canCreateEvent':venue_admin(request.user),'canManageAccounts':venue_admin(request.user)})
     require(request.method=='POST','请求方法不支持')
     b=body(request);kind=b.get('kind');require(kind in ['team','personal'],'赛事类型错误')
     # Only total administrators create tournaments and assign event managers.
 
-    if not request.user.is_superuser:raise PermissionDenied('只有总管理员可以创建赛事')
+    if not venue_admin(request.user):raise PermissionDenied('只有场馆管理员可以创建赛事')
     require(type(b.get('isTest',False)) is bool,'测试赛事标记错误')
     with transaction.atomic():
         d=apply(initial(),kind,'stage',{'name':'常规赛'})
@@ -170,8 +170,8 @@ def event_detail(request,id):
         username=label(b.get('username'));reason=optional_note(b.get('reason'));role=b.get('role')
         require(role in ['admin','revoke'],'授权角色错误')
         grant_user=get_user_model().objects.filter(username=username,is_active=True).first()
-        require(grant_user is not None,'账号不存在或已停用，请由平台管理员先创建账号')
-        require(not grant_user.is_superuser,'总管理员权限不由赛事授权修改')
+        require(grant_user is not None,'账号不存在或已停用，请由场馆管理员先创建账号')
+        require(not venue_admin(grant_user),'场馆及总管理员权限不由赛事授权修改')
         new=copy.deepcopy(old);roles=new.setdefault('accessRoles',{})
         # A total administrator retains global access even with no local managers.
         if role=='revoke':roles.pop(str(grant_user.pk),None)
@@ -303,8 +303,8 @@ def health(request):
 @require_GET
 def access_list(request,id):
     e=get_object_or_404(allowed(request.user),pk=id)
-    if not request.user.is_superuser:authorize(e,request.user,'coach-manage')
-    return JsonResponse({'coaches':[dict(userId=k,**v) for k,v in e.document.get('coachAccounts',{}).items()],'members':[{'username':u.username,'role':role_for(e,u),'active':u.is_active,'platformAdmin':u.is_superuser} for u in e.editors.all()]})
+    if not venue_admin(request.user):authorize(e,request.user,'coach-manage')
+    return JsonResponse({'coaches':[dict(userId=k,**v) for k,v in e.document.get('coachAccounts',{}).items()],'members':[{'username':u.username,'role':role_for(e,u),'active':u.is_active,'platformAdmin':u.is_superuser,'venueAdmin':venue_admin(u)} for u in e.editors.all()]})
 
 @api
 @require_POST
@@ -313,7 +313,7 @@ def create_account(request):
     e=None
     if b.get('eventId'):
         e=get_object_or_404(allowed(request.user),pk=b['eventId'])
-    if not request.user.is_superuser:
+    if not venue_admin(request.user):
         if role!='coach' or e is None:raise PermissionDenied('赛事管理员只能为自己的未归档赛事创建教练账号')
         authorize(e,request.user,'coach-manage')
     if role in ['coach','admin']:require(e is not None,'请选择账号所属赛事')
@@ -328,7 +328,7 @@ def create_account(request):
     with transaction.atomic():
         if e:
             e=Event.objects.select_for_update().get(pk=e.pk)
-            if not request.user.is_superuser:authorize(e,request.user,'coach-manage')
+            if not venue_admin(request.user):authorize(e,request.user,'coach-manage')
             require(b.get('revision')==e.revision,'赛事已更新，请刷新后重试')
         user.set_password(password);user.save()
         if e:
@@ -357,14 +357,19 @@ def account(request):
     # Password fields are never echoed into templates or audit records.
     request.sensitive_post_parameters=('old_password','new_password1','new_password2')
     if request.method not in ['GET','POST']:return JsonResponse({'error':'请求方法不支持'},status=405)
-    form=PasswordChangeForm(request.user,request.POST if request.method=='POST' else None)
+    from hql.auth_backend import VenueBackend
+    credentials=VenueBackend.credential_user(request.user)
+    form=PasswordChangeForm(credentials,request.POST if request.method=='POST' else None)
     if request.method=='POST' and form.is_valid():
-        user=form.save();update_session_auth_hash(request,user)
+        user=form.save(commit=False);user.save(using=credentials._state.db)
+        if user._state.db!=request.user._state.db:
+            request.user.password=user.password;request.user.save(using=request.user._state.db,update_fields=['password'])
+        update_session_auth_hash(request,request.user)
         return redirect('/account/?changed=1')
     managed=allowed(request.user)
     is_coach=coach_account(request.user)
-    role='总管理员' if request.user.is_superuser else '赛事管理员' if managed.exists() else '教练' if is_coach else '观众'
-    response=render(request,'account.html',{'password_form':form,'account_role':role,'is_coach':is_coach,'managed_events':managed,'can_manage':request.user.is_superuser or managed.exists(),'changed':request.GET.get('changed')=='1'})
+    role='总管理员' if request.user.is_superuser else '场馆管理员' if venue_admin(request.user) else '赛事管理员' if managed.exists() else '教练' if is_coach else '观众'
+    response=render(request,'account.html',{'password_form':form,'account_role':role,'is_coach':is_coach,'managed_events':managed,'can_manage':venue_admin(request.user) or managed.exists(),'changed':request.GET.get('changed')=='1'})
     response['Cache-Control']='no-store'
     return response
 
@@ -442,7 +447,7 @@ def import_history(request,key):
 @api
 def rule_templates(request):
     from .models import RuleTemplate
-    permitted=request.user.is_superuser or Event.objects.filter(editors=request.user).exists()
+    permitted=venue_admin(request.user) or Event.objects.filter(editors=request.user).exists()
     if not permitted:raise PermissionDenied('仅赛事管理员可使用规则库')
     if request.method=='GET':return JsonResponse({'templates':builtin_templates()+[dict(id=str(t.id),name=t.name,rule=t.rule) for t in RuleTemplate.objects.order_by('name')]})
     require(request.method=='POST','请求方法不支持')

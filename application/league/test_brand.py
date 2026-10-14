@@ -1,9 +1,11 @@
+from django.test import override_settings
 import tempfile,io
 from pathlib import Path
 from PIL import Image
 from django.test import TestCase,override_settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+@override_settings(VENUES={})
 class BrandTests(TestCase):
  def test_placeholder_permissions_and_upload(self):
   with tempfile.TemporaryDirectory(dir='/data/majiang/dev/tmp') as tmp,override_settings(ENV_ROOT=Path(tmp)):

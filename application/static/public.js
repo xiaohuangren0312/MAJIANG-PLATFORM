@@ -2,7 +2,7 @@ function matchdayLive(m){const live=m.live;return live?`<a class="matchday-live 
 const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>n===null?'未记录':(n>0?'+':'')+(n/10).toFixed(1),cl=n=>n>=0?'positive':'negative',pct=n=>n===null?'—':(n*100).toFixed(1)+'%',fixed=n=>n===null?'—':n.toFixed(2);
 let data,tournament,route,params;
-function latestTournament(items){return [...items].sort((a,b)=>String(b.season||b.name).localeCompare(String(a.season||a.name),'zh-CN',{numeric:true}))[0]}
+function latestTournament(items){return items.find(x=>x.id===data.defaultEventId)}
 function seasonRoute(current){return ({player:'players',team:'teams',result:'results'})[current]||(['home','schedule','results','teams','players'].includes(current)?current:'home')}
 const navs={home:'赛事首页',schedule:'赛程',results:'赛果',teams:'队伍榜',players:'个人榜'};
 const player=id=>tournament.players.find(p=>p.id===id),team=id=>tournament.teams.find(t=>t.id===id),stageName=id=>tournament.stages.find(s=>s.id===id)?.name||'全部阶段';
@@ -10,7 +10,7 @@ function href(page,extra={}){const query=new URLSearchParams({event:tournament.i
 function navigate(page,extra={}){location.hash=href(page,extra)}
 const opts=(items,selected)=>items.map(x=>`<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.name)}</option>`).join('');
 const empty=message=>`<div class="empty">${message}</div>`;
-const title=(name,desc)=>`<div class="page-title"><div class="eyebrow">HUAN QUE LOU / ${tournament.type==='team'?'TEAM LEAGUE':'INDIVIDUAL CHAMPIONSHIP'}</div><h1>${name}</h1><p>${desc}</p></div>`;
+const title=(name,desc)=>`<div class="page-title"><div class="eyebrow">${esc(window.HQL_BRAND?.english||'')} / ${tournament.type==='team'?'TEAM LEAGUE':'INDIVIDUAL CHAMPIONSHIP'}</div><h1>${name}</h1><p>${desc}</p></div>`;
 const stage=params=>params.get('stage')||'all';
 function getStats(kind,whichStage='all',metric='raw'){return tournament.statistics[whichStage]?.[metric]?.[kind]||[]}
 function sortedResults(){return [...tournament.results].sort((a,b)=>b.date.localeCompare(a.date)||(b.time||'').localeCompare(a.time||'')||b.number-a.number)}
@@ -36,13 +36,13 @@ function render(options={}){
  const savedScroll=options.preserveScroll?{x:window.scrollX,y:window.scrollY}:null;
  $('content').classList.remove('has-profile');
  const fragment=location.hash.slice(1)||'home',parts=fragment.split('?');route=parts[0];params=new URLSearchParams(parts[1]||'');tournament=data.tournaments.find(t=>t.id===params.get('event'))||latestTournament(data.tournaments);
- if(!tournament){$('content').innerHTML=empty('暂时没有公开赛事');return}
- const banner=$('event-banner');if(banner){banner.hidden=false;const match=tournament.name.match(/^(.*?)(S\d+)$/i);$('event-banner-name').innerHTML=match?`${esc(match[1].trim())} <span>${esc(match[2])}</span>`:esc(tournament.name);$('event-banner-subtitle').textContent=tournament.type==='team'?'HUAN QUE LOU · TEAM LEAGUE':'HUAN QUE LOU · INDIVIDUAL CHAMPIONSHIP'}
+ if(!tournament){$('content').innerHTML=empty('暂无进行中的公开赛事')+data.tournaments.map(t=>`<a class="card" href="#home?event=${encodeURIComponent(t.id)}">${esc(t.name)}</a>`).join('');return}
+ const banner=$('event-banner');if(banner){banner.hidden=false;const match=tournament.name.match(/^(.*?)(S\d+)$/i);$('event-banner-name').innerHTML=match?`${esc(match[1].trim())} <span>${esc(match[2])}</span>`:esc(tournament.name);$('event-banner-subtitle').textContent=tournament.type==='team'?(window.HQL_BRAND?.english||'')+' · TEAM LEAGUE':(window.HQL_BRAND?.english||'')+' · INDIVIDUAL CHAMPIONSHIP'}
  const brandImage=document.querySelector('.brand img');if(brandImage){brandImage.onload=()=>brandImage.closest('.brand').classList.toggle('brand-wide',brandImage.naturalWidth/brandImage.naturalHeight>1.6);brandImage.src=tournament.logoUrl||'/brand/logo';brandImage.alt=tournament.name+' Logo'}
  const active=route==='result'?'results':route==='team'?'teams':route==='player'?'players':route;
  ['desktop-nav','mobile-nav'].forEach(id=>$(id).innerHTML=Object.entries(navs).filter(([key])=>key!=='teams'||tournament.type==='team').map(([key,label])=>`<a href="${href(key)}" class="${active===key?'active':''}">${label}</a>`).join(''));
  document.querySelector('.brand').href=href('home');$('event-select').innerHTML=opts(data.tournaments,tournament.id);$('context-info').textContent=`${tournament.season} 赛季 · ${tournament.type==='team'?'团体赛':'个人赛'} · ${tournament.archived?'已归档':tournament.historical?'历史赛事':'进行中'}`;
- document.title=(navs[active]||'赛事详情')+' · 欢雀楼赛事';
+ document.title=(navs[active]||'赛事详情')+' · '+(window.HQL_BRAND?.name||'赛事');
  if(route==='home')home();else if(route==='schedule')schedule();else if(route==='results')results();else if(route==='teams'||route==='players')board();else if(route==='result')resultDetail();else if(route==='team'||route==='player')profile();else $('content').innerHTML=title('未找到页面','请使用顶部导航浏览赛事。');
  if(tournament.archived){const f=tournament.finalStandings;$('content').insertAdjacentHTML('afterbegin',`<section class="card archive-summary"><h2>比赛已归档 · ${esc(f.stageName)}最终排名</h2><div class="final-standings">${f.rows.map(r=>`<div><span>${r.rank} · ${esc(r.name)}</span><strong>${fmt(r.total)} PT</strong></div>`).join('')}</div></section>`)}
  compactFilters();refinePublicLayout();refineProfile();if(typeof refineViewerDesign==='function')refineViewerDesign();bindFixtureCards();alignSchedulePreview();bindResultCards();
@@ -232,8 +232,10 @@ function refinePublicLayout(){
   tools.append(detail);const stageNav=content.querySelector('.stage-nav');const controls=document.createElement('div');controls.className='ranking-controls';if(stageNav){stageNav.before(controls);controls.append(stageNav,tools)}
   const trend=$('all-team-trend');if(trend)tools.prepend(trend);
   table.classList.add('ranking-table');
+  const columnLabels=[...table.querySelectorAll('thead th')].map(cell=>cell.textContent.trim());
   table.querySelectorAll('tr').forEach(row=>[...row.children].forEach((cell,index)=>{
    if(cell.colSpan>1)return;
+   cell.dataset.label=route==='teams'&&index===6?'半庄（已完成 / 总数）':columnLabels[index]||'';
    cell.dataset.column=cell.classList.contains('recent-finishes')||cell.textContent==='近四场顺位'?'recent':String(route==='players'&&index>7?index-1:index);
   }));
   table.querySelectorAll('tr').forEach(row=>{
@@ -352,7 +354,7 @@ function refineProfile(){
  content.append(tabs,...panels.map(x=>x[2]));
  const stageNav=content.querySelector(':scope > .stage-nav');if(stageNav){const controls=document.createElement('div');controls.className='ink-profile-controls';tabs.before(controls);controls.append(stageNav,tabs)}
  const identity=document.createElement('div');identity.className='ink-profile-identity';hero.before(identity);identity.append(hero,core);
- const kicker=hero.querySelector('.eyebrow');if(kicker)kicker.textContent=route==='team'?'欢雀楼 · 队伍资料':'欢雀楼 · 选手资料';
+ const kicker=hero.querySelector('.eyebrow');if(kicker)kicker.textContent=route==='team'?(window.HQL_BRAND?.name||'')+' · 队伍资料':(window.HQL_BRAND?.name||'')+' · 选手资料';
  if(route==='team'){
   tabs.querySelector('[data-profile-tab="members"]').textContent='队伍概览';
   members.classList.add('ink-team-overview');members.querySelector('.section-head h2').textContent='队员';

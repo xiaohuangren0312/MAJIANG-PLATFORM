@@ -1,9 +1,11 @@
+from .roles import venue_admin
+from hql.tenancy import storage_root
 """Validated event-scoped roster images stored on the data disk."""
 import copy,io,uuid,warnings,json,math
 from pathlib import Path
 from PIL import Image,ImageOps,ImageDraw,UnidentifiedImageError
 from django.conf import settings
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.http import JsonResponse,FileResponse,Http404
 from django.shortcuts import get_object_or_404
 from .models import Event,Audit
@@ -28,7 +30,7 @@ def _upload(request,id):
         if d.get('historySnapshot'):
             d['historyCurrent']=copy.deepcopy(d.get('historyCurrent',d['historySnapshot']));source=d['historyCurrent']
         row=find(source['teams' if kind=='team' else 'players'],request.POST.get('entityId'))
-        folder=settings.ENV_ROOT/'uploads'/'roster'/str(e.id);folder.mkdir(parents=True,exist_ok=True)
+        folder=storage_root()/'uploads'/'roster'/str(e.id);folder.mkdir(parents=True,exist_ok=True)
         file=request.FILES.get('image')
         reuse=request.POST.get('reuseSource')=='1'
         if reuse:
@@ -94,7 +96,7 @@ def serve(request,id,name):
                 if not request.user.is_authenticated:raise Http404
                 permitted(e,request.user,kind,row['id']);original_allowed=True
     if name.endswith('_source.png') and not original_allowed:raise Http404
-    if not e.public and not(request.user.is_authenticated and (request.user.is_superuser or e.editors.filter(pk=request.user.pk).exists())):
+    if not e.public and not(request.user.is_authenticated and (venue_admin(request.user) or e.editors.filter(pk=request.user.pk).exists())):
         if not request.user.is_authenticated:raise Http404
         from .coach_profile import permitted,source
         from django.core.exceptions import PermissionDenied
@@ -105,6 +107,6 @@ def serve(request,id,name):
                 try:permitted(e,request.user,kind,row['id']);allowed=True
                 except PermissionDenied:pass
         if not allowed:raise Http404
-    path=settings.ENV_ROOT/'uploads'/'roster'/str(id)/name
+    path=storage_root()/'uploads'/'roster'/str(id)/name
     if not path.is_file():raise Http404
     response=FileResponse(path.open('rb'),content_type='image/png');response['Cache-Control']='private, no-cache';return response

@@ -1,7 +1,7 @@
 """Conservative, signed lifecycle operations; selection completion is not event archival."""
 import copy
 from django.core import signing
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from league.domain import require, find
 from league.models import Event, Audit
 from .models import DraftActivity, DraftAudit

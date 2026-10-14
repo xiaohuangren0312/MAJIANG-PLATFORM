@@ -19,3 +19,6 @@ from league import posters
 urlpatterns += [path('manage/posters/',posters.page),path('api/posters/',posters.events),path('api/posters/<uuid:id>/',posters.detail)]
 
 urlpatterns += [path('api/posters/<uuid:id>/daily/',posters.daily)]
+
+from league.brand import settings_api
+urlpatterns += [path('api/brand/settings/',settings_api)]

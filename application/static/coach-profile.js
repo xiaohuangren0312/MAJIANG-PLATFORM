@@ -1,6 +1,6 @@
 (()=>{
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let current=null,seq=0,busy=false,editor=null,edited=false;
-const csrf=()=>document.cookie.split('; ').find(s=>s.startsWith('csrftoken='))?.split('=')[1]||'';
+const csrf=()=>document.cookie.split('; ').find(s=>s.startsWith((window.HQL_BRAND?.csrfCookie||'csrftoken')+'='))?.split('=')[1]||'';
 function notice(text,error=false){if(editor){const status=editor.querySelector('[data-editor-status]');status.textContent=text;status.classList.toggle('error',error)}$('#message').textContent=text;$('#message').classList.toggle('error',error)}
 async function request(url,body){const multipart=body instanceof FormData;const r=await fetch(url,{cache:'no-store',...(body?{method:'POST',headers:{'X-CSRFToken':csrf(),...(!multipart?{'Content-Type':'application/json'}:{})},body:multipart?body:JSON.stringify(body)}:{})});if(r.status===401){location.href='/login/?next=/coach/profile/';throw Error('请先登录')}if(r.status===413)throw Error('图片过大，请选择较小的图片后重试');let data;try{data=await r.json()}catch(_){throw Error(r.status===403?'登录状态已变化，请刷新页面后重试':'服务暂时无法处理上传，请稍后重试')}if(!r.ok)throw Error(data.error||'操作失败');return data}
 async function prepareImage(file){

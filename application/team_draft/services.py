@@ -2,7 +2,7 @@
 import copy
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.db.models import F
 from django.conf import settings
 from .roster import staged, working, check_baseline

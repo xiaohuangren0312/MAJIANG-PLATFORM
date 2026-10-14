@@ -1,8 +1,9 @@
+from .roles import venue_admin
 """Personalization access is scoped separately from roster competition commands."""
 import copy
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.http import JsonResponse
 from django.shortcuts import render,get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -43,7 +44,7 @@ def events(request):
     require(request.method=='GET','请求方法不支持')
     rows=[]
     for e in Event.objects.prefetch_related('editors','draft_activities'):
-        if e.document.get('archive') or (e.document.get('archiveRevision') and not request.user.is_superuser):continue
+        if e.document.get('archive') or (e.document.get('archiveRevision') and not venue_admin(request.user)):continue
         if manager(e,request.user) or (not e.document.get('historySnapshot') and team_ids(e,request.user)):
             rows.append({'id':str(e.pk),'name':e.name})
     response=JsonResponse({'events':rows});response['Cache-Control']='no-store';return response

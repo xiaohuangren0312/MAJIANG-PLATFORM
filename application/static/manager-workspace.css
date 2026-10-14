@@ -10,3 +10,102 @@
 [hidden]{display:none!important}.workspace-player-row{cursor:pointer}.workspace-player-row:hover{background:#f0f2e9}.workspace-access .card:has(#workspace-accounts){min-width:0}
 .management-page #content .fixture-group,.management-page #content .workspace-detail,.management-page #content .workspace-settlement-table{padding:0}.management-page #content .workspace-fixture.ui-button{background:transparent;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--line);border-radius:0}.management-page #content .workspace-fixture.selected.ui-button{background:#edf1e7;border-left-color:#516b52}.management-page #content .workspace-team.ui-button{background:transparent;border:0;border-left:3px solid transparent}.management-page #content .workspace-team.selected.ui-button{background:#eaf0e4;border-left-color:#526d51}.management-page #content .workspace-team-list{padding:14px 0}.management-page #content .workspace-detail .workspace-section-head h2,.management-page #content .fixture-group .workspace-section-head h2{margin:0}.management-page #content .workspace-detail .workspace-section-head{padding:18px 20px}.management-page #content .workspace-metrics .card{margin:0;padding:20px 24px}.management-page #content .workspace-detail .resource-editor-panel{position:static;inset:auto;max-height:none;height:auto;border:0;box-shadow:none}.management-page #content .workspace-tabs .selected.ui-button{color:#304d3c}.management-page #content .workspace-detail .workspace-savebar .primary,.management-page #content .workspace-toolbar .primary,.management-page #content .workspace-savebar .primary{background:#304d3c;border-color:#304d3c;color:white}.management-page #content .workspace-score-footer{padding-top:12px}.management-page #content .workspace-lineup-actions[hidden]{display:none!important}
 @media(min-width:1101px){.management-page .workspace>main{padding-top:20px}.management-page #content>.admin-page-heading{min-height:102px;margin-bottom:16px;padding-top:14px;padding-bottom:16px}.management-page #content .schedule-toolbar{margin:12px 0 18px;padding:10px 14px}.management-page #content .schedule-toolbar>label{font-size:0;line-height:0}.management-page #content .schedule-toolbar input,.management-page #content .schedule-toolbar select{font-size:14px;line-height:1.5;margin:0}.management-page #content .workspace-detail .workspace-seat-mini>div{padding:10px;gap:2px}.management-page #content .workspace-detail .workspace-seat-mini strong{font-size:16px}.management-page #content .workspace-detail .workspace-facts{gap:7px;margin:14px 0;font-size:12px}.management-page #content .workspace-detail .workspace-savebar{padding-top:12px;margin-top:12px}.management-page #content .workspace-detail #workspace-tab-body{padding:16px}.management-page #content .workspace-team.ui-button{padding-top:10px;padding-bottom:10px}.management-page #content .workspace-settlement-settings{padding:16px 22px}.management-page #content .workspace-settlement-table th,.management-page #content .workspace-settlement-table td{padding:10px 12px}}
+
+/* Inline venue logo editor, scoped to avoid altering other dialogs. */
+.venue-logo-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:24px;box-sizing:border-box;border:1px solid #ded6c9;border-radius:14px;background:#fffdf8;color:#29372f;box-shadow:0 20px 70px #17251e33}
+.venue-logo-dialog::backdrop{background:#18251f66}
+.venue-logo-dialog form{margin:0;padding:0;border:0}
+.venue-logo-dialog h2{margin:0 0 10px;font-size:22px}
+.venue-logo-impact{font-size:13px;color:#796e5d;line-height:1.7;margin:0 0 20px}
+.venue-logo-picker{display:flex;align-items:center;gap:18px}
+.venue-logo-picker img{flex:0 0 88px;object-fit:contain;border:1px solid #e4ddd1;border-radius:10px;background:#fff}
+.venue-logo-picker label{flex:1;min-width:0;margin:0}
+.venue-logo-picker input{max-width:100%;box-sizing:border-box}
+.venue-logo-picker small{display:block;color:#887c69;margin-top:7px}
+.venue-logo-dialog .actions{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #e8dfd1;padding-top:18px;margin-top:22px}
+.venue-logo-dialog .actions button{min-height:40px;min-width:90px;margin:0}
+.venue-logo-error{color:#ab382c;font-size:13px}
+.event-logo-preview{flex-wrap:wrap;gap:12px}
+@media(max-width:520px){.venue-logo-dialog{padding:20px}.venue-logo-picker{align-items:flex-start;flex-direction:column}.venue-logo-picker label{width:100%}}
+
+/* Rules: keep editing and versions side by side within the desktop viewport. */
+.rules-workspace{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr);gap:16px;align-items:stretch}
+.rules-workspace>.card{margin:0;min-width:0;padding:22px}
+.rules-workspace h2{font-size:19px;margin:0 0 18px}
+.rules-library{padding:0 0 18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.rules-library form{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;margin:0;padding:0;border:0}
+.rules-library label,.rules-library select{margin:0}.rules-library label{white-space:nowrap}
+.rules-editor #rule-form{margin:0;padding:0;border:0}.rules-editor label{margin:0 0 16px}
+.rules-editor input{min-height:40px;margin:5px 0 0}
+.rules-points{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.rules-bonuses{border:0;margin:0;padding:0;min-width:0}
+.rules-bonuses legend{font-size:13px;padding:0;margin-bottom:8px}
+.rules-bonuses>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.rules-bonuses label{font-weight:400;margin-bottom:0}
+.rules-savebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:22px;padding-top:16px}
+.rules-savebar>div{display:flex;gap:8px;flex-wrap:wrap}.rules-savebar button{margin:0;min-height:40px;padding:8px 14px}
+.rules-version-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.rules-version-heading h2{margin:0}
+.rules-versions{display:flex;flex-direction:column;max-height:max(450px,calc(100dvh - 260px))}
+.rules-version-list{overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-gutter:stable;padding-right:4px}
+.rules-version-item{padding:16px;border:1px solid var(--line);border-radius:8px;background:#fdfbf6;margin-bottom:12px}.rules-version-item:last-child{margin-bottom:0}
+.rules-version-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rules-version-title strong{flex:1;min-width:100px;overflow-wrap:anywhere;font-size:14px}.rules-version-title>small{color:#98713f;font-size:12px}.rules-version-title button{padding:5px 10px;min-height:32px;font-size:12px}
+.rules-version-points{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.rules-version-points strong,.rules-version-points small{display:block}.rules-version-points strong{font-size:14px;font-weight:500}
+.rules-version-bonuses{padding-top:12px;border-top:1px solid var(--line)}.rules-version-bonuses>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}.rules-version-bonuses strong,.rules-version-bonuses small{display:block}.rules-version-bonuses strong{font-size:14px;font-weight:500}
+@media(min-width:1101px){#content[data-layout-page="rules"]>.admin-page-heading{min-height:92px;margin-bottom:16px;padding-top:10px;padding-bottom:12px}}
+@media(min-width:1101px) and (max-height:800px){.rules-workspace>.card{padding:18px}.rules-workspace h2{margin-bottom:12px}.rules-library{padding-bottom:12px;margin-bottom:12px}.rules-editor label{margin-bottom:12px}.rules-bonuses label{margin-bottom:0}.rules-savebar{margin-top:16px;padding-top:12px}.rules-versions{max-height:calc(100dvh - 245px)}}
+@media(max-width:1100px){.rules-workspace{grid-template-columns:minmax(0,1fr)}.rules-versions{max-height:440px}}
+@media(max-width:520px){.rules-workspace>.card{padding:16px}.rules-library form{grid-template-columns:minmax(0,1fr) auto;gap:8px}.rules-library label{grid-column:1/-1}.rules-bonuses>div{grid-template-columns:repeat(2,minmax(0,1fr))}.rules-savebar>small{width:100%}.rules-savebar>div{width:100%;display:grid;grid-template-columns:1fr 1fr}.rules-savebar button{padding:8px}.rules-points{gap:12px}.rules-version-title strong{min-width:120px}}
+
+/* Override shared form enhancement for the compact rule-library toolbar. */
+.management-page #content #select-rule-template{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.management-page #content #select-rule-template label{margin:0}
+.management-page #content #select-rule-template .form-actions{margin:0;padding:0;border:0;grid-column:auto;display:flex}
+.management-page #content #select-rule-template .form-actions button{margin:0;min-width:72px}
+@media(max-width:520px){.management-page #content #select-rule-template{grid-template-columns:minmax(0,1fr) auto;gap:8px}.management-page #content #select-rule-template label{grid-column:1/-1}}
+
+/* Compact, single-expanded rule versions. */
+.management-page #content .rules-version-item{padding:0;margin:0 0 8px;border-radius:8px}
+.rules-version-summary{display:flex;align-items:center;gap:9px;padding:12px;cursor:pointer;list-style:none}
+.rules-version-summary::-webkit-details-marker{display:none}
+.rules-version-summary:focus-visible{outline:2px solid #a94b37;outline-offset:-2px;border-radius:8px}
+.rules-version-name{flex:1;min-width:0}.rules-version-name strong{display:block;font-size:14px;overflow-wrap:anywhere}.rules-version-name small{display:block;font-size:11px;margin-top:5px;color:#887b67}
+.rules-latest{font-size:11px;color:#98713f;white-space:nowrap}.rules-version-chevron{color:#897e69;transition:transform .15s}.rules-version-item[open] .rules-version-chevron{transform:rotate(180deg)}
+.rules-version-item[open]{border-color:#c9bda5;background:#fffdf8}.rules-version-body{padding:0 12px 12px}.rules-version-body .rules-version-bonuses{padding-top:10px}
+.rules-version-actions{display:flex;justify-content:flex-end;margin-top:12px}.rules-version-actions button{min-height:30px;padding:4px 9px;font-size:12px}
+
+/* Balance editor and readable rule values. */
+@media(min-width:1101px){.rules-workspace{grid-template-columns:minmax(340px,.85fr) minmax(0,1.15fr)}}
+.rules-version-name strong{font-size:16px;line-height:1.45}
+.rules-version-name small{font-size:14px;line-height:1.6;color:#655e51;font-weight:400;font-variant-numeric:tabular-nums}
+.rules-version-summary{padding:12px 14px;gap:12px}
+.rules-version-body{padding:0 14px 14px}
+.rules-version-body .rules-version-bonuses>small{font-size:13px;color:#655e51}
+.rules-version-body .rules-version-bonuses strong{font-size:20px;font-weight:600;line-height:1.5;font-variant-numeric:tabular-nums;color:#29372f}
+.rules-version-body .rules-version-bonuses small{font-size:13px}
+.rules-version-body .rules-version-bonuses>div{gap:12px;margin-top:10px}
+.rules-version-actions{margin-top:10px}
+
+/* Balance editor and version readability. */
+@media(min-width:1101px){.rules-workspace{grid-template-columns:minmax(360px,1fr) minmax(390px,1.15fr)}}
+.rules-version-name strong{font-size:16px;line-height:1.5}
+.rules-version-name small{font-size:14px;line-height:1.5;color:#665d50;font-weight:400}
+.rules-version-summary{padding:13px 14px}
+.rules-version-body .rules-version-bonuses>small{font-size:13px;color:#665d50}
+.rules-version-body .rules-version-bonuses>div small{font-size:13px;color:#665d50}
+.rules-version-body .rules-version-bonuses>div strong{font-size:20px;font-weight:600;line-height:1.6;font-variant-numeric:tabular-nums}
+@media(max-width:520px){.rules-version-name strong{font-size:15px}.rules-version-name small{font-size:12px}.rules-version-body .rules-version-bonuses>div strong{font-size:18px}}
+
+.rules-return-hint{display:block;margin-top:6px;font-size:12px;font-weight:400;color:#776b58;line-height:1.5}.rules-formula{font-size:12px;color:#776b58;line-height:1.7;margin:0 0 14px}
+
+/* Visible comparison: every version keeps its four placement scores in view. */
+@media(min-width:1101px){.rules-workspace{grid-template-columns:minmax(300px,.8fr) minmax(0,1.4fr)}.rules-editor .rules-bonuses>div{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rules-comparison{width:100%;table-layout:fixed;border-collapse:collapse;margin:0;font-variant-numeric:tabular-nums}
+.rules-comparison th{position:sticky;top:0;background:#f3f0e8;z-index:1;text-align:left;font-weight:500;color:#756852}
+.rules-comparison th:first-child{width:25%}.rules-comparison th:nth-child(2){width:19%}
+.management-page #content .rules-comparison th,.management-page #content .rules-comparison td{padding:12px 7px;border-bottom:1px solid var(--line);font-size:12px;white-space:normal;overflow-wrap:anywhere}
+.rules-comparison td:first-child strong{display:block;font-size:14px;margin:5px 0;line-height:1.4}.rules-comparison td:first-child small{color:#98713f}
+.rules-comparison td:nth-child(2) span{display:block;line-height:1.8;font-size:14px}
+.management-page #content .rules-comparison td.rules-score{font-size:16px;font-weight:600;white-space:nowrap;padding-left:3px;padding-right:3px}
+.rules-comparison .rules-latest-row{background:#faf5e8}.rules-comparison button{padding:4px;min-height:30px;font-size:12px}
+.rules-versions .rules-version-list{padding:0;overflow:auto}
+@media(max-width:650px){.rules-comparison{min-width:550px}.rules-version-list{max-width:100%}}

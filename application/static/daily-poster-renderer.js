@@ -102,7 +102,7 @@ async function render(data){
    const isMatch=block.type==='matches';heading(c,isMatch?'当日赛果':data.kind==='team'?'队伍排名':'个人排名',y,isMatch?'01':'02',isMatch?'每格：终局点数 / 本场 PT':block.stage.name+' · 当日结束排名');y+=54;
    y=isMatch?matchRows(c,block.rows,y):rankings(c,block.rows,y,block.stage,block.cutoffAtStart);
   }
-  rule(c,L,y+22,R,y+22,'#b8c2af');text(c,'欢雀楼 · 以牌会友',L,y+49,14,480,MUTED,'left',brush);text(c,`hqlmajiang.com${pages.length>1?' · '+(i+1)+' / '+pages.length:''}`,R,y+49,12,450,MUTED,'right','Arial');return el;
+  rule(c,L,y+22,R,y+22,'#b8c2af');text(c,[window.HQL_BRAND?.name,window.HQL_BRAND?.tagline].filter(Boolean).join(' · '),L,y+49,14,480,MUTED,'left',brush);text(c,`${location.host}${pages.length>1?' · '+(i+1)+' / '+pages.length:''}`,R,y+49,12,450,MUTED,'right','Arial');return el;
  });return {canvases,missingImages};
 }
 window.DailyPosterRenderer={render,paginate,orderedMatches};

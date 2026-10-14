@@ -54,3 +54,18 @@ if os.environ.get('HQL_BEHIND_HTTPS_PROXY') == '1':
     CSRF_COOKIE_SECURE = True
 
 DRAFT_ENABLED=os.environ.get('HQL_DRAFT_ENABLED','1')=='1'
+
+# Per-venue databases are explicitly configured outside the release.
+import json as _json
+_venue_file=ENV_ROOT/'config/venues.json'
+VENUES=_json.loads(_venue_file.read_text()) if _venue_file.exists() else {}
+for _v in VENUES.values():
+    if _v['database']!='default':
+        DATABASES[_v['database']]=_v['connection']
+DATABASE_ROUTERS=['hql.tenancy.Router']
+MIDDLEWARE.insert(0,'hql.tenancy.Middleware')
+TEMPLATES[0]['OPTIONS']['context_processors'].append('hql.tenancy.branding')
+
+AUTHENTICATION_BACKENDS=['hql.auth_backend.VenueBackend']
+
+CSRF_FAILURE_VIEW='hql.csrf.failure'

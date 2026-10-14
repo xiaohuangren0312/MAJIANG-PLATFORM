@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let current=null,busy=false;const drafts={};let loadVersion=0;
-async function api(url,body){const csrf=document.cookie.split('; ').find(x=>x.startsWith('csrftoken='))?.split('=')[1];const r=await fetch(url,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-CSRFToken':csrf||''},body:body?JSON.stringify(body):undefined});if(r.status===401){location.href='/login/';throw Error('请先登录')}const d=await r.json();if(!r.ok)throw Error(d.error||'加载失败');return d}
+async function api(url,body){const csrf=document.cookie.split('; ').find(x=>x.startsWith((window.HQL_BRAND?.csrfCookie||'csrftoken')+'='))?.split('=')[1];const r=await fetch(url,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-CSRFToken':csrf||''},body:body?JSON.stringify(body):undefined});if(r.status===401){location.href='/login/';throw Error('请先登录')}const d=await r.json();if(!r.ok)throw Error(d.error||'加载失败');return d}
 function message(s){$('#message').textContent=s}
 async function load(){const version=++loadVersion,key=$('#archive').value;$('#issues').textContent='正在加载…';$('#import-actions').innerHTML='';const data=await api('/api/history-reviews/'+encodeURIComponent(key)+'/');if(version!==loadVersion)return;current=data;$('#stage').innerHTML='<option value="">全部阶段</option>'+current.report.stages.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');render()}
 function render(){

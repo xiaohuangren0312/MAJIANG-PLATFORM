@@ -8,6 +8,7 @@ from .models import Event,Audit
 from .domain import initial
 from .projection import public_event
 
+@override_settings(VENUES={})
 class EventBrandTests(TestCase):
  def setUp(self):
   tmp=self.enterContext(tempfile.TemporaryDirectory(dir='/data/majiang/dev/tmp'))

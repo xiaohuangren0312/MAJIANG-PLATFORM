@@ -1,8 +1,9 @@
+from hql.tenancy import storage_root
 from .domain import optional_note
 """Final standings snapshot and isolated, backed-up test tournament cleanup."""
 import copy,json,hashlib
 from django.conf import settings
-from django.db import transaction
+from hql import tenant_transaction as transaction
 from django.utils import timezone
 from .domain import require,label,eligible_ids
 from .projection import statistics,public_event
@@ -49,7 +50,7 @@ def cleanup_event(event_id,revision,name,reason,actor):
         audits=list(Audit.objects.filter(event=e).order_by('revision').values())
         backup=dict(event=dict(id=str(e.pk),name=e.name,kind=e.kind,public=e.public,isTest=e.is_test,revision=e.revision,document=e.document,editors=list(e.editors.values_list('pk',flat=True))),audits=audits)
         raw=json.dumps(backup,ensure_ascii=False,default=str,sort_keys=True).encode()
-        folder=settings.ENV_ROOT/'backups'/'test-cleanup';folder.mkdir(parents=True,exist_ok=True)
+        folder=storage_root()/'backups'/'test-cleanup';folder.mkdir(parents=True,exist_ok=True)
         path=folder/(str(e.pk)+'-r'+str(e.revision)+'.json')
         # Complete a durable backup before removing active rows; failed writes abort deletion.
         import os

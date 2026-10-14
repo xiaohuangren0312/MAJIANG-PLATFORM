@@ -184,3 +184,38 @@ body[data-public-page] .viewer-table>header .viewer-live-pending,body[data-publi
  .viewer-spotlight-stats strong{font-size:29px}
  .spotlight-recent b{width:32px;height:38px;font-size:24px}
 }
+
+/* Schedule typography preview: open columns and consistent team labels. */
+@media(min-width:761px){
+ #content .refined-schedule .schedule-lineup[data-lineup-mode=team]{align-items:start!important}
+ #content .refined-schedule .schedule-lineup[data-lineup-mode=team] .schedule-slot{border-left:0;padding:0 3px}
+ #content .refined-schedule .schedule-lineup[data-lineup-mode=team] .schedule-contender{gap:8px!important}
+ #content .refined-schedule .schedule-lineup[data-lineup-mode=team] .schedule-contender strong{font:400 13px/1.45 'Microsoft YaHei','PingFang SC',Arial,sans-serif!important;min-height:38px;overflow-wrap:anywhere}
+}
+
+/* Mobile ranking: identity and score first, labelled statistics underneath. */
+@media(max-width:640px){
+ #content .ranking-table:not(.ranking-expanded){padding:0;overflow:visible}
+ #content .ranking-table:not(.ranking-expanded) table,#content .ranking-table:not(.ranking-expanded) tbody{display:block;width:100%;min-width:0}
+ #content .ranking-table:not(.ranking-expanded) thead{display:none}
+ #content .ranking-table:not(.ranking-expanded) tbody>tr{display:grid;grid-template-columns:24px repeat(5,minmax(0,1fr));gap:8px 6px;padding:14px 10px;border-bottom:1px solid #e7e0d5}
+ #content .ranking-table:not(.ranking-expanded) tbody>tr:last-child{border-bottom:0}
+ #content .ranking-table:not(.ranking-expanded) td{height:auto;width:auto;min-width:0;padding:0;border:0;position:static;background:transparent;text-align:left;white-space:normal}
+ #content .ranking-table:not(.ranking-expanded) .compact-rank{display:block;grid-column:1;grid-row:1;padding-top:8px;width:auto;text-align:center}
+ #content .ranking-table:not(.ranking-expanded) td[data-column="0"]{display:block;grid-column:2/5;grid-row:1}
+ #content .ranking-table:not(.ranking-expanded) td[data-column="1"]{display:flex;grid-column:5/7;grid-row:1;justify-content:flex-end;align-items:center;font-size:18px;white-space:nowrap}
+ #content .ranking-table:not(.ranking-expanded) .identity{display:flex;min-width:0;gap:8px;align-items:center}
+ #content .ranking-table:not(.ranking-expanded) .identity>strong{display:block;overflow:visible;min-width:0;font-size:13px;line-height:1.5;-webkit-line-clamp:unset;overflow-wrap:anywhere}
+ #content .ranking-table:not(.ranking-expanded) .identity>strong .ranking-team{display:block!important;font-size:10px;line-height:1.5;font-weight:400;margin-top:3px}
+ #content .ranking-table:not(.ranking-expanded) .identity>strong .badge{display:inline-block}
+ #content .ranking-table:not(.ranking-expanded) td:is([data-column="2"],[data-column="3"],[data-column="4"],[data-column="6"],[data-column="7"],[data-column="recent"]){font-size:12px;line-height:1.5}
+ #content .ranking-table:not(.ranking-expanded) td:is([data-column="2"],[data-column="3"],[data-column="4"],[data-column="6"],[data-column="7"],[data-column="recent"]):before{content:attr(data-label);display:inline;margin-right:7px;font-size:10px;color:#8a8175;font-weight:400}
+ body[data-public-page=teams] #content .ranking-table:not(.ranking-expanded) td[data-column="2"],body[data-public-page=teams] #content .ranking-table:not(.ranking-expanded) td[data-column="4"]{display:block;grid-column:2/4}
+ body[data-public-page=teams] #content .ranking-table:not(.ranking-expanded) td[data-column="3"],body[data-public-page=teams] #content .ranking-table:not(.ranking-expanded) td[data-column="6"]{display:block;grid-column:4/7;text-align:right}
+ body[data-public-page=players] #content .ranking-table:not(.ranking-expanded) td[data-column="6"]{display:block;grid-column:2/4;grid-row:2}
+ body[data-public-page=players] #content .ranking-table:not(.ranking-expanded) td[data-column="7"]{display:block;grid-column:4/7;grid-row:2;text-align:right}
+ #content .ranking-table:not(.ranking-expanded) td[data-column="recent"]{display:block!important;grid-column:2/7;grid-row:3;min-width:0;white-space:normal}
+ #content .ranking-table:not(.ranking-expanded) .qualification-divider{display:block;background:#f6f1e3;padding:9px 12px}
+ #content .ranking-table:not(.ranking-expanded) .qualification-divider td{display:block;font-size:11px;border:0!important}
+ #content .ranking-expanded .identity>strong .ranking-team{display:block!important}
+}

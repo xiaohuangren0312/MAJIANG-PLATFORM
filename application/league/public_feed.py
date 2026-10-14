@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.cache import get_conditional_response
 from .models import Event, HistoricalArchive
+from hql.tenancy import database
 from .projection import public_event, rank_metrics
 
 _lock = threading.Lock()
@@ -22,17 +23,18 @@ def response(request):
     now = timezone.now()
     disclosure = [[visible(e.document, m, s, now) for m in e.document.get('matches', [])
                    if m.get('state') != 'cancelled' for s in m.get('seats', [])] for e in events]
-    source = [(str(e.pk), e.name, e.kind, e.document) for e in events]
+    source = [(str(e.pk), e.name, e.kind, e.document, e.created_at.isoformat()) for e in events]
+    default_id = next((str(e.pk) for e in reversed(events) if not e.document.get("archive") and not e.document.get("archiveRevision")), None)
     live_tick = int(time.time() // 20) if any(e.document.get('tableLive') for e in events) else None
-    key = hashlib.sha256(json.dumps([source, [(a.pk, a.payload) for a in archives], disclosure, live_tick],
+    key = hashlib.sha256(json.dumps([database(), source, [(a.pk, a.payload) for a in archives], disclosure, live_tick],
                                    sort_keys=True, ensure_ascii=False).encode()).digest()
     # One build per worker at a time; retain only the latest public snapshot.
     with _lock:
         if _cached is None or _cached[0] != key:
             tournaments = [public_event(e) for e in events] + [rank_metrics(a.payload) for a in archives]
             content = json.dumps(tournaments, ensure_ascii=False, separators=(',', ':'))
-            etag = '"' + hashlib.sha256(content.encode()).hexdigest() + '"'
-            payload = ('{"demo":false,"updatedAt":' + json.dumps(now.isoformat()) + ',"tournaments":' + content + '}').encode()
+            etag = '"' + hashlib.sha256((str(default_id)+content).encode()).hexdigest() + '"'
+            payload = ('{"defaultEventId":'+json.dumps(default_id)+',"demo":false,"updatedAt":' + json.dumps(now.isoformat()) + ',"tournaments":' + content + '}').encode()
             _cached = (key, etag, payload)
         _, etag, payload = _cached
     result = HttpResponse(payload, content_type='application/json')

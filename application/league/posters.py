@@ -1,3 +1,4 @@
+from .roles import venue_admin
 """Read-only, manager-scoped lineup poster data. Never publishes a lineup."""
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -19,7 +20,7 @@ def response(data):
 @require_GET
 @never_cache
 def page(request):
-    if not request.user.is_superuser and not allowed(request.user).exists():
+    if not venue_admin(request.user) and not allowed(request.user).exists():
         raise PermissionDenied("仅赛事管理员可生成海报")
     return render(request,"posters.html")
 

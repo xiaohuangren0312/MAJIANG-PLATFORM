@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .domain import initial,apply
 from .models import Event
+@override_settings(VENUES={})
 class MediaTests(TestCase):
  def test_upload_permissions_and_projection(self):
   from .projection import public_event

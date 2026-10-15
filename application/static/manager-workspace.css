@@ -244,3 +244,13 @@
 
 .overview-task-icon svg{width:25px;height:25px;vertical-align:middle}.overview-stage-icon svg{width:25px;height:25px}
 @media(min-width:1101px){.management-page #content .overview-heading{min-height:164px}.overview-stage-line:has(.overview-stage-pill:nth-of-type(2)) .overview-stage-track{display:flex;grid-row:2}.overview-settings-hub .overview-stage-line:has(.overview-stage-pill:nth-of-type(2))>p{grid-row:1}}
+
+/* Title and actions share a baseline; narrow screens get a separate action row. */
+.management-page #content>.admin-page-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-content:center;align-items:center;column-gap:24px;row-gap:8px;padding:20px 18px;box-sizing:border-box}
+.management-page #content>.admin-page-heading>small{grid-column:1;grid-row:1;margin:0}
+.management-page #content>.admin-page-heading>h1{grid-column:1;grid-row:2;min-width:0}
+.management-page #content>.admin-page-heading>.admin-page-actions{grid-column:2;grid-row:2;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0;flex-wrap:wrap}
+.management-page #content>.admin-page-heading>.admin-page-actions:empty{display:none}
+.management-page #content>.admin-page-heading .admin-tool-panel>summary{min-height:40px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;white-space:nowrap}
+.management-page #content>.admin-page-heading .admin-page-actions>button,.management-page #content>.admin-page-heading .admin-page-actions>a{margin:0;min-height:40px;box-sizing:border-box}
+@media(max-width:850px){.management-page #content>.admin-page-heading{grid-template-columns:minmax(0,1fr);padding:18px 12px;row-gap:10px}.management-page #content>.admin-page-heading>.admin-page-actions{grid-column:1;grid-row:3;justify-content:flex-start;margin-top:4px;gap:8px}.management-page #content>.admin-page-heading .admin-tool-panel>summary{white-space:normal}}

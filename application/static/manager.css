@@ -363,3 +363,25 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .profile-page>header .admin-brand-logo{width:64px;flex-shrink:0}
 .profile-page>header .manage-account{flex-shrink:0}
 }
+
+/* Continuous ink headers: soften beneath text, retain the panorama across the row. */
+.management-page #content .admin-page-heading,
+.management-page #content .overview-heading,
+.poster-page .poster-heading,
+.lineup-page main>h1,
+.profile-page main>h1{
+ background-image:linear-gradient(90deg,rgba(245,242,234,.88) 0%,rgba(245,242,234,.66) 30%,rgba(245,242,234,.28) 66%,rgba(245,242,234,.08) 100%),url('/assets/matchday-landscape.png');
+ background-size:100% 100%,cover;
+ background-position:center,center 64%;
+ background-repeat:no-repeat;
+}
+@media(max-width:850px){
+ .management-page #content .admin-page-heading,
+ .management-page #content .overview-heading,
+ .poster-page .poster-heading,
+ .lineup-page main>h1,
+ .profile-page main>h1{
+  background-image:linear-gradient(90deg,rgba(245,242,234,.9),rgba(245,242,234,.55)),url('/assets/matchday-landscape.png');
+  background-size:100% 100%,cover;
+ }
+}

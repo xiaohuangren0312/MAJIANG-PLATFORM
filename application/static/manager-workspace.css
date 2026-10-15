@@ -213,7 +213,7 @@
 @media(min-width:1101px){
 .management-page .workspace{grid-template-columns:264px minmax(0,1fr)}
 .management-page .workspace>main{padding:20px 22px 24px}
-.management-page #content .overview-heading{min-height:184px;margin-bottom:20px;padding:20px 18px 24px;position:relative;background-image:linear-gradient(90deg,#f5f2ea 30%,transparent 65%),url('/assets/matchday-landscape.png');background-size:auto,720px auto;background-position:center,right center;background-repeat:no-repeat}
+.management-page #content .overview-heading{min-height:184px;margin-bottom:20px;padding:20px 18px 24px;position:relative;background-image:linear-gradient(90deg,rgba(245,242,234,.88),rgba(245,242,234,.66) 30%,rgba(245,242,234,.28) 66%,rgba(245,242,234,.08)),url('/assets/matchday-landscape.png');background-size:100% 100%,cover;background-position:center,center 64%;background-repeat:no-repeat}
 .management-page #content .overview-heading h1{font-size:42px;font-weight:700;letter-spacing:1px}
 .management-page #content .overview-heading p{font-size:16px}
 .overview-dashboard .workspace-metrics{padding:22px 0}

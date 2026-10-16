@@ -148,7 +148,7 @@ function overviewEditPanel(panel,title){
  const dialog=document.createElement('dialog');dialog.className='overview-venue-dialog overview-edit-dialog';dialog.setAttribute('aria-label',title);
  dialog.innerHTML='<div class="overview-hub-title"><h2>'+esc(title)+'</h2><button type="button" class="secondary">关闭</button></div>';
  panel.hidden=false;panel.open=true;dialog.append(panel);document.body.append(dialog);
- dialog.querySelector('button').onclick=()=>dialog.close();dialog.onclose=()=>{parent.insertBefore(panel,next);panel.open=wasOpen;panel.hidden=true;dialog.remove()};dialog.showModal();
+ const closeSettings=async()=>{if(await settingsCanLeave(dialog))dialog.close()};dialog.querySelector('button').onclick=closeSettings;dialog.addEventListener('cancel',e=>{e.preventDefault();closeSettings()});settingsTrack();dialog.onclose=()=>{parent.insertBefore(panel,next);panel.open=wasOpen;panel.hidden=true;dialog.remove()};dialog.showModal();
 }
 function workspaceOverviewSettings(){
  const host=document.querySelector('.workspace-dashboard-grid');if(!host)return;

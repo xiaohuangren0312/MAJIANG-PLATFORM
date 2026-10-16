@@ -51,3 +51,26 @@ function workspaceRestorePosterContext(){
  requestAnimationFrame(()=>window.scrollTo(0,Math.max(0,Number(ctx.scroll)||0)));
  }catch(_){}
 }
+
+const settingsDrafts=new WeakMap();
+const settingsFormSelector='#rule-form,[data-stage-edit],#venue-settings-form';
+function settingsValues(f){return [...f.elements].filter(x=>x.name&&!['submit','button','file','hidden'].includes(x.type)).map(x=>({name:x.name,value:x.value,checked:x.checked}));}
+function settingsChanged(f){const s=settingsDrafts.get(f);return !!s&&JSON.stringify(settingsValues(f))!==JSON.stringify(s.values);}
+function settingsAccept(f){const s=settingsDrafts.get(f);if(s){s.values=settingsValues(f);settingsStatus(f);}}
+function settingsStatus(f){const s=settingsDrafts.get(f);if(!s)return;const changed=settingsChanged(f);s.note.hidden=!changed&&!s.busy;s.note.textContent=s.busy?'正在保存…':'有未保存的修改';s.note.dataset.busy=String(s.busy);}
+function settingsTrack(){document.querySelectorAll(settingsFormSelector).forEach(f=>{if(settingsDrafts.has(f))return;const note=document.createElement('p');note.className='settings-draft-status';note.setAttribute('role','status');note.hidden=true;f.prepend(note);settingsDrafts.set(f,{values:settingsValues(f),note,busy:false});f.addEventListener('input',()=>settingsStatus(f));f.addEventListener('change',()=>settingsStatus(f));});}
+async function settingsCanLeave(root=document,except=null){
+ const forms=[...root.querySelectorAll(settingsFormSelector)].filter(f=>f!==except);
+ if(forms.some(f=>settingsDrafts.get(f)?.busy)){notice('正在保存，请稍候');return false;}
+ const changed=forms.filter(settingsChanged);if(!changed.length)return true;
+ const accepted=await new Promise(resolve=>{const d=document.createElement('dialog');d.className='settings-discard-dialog';d.setAttribute('aria-label','修改尚未保存');d.innerHTML='<h2>修改尚未保存</h2><p>离开后，这些设置的修改将丢失。</p><div class="actions"><button type="button" class="secondary" data-stay>继续编辑</button><button type="button" class="danger" data-discard>放弃修改并离开</button></div>';let yes=false;d.onclose=()=>{d.remove();resolve(yes)};d.querySelector('[data-stay]').onclick=()=>d.close();d.querySelector('[data-discard]').onclick=()=>{yes=true;d.close()};document.body.append(d);d.showModal();});
+ if(accepted)changed.forEach(f=>{for(const v of settingsDrafts.get(f).values){const el=f.elements.namedItem(v.name);if(el){el.value=v.value;if(['checkbox','radio'].includes(el.type))el.checked=v.checked;}}settingsStatus(f);});return accepted;
+}
+async function settingsSave(f,handler){
+ settingsTrack();const state=settingsDrafts.get(f);if(state?.busy)return;
+ if(state&&!await settingsCanLeave(document,f))return;
+ if(state){state.busy=true;settingsStatus(f);}
+ try{await handler();settingsAccept(f);}finally{if(state){state.busy=false;settingsStatus(f);}}
+}
+document.addEventListener('click',async e=>{const a=e.target.closest('a,[data-page]');if(!a||a.target==='_blank'||![...document.querySelectorAll(settingsFormSelector)].some(f=>settingsChanged(f)||settingsDrafts.get(f)?.busy))return;e.preventDefault();e.stopImmediatePropagation();if(await settingsCanLeave())a.click();},true);
+window.addEventListener('beforeunload',e=>{if([...document.querySelectorAll(settingsFormSelector)].some(f=>settingsChanged(f)||settingsDrafts.get(f)?.busy)){e.preventDefault();e.returnValue='';}});

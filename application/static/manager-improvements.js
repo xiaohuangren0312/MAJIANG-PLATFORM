@@ -32,3 +32,22 @@ function workspaceUndoRemoval(host,row,label){const next=row.nextSibling;row.rem
 function workspaceRetainedPanel(){const saved=workspaceUI.retainedInput;if(!saved||saved.eventId!==event?.id||document.querySelector('.workspace-retained-input'))return;const panel=document.createElement('details');panel.className='card workspace-retained-input';panel.open=true;panel.innerHTML='<summary>更新前的输入 · 请核对后重新填写</summary><dl class="conflict-inputs">'+saved.items.map(x=>`<dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd>`).join('')+'</dl><button type="button" class="secondary">核对完成，关闭</button>';panel.querySelector('button').onclick=()=>{workspaceUI.retainedInput=null;panel.remove()};$('#content').prepend(panel)}
 
 function workspaceEvidenceTime(value){const iso=/^\d{8}T\d{6}Z$/.test(value)?value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6,8)+'T'+value.slice(9,11)+':'+value.slice(11,13)+':'+value.slice(13,15)+'Z':value;const date=new Date(iso);return Number.isNaN(date.getTime())?value:date.toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})}
+
+// Keep navigation context in this tab only; never store scores or drafts.
+document.addEventListener('click',e=>{
+ const a=e.target.closest('a[href]');if(!a||e.defaultPrevented||!event||workspaceUI.dirty||workspaceUI.busy||resourceUI.dirty)return;
+ const url=new URL(a.href,location.href);if(url.origin!==location.origin||url.pathname!=='/manage/posters/')return;
+ const token=typeof crypto.randomUUID==='function'?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>v.toString(16).padStart(2,'0')).join('');
+ try{sessionStorage.setItem('hql-poster-return:'+token,JSON.stringify({at:Date.now(),eventId:event.id,page,opened,filter:scheduleFilter,matchId:workspaceUI.matchId,tab:workspaceUI.tab,scroll:window.scrollY}));url.searchParams.set('returnContext',token);a.href=url.href}catch(_){}
+});
+function workspaceRestorePosterContext(){
+ const url=new URL(location.href),token=url.searchParams.get('returnContext');if(!token||!event)return;
+ url.searchParams.delete('returnContext');history.replaceState(null,'',url);
+ try{const key='hql-poster-return:'+token,ctx=JSON.parse(sessionStorage.getItem(key)||'null');sessionStorage.removeItem(key);
+ if(!ctx||ctx.eventId!==event.id||Date.now()-ctx.at>7200000||!Object.hasOwn(pages,ctx.page))return;
+ workspaceContext();page=ctx.page;opened=event.document.matches.some(m=>m.id===ctx.opened)?ctx.opened:null;
+ scheduleFilter={date:String(ctx.filter?.date||''),query:String(ctx.filter?.query||''),state:['all','draft','published','cancelled'].includes(ctx.filter?.state)?ctx.filter.state:'all',task:Object.hasOwn(workspaceTaskLabels,ctx.filter?.task)?ctx.filter.task:''};
+ workspaceUI.scheduleVisited=true;workspaceUI.matchId=ctx.matchId;workspaceUI.tab=['detail','resources','poster'].includes(ctx.tab)?ctx.tab:'detail';
+ requestAnimationFrame(()=>window.scrollTo(0,Math.max(0,Number(ctx.scroll)||0)));
+ }catch(_){}
+}

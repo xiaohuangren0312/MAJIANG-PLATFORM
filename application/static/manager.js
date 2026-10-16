@@ -17,7 +17,7 @@ async function load(id){
  const next=chosen?await api('/api/events/'+chosen+'/'):null;if(generation!==loadGeneration)return;
  events=listing.events;accountAdmin=listing.canManageAccounts;$('#new-event').hidden=!listing.canCreateEvent;event=next;
  if(event?.managementDocument){event.document=event.managementDocument;delete event.managementDocument;delete event.historyDisplay;}
- $('#events').innerHTML=options(events,chosen);$('#events').value=event?.id||'';refreshEventBrand();render();$('#content').setAttribute('aria-busy','false');
+ $('#events').innerHTML=options(events,chosen);$('#events').value=event?.id||'';refreshEventBrand();workspaceRestorePosterContext();render();$('#content').setAttribute('aria-busy','false');
 }
 async function command(action,b={}){await api('/api/events/'+event.id+'/',{action,revision:event.revision,...b});preview=null;await load(event.id);notice('已保存')}
 function form(id,handler){const f=$('#'+id);if(f)f.onsubmit=async e=>{e.preventDefault();const button=f.querySelector('button[type=submit],button:not([type])');if(button)button.disabled=true;try{await handler(new FormData(f))}catch(e){notice(e.message,true)}finally{if(button)button.disabled=false}}}

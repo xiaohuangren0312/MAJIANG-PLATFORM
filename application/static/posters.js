@@ -1,3 +1,9 @@
+// Shared return navigation for both poster templates.
+(()=>{const params=new URLSearchParams(location.search),token=params.get('returnContext'),back=document.querySelector('.poster-heading a[href="/manage/"]');if(!back||!token)return;
+try{const ctx=JSON.parse(sessionStorage.getItem('hql-poster-return:'+token)||'null');if(!ctx||Date.now()-ctx.at>7200000||ctx.eventId!==params.get('event'))return;
+back.href='/manage/?'+new URLSearchParams({event:ctx.eventId,returnContext:token});back.textContent=ctx.opened?'← 返回比分录入':ctx.page==='schedule'?'← 返回赛程':'← 返回赛事管理';
+document.addEventListener('click',e=>{const a=e.target.closest('.poster-tabs a');if(!a)return;const url=new URL(a.href,location.href);url.searchParams.set('returnContext',token);a.href=url.href});
+}catch(_){} })();
 (()=>{
 'use strict';
 if(new URLSearchParams(location.search).get('type')==='daily')return;

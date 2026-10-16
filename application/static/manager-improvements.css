@@ -27,3 +27,19 @@
 @media(max-width:700px){.management-page #content .overview-tasks:not(:has(.overview-complete)){grid-template-columns:1fr;padding:16px}.management-page #content .overview-tasks .workspace-todo{grid-template-columns:35px minmax(0,1fr) auto;padding:12px}.management-page #content .overview-tasks .workspace-todo>button{grid-column:auto;width:auto}}
 
 .settings-draft-status{padding:10px 14px;margin:0 0 14px;border-left:3px solid #ad7735;background:#faf0dc;color:#78501d;border-radius:6px;font-size:14px}.settings-draft-status[hidden]{display:none}.settings-discard-dialog{width:min(420px,calc(100vw - 40px));padding:24px;border:1px solid #ded4c4;border-radius:14px;background:#fffdf8;color:#293b32}.settings-discard-dialog::backdrop{background:#18251d66}.settings-discard-dialog h2{margin:0 0 12px}.settings-discard-dialog p{color:#756b5c;margin-bottom:24px}.settings-discard-dialog .actions{justify-content:flex-end;gap:10px}
+
+/* Mobile scoring: align inputs and keep all three actions in one row. */
+@media(max-width:650px){
+ .management-page #content.workspace-score .seat label:first-of-type{display:grid;grid-template-rows:minmax(54px,auto) 44px;align-content:start;gap:6px;margin:6px 0 12px;line-height:18px;overflow-wrap:anywhere}
+ .management-page #content.workspace-score .seat label:first-of-type select{margin:0;height:44px;min-width:0}
+ .management-page #content.workspace-score .manual-score-panel{padding:12px}
+ .management-page #content .workspace-score-footer{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 10px calc(10px + env(safe-area-inset-bottom))!important;gap:8px!important}
+ .management-page #content .workspace-score-footer .score-save-status{grid-column:1/-1;gap:8px}
+ .management-page #content .workspace-score-footer .score-save-symbol{width:24px;height:24px;font-size:16px}
+ .management-page #content .workspace-score-footer .score-save-status strong{font-size:15px;line-height:1.4}
+ .management-page #content .workspace-score-footer .score-save-status small{margin-top:1px;line-height:1.4}
+ .management-page #content .workspace-score-footer button{min-width:0;min-height:44px;padding:6px 4px;font-size:12px;line-height:16px;white-space:normal;margin:0}
+ .management-page dialog:not(.workspace-roster-drawer){box-sizing:border-box;max-width:calc(100vw - 24px);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain}
+ .management-page .settings-discard-dialog .actions{display:grid;grid-template-columns:1fr 1fr}
+ .management-page .settings-discard-dialog .actions button{min-height:44px;white-space:normal}
+}

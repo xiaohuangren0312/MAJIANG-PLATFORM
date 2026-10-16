@@ -385,3 +385,12 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
   background-size:100% 100%,cover;
  }
 }
+
+/* Shared avatar/team crop controls: generous touch targets, grouped reset. */
+.logo-editor .logo-editor-heading button{width:44px;min-width:44px;min-height:44px}
+.logo-zoom-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;font-size:13px;color:#655b4c}
+.logo-zoom-heading output{font-variant-numeric:tabular-nums;margin-left:5px}
+.logo-editor .logo-zoom-heading button{min-height:44px;padding:8px 12px;border:1px solid #e2dbd0;border-radius:7px;background:#fffdf8;color:#914332;font-size:13px;box-shadow:none}
+.logo-editor .logo-zoom{margin:4px 0 16px}.logo-editor .logo-zoom button{flex-basis:44px;width:44px;min-width:44px;min-height:44px;border:1px solid #e2dbd0;border-radius:8px;background:#f8f3eb}
+.logo-editor .logo-editor-footer{position:sticky;bottom:-24px;background:#fffdf8;padding:8px 0 12px;z-index:1}.logo-editor .logo-editor-footer>p{margin:0 0 8px;text-align:center;font-size:12px}.logo-editor .logo-editor-actions{border:0;padding:0;gap:12px}.logo-editor .logo-editor-actions [data-cancel]{flex:1}.logo-editor .logo-editor-actions [data-save]{flex:2;min-height:46px}
+@media(max-width:600px){.logo-editor{padding:16px}.logo-editor .logo-editor-footer{bottom:-16px;padding-bottom:max(8px,env(safe-area-inset-bottom))}.logo-editor fieldset{margin-bottom:10px}.logo-editor canvas{max-width:min(310px,38dvh)}}

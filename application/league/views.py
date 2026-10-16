@@ -101,6 +101,17 @@ def events(request):
         Audit.objects.create(event=e,actor=request.user,revision=1,action='create',before={},after=e.document)
     return JsonResponse(summary(e),status=201)
 
+def revision_conflict(e, requested_revision):
+    latest=Audit.objects.filter(event=e,revision__gt=requested_revision if type(requested_revision) is int else 0).select_related('actor').order_by('-revision').first()
+    fields=[]
+    labels={'matches':'对局 / 名单 / 比分 / 解说资料','matchResources':'本场解说 / 视频 / 牌谱','teams':'队伍资料','players':'选手资料','stages':'比赛阶段','rules':'计分规则','settlements':'阶段结算','tableLive':'桌次直播','eventLogo':'赛事 Logo','coachAccounts':'赛事授权'}
+    if latest:
+        before=latest.before.get('document',latest.before);after=latest.after.get('document',latest.after)
+        fields=[label for key,label in labels.items() if before.get(key)!=after.get(key)]
+        if latest.before.get('public')!=latest.after.get('public'):fields.append('公开状态')
+    actions={'score':'保存比分','correct':'更正比分','publish':'发布赛果','match-resources':'保存对局资料','lineup':'更新出战名单'}
+    return JsonResponse({'error':'数据已更新，你的输入已保留，请核对最新版','conflict':{'revision':e.revision,'actor':latest.actor.get_username() if latest else '', 'at':latest.created_at.isoformat() if latest else '', 'action':actions.get(latest.action,'更新赛事') if latest else '', 'fields':fields}},status=409)
+
 @api
 @transaction.atomic
 def event_detail(request,id):
@@ -109,13 +120,14 @@ def event_detail(request,id):
         from .management_projection import document_for
         return JsonResponse({**summary(e,request.user),'document':e.document,'managementDocument':document_for(e),'completed':bool(e.document.get('historySnapshot')),**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
     require(request.method=='POST','请求方法不支持');b=body(request)
-    if b.get('revision')!=e.revision:return JsonResponse({'error':'数据已被修改，请刷新后重试'},status=409)
-    action=b.get('action');authorize(e,request.user,action,backfill=getattr(request,'history_backfill',False));old=e.document;old_public=e.public;grant_user=None
+    action=b.get('action');authorize(e,request.user,action,backfill=getattr(request,'history_backfill',False))
+    if b.get('revision')!=e.revision:return revision_conflict(e,b.get('revision'))
+    old=e.document;old_public=e.public;grant_user=None
     if action in ['team-delete','player-delete','history-roster-delete','coach-manage']:
         linked_activities=list(e.draft_activities.select_for_update())
         fresh=Event.objects.select_for_update().get(pk=e.pk)
         authorize(fresh,request.user,action)
-        if fresh.revision!=e.revision:return JsonResponse({'error':'数据已更新，请刷新后重试'},status=409)
+        if fresh.revision!=e.revision:return revision_conflict(fresh,b.get('revision'))
     if action in ['team-delete','player-delete','history-roster-delete']:
         from .roster_delete import referenced
         require(not any(referenced(a.document,b.get('id')) for a in linked_activities),'名单仍被选人大会引用，请先处理关联活动')
@@ -271,8 +283,9 @@ def event_detail(request,id):
             archive.public=False;archive.save(update_fields=['public'])
         changed=Event.objects.filter(id=e.id,revision=e.revision).update(document=new,public=e.public,revision=F('revision')+1)
         if not changed:
+            response=revision_conflict(Event.objects.get(pk=e.pk),b.get('revision'))
             transaction.set_rollback(True)
-            return JsonResponse({'error':'并发修改冲突，请刷新'},status=409)
+            return response
         if grant_user is not None:
             if b['role']=='revoke':e.editors.remove(grant_user)
             else:e.editors.add(grant_user)
@@ -282,7 +295,7 @@ def event_detail(request,id):
 @require_GET
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
-    require_names={'viewer-design.js','viewer-design.css','coach-navigation.js','manager-workspace.js','manager-workspace.css','manager-resources.js','manager-resources.css','coach-studio.css','daily-poster-renderer.js','daily-posters.js','posters.js','posters.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
+    require_names={'manager-improvements.js','manager-improvements.css','viewer-design.js','viewer-design.css','coach-navigation.js','manager-workspace.js','manager-workspace.css','manager-resources.js','manager-resources.css','coach-studio.css','daily-poster-renderer.js','daily-posters.js','posters.js','posters.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
     require_names.update({'history-backfill.js','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'})

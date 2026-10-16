@@ -22,3 +22,6 @@ urlpatterns += [path('api/posters/<uuid:id>/daily/',posters.daily)]
 
 from league.brand import settings_api
 urlpatterns += [path('api/brand/settings/',settings_api)]
+
+from league import operations_status
+urlpatterns += [path('api/operations/status/',operations_status.status)]

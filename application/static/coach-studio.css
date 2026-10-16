@@ -47,3 +47,5 @@ body.coach-studio{background:#f7f4ed;color:#28362f}.coach-studio>header{padding:
 .coach-form-player::after{display:none}.coach-form-player:nth-child(odd)::after{display:block;content:"";position:absolute;right:0;top:12px;bottom:12px;border-right:1px solid #e6ddce}
 .coach-form-name{font-size:13px}.coach-form-ranks{width:100%;justify-content:flex-start;gap:0}.coach-rank{min-width:24px;min-height:28px;font-size:14px}
 }
+
+.lineup-timing{font-size:13px;line-height:1.7;color:#5a695b;background:#edf2e9;border:1px solid #d9e1d4;border-radius:8px;padding:10px 12px;overflow-wrap:anywhere}.lineup-timing.is-immediate{background:#fcf1df;border-color:#e1c69c;color:#845722}@media(max-width:600px){.lineup-timing{font-size:13px;line-height:1.8}}

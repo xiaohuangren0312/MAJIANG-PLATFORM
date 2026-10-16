@@ -3,6 +3,7 @@ function enforcePermissions(){
  const map={'stage-form':'stage','team-form':'team','player-form':'player','rule-form':'rule','match-form':'match','lineup-form':'lineup','score-form':event.document.matches.find(m=>m.id===opened)?.state==='published'?'correct':'score'};
  Object.entries(map).forEach(([id,action])=>{if(!can(action))document.querySelectorAll('#'+id+' input,#'+id+' select,#'+id+' textarea,#'+id+' button').forEach(el=>el.disabled=true)});
  [['#publish','publish'],['#cancel','cancel'],['#visibility','visibility']].forEach(([selector,action])=>{if($(selector)&&!can(action))$(selector).disabled=true});
+ document.querySelectorAll('[data-stage-edit]').forEach(f=>{if(!can('stage-update')){f.querySelectorAll('input,select,textarea,button').forEach(el=>el.disabled=true);const save=f.querySelector('button');if(save)save.textContent='当前阶段只读';}});
  document.querySelectorAll('[data-edit-team]').forEach(el=>el.disabled=!can('team-update'));document.querySelectorAll('[data-edit-player]').forEach(el=>el.disabled=!can('player-update'));
  let role=$('#current-role');if(!role){role=document.createElement('p');role.id='current-role';$('#nav').before(role)}role.textContent='当前角色：'+({superadmin:'总管理员',venueadmin:'场馆管理员',admin:'赛事管理员'}[event.role]||'未授权');
 }

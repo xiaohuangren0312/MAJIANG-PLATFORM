@@ -86,3 +86,24 @@ class AdminRoleTests(TestCase):
         get_user_model().objects.db_manager('ylg').create_user('platform',password=self.password)
         self.assertEqual(self.login('platform','ylg.test')[1].status_code,200)
         self.assertFalse(get_user_model().objects.using('ylg').get(username='platform').is_superuser)
+
+    def test_role_specific_portals_without_team_assignments(self):
+        # The fixture has a coach assignment, but no actual team exists yet.
+        for name in ['platform','venue','editor']:
+            c,_=self.login(name)
+            html=c.get('/manage/posters/').content.decode()
+            self.assertNotIn('编辑出战名单',html)
+            self.assertIn('海报中心',html)
+        for name in ['coach','viewer']:
+            c,_=self.login(name)
+            self.assertEqual(c.get('/manage/').status_code,302)
+            self.assertEqual(c.get('/manage/posters/').status_code,403)
+
+    def test_archived_event_editor_has_readonly_actions(self):
+        self.event.document['archive']={'done':True}
+        self.event.save()
+        c,_=self.login('editor')
+        result=c.get('/api/events/'+str(self.event.pk)+'/')
+        self.assertEqual(result.status_code,200)
+        self.assertEqual(result.json()['actions'],[])
+        self.assertEqual(c.post('/api/events/'+str(self.event.pk)+'/',{'action':'stage-update','revision':self.event.revision,'id':'missing','name':'blocked'},content_type='application/json').status_code,403)

@@ -49,3 +49,12 @@ body.coach-studio{background:#f7f4ed;color:#28362f}.coach-studio>header{padding:
 }
 
 .lineup-timing{font-size:13px;line-height:1.7;color:#5a695b;background:#edf2e9;border:1px solid #d9e1d4;border-radius:8px;padding:10px 12px;overflow-wrap:anywhere}.lineup-timing.is-immediate{background:#fcf1df;border-color:#e1c69c;color:#845722}@media(max-width:600px){.lineup-timing{font-size:13px;line-height:1.8}}
+
+/* Mobile lineup: retain per-game publishing while keeping selection in view. */
+.lineup-publish-settings{margin:12px 0}.lineup-publish-settings>summary{cursor:pointer;display:flex;justify-content:space-between;gap:12px;color:#766653;font-size:13px;min-height:40px;align-items:center}.lineup-adjust{color:#a44935;white-space:nowrap}.lineup-publish-fields{padding:12px 0}.lineup-publish-settings[open] .lineup-adjust{font-size:0}.lineup-publish-settings[open] .lineup-adjust::after{content:'收起';font-size:13px}
+@media(max-width:600px){
+.coach-studio.lineup-page main>h1{padding:18px 14px;margin-bottom:12px;font-size:24px;background-size:cover}
+.lineup-page main>.grid{padding:10px 14px!important;margin:0 0 12px!important}.lineup-page main>.grid>label{font-size:0;margin:0!important}.lineup-page #lineup-event{font-size:16px;margin:0!important;min-height:42px}.lineup-page .other-matchdays{margin:4px 0 0}.lineup-page .other-matchdays summary{padding:5px 0}
+.lineup-page #next-lineup-reminder{margin:10px 0 12px;padding:12px 14px;gap:6px}.lineup-page #next-lineup-reminder strong{font-size:19px}.lineup-page #next-lineup-reminder strong span{font-size:12px;margin:4px 0 0}.lineup-page #next-lineup-reminder p{margin:4px 0 0;font-size:12px}.lineup-page #next-lineup-reminder.is-current-day button{display:none}
+.lineup-page #lineup-form>.card{padding:16px;margin:0 0 12px}.lineup-page #lineup-form>.card h2{font-size:17px;margin:0 0 8px}.lineup-page #lineup-form>.card>p{margin:6px 0}.lineup-page #lineup-form>.card>.grid{display:block;gap:0}.lineup-page #lineup-form label{margin:6px 0}.lineup-page .lineup-publish-settings{margin:8px 0 0}.lineup-page .lineup-timing{background:none;border:0;padding:0;font-size:12px;line-height:1.6}.lineup-page .lineup-timing.is-immediate{padding:8px;background:#fcf1df}.lineup-page .lineup-publish-fields{padding:4px 0}
+}

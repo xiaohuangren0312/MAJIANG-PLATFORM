@@ -208,6 +208,17 @@ function compactFilters(){
   const summary=document.createElement('summary');summary.textContent='+ 添加筛选条件';summary.setAttribute('aria-label','展开筛选条件');
   const panel=document.createElement('div');panel.className='search-filter-panel';panel.append(...labels);
   apply.textContent='应用筛选';apply.className='button';panel.append(apply);details.append(summary,panel);bar.append(details);
+  summary.addEventListener('click',e=>{
+   if(!matchMedia('(max-width:640px)').matches)return;e.preventDefault();details.open=false;
+   const sheet=document.createElement('dialog');sheet.className='mobile-filter-sheet';sheet.setAttribute('aria-label','筛选条件');
+   const head=document.createElement('div');head.className='mobile-filter-head';const title=document.createElement('h2');title.textContent=route==='schedule'?'筛选赛程':'筛选条件';const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','关闭筛选');head.append(title,close);
+   const body=document.createElement('div');body.className='mobile-filter-body';body.append(...labels);labels.forEach(l=>l.classList.toggle('mobile-date-field',!!l.querySelector('input[type=date]')));
+   const message=$('filter-message'),anchor=message?document.createComment('filter-message'):null;if(message){message.before(anchor);body.append(message)}
+   const foot=document.createElement('div');foot.className='mobile-filter-footer';const clear=document.createElement('button');clear.type='button';clear.textContent='重置';clear.onclick=()=>{body.querySelectorAll('input,select').forEach(c=>{if(c.tagName==='SELECT'){c.selectedIndex=0}else if(c.type==='checkbox'){c.checked=false}else c.value=c.type==='number'?'0':''});if(message)message.textContent=''};
+   apply.textContent='查看结果';apply.setAttribute('aria-label','查看结果');foot.append(clear,apply);sheet.append(head,body,foot);document.body.append(sheet);
+   const restore=()=>{panel.append(...labels,apply);apply.textContent='应用筛选';apply.setAttribute('aria-label','应用筛选');if(anchor){anchor.replaceWith(message)}sheet.remove();summary.focus()};sheet.addEventListener('close',restore,{once:true});close.onclick=()=>sheet.close();sheet.addEventListener('click',ev=>{if(ev.target===sheet){const r=sheet.getBoundingClientRect();if(ev.clientY<r.top||ev.clientX<r.left||ev.clientX>r.right)sheet.close()}});
+   const prior=apply.onclick;apply.onclick=()=>{if(message)message.textContent='';prior();if(!message?.textContent.trim())sheet.close() };sheet.addEventListener('close',()=>{apply.onclick=prior},{once:true});sheet.showModal();close.focus();
+  });
  }
  reset.onclick=()=>{if(location.hash===href(route))render();else navigate(route)};reset.textContent='×';reset.title='重置全部条件';reset.setAttribute('aria-label','重置全部条件');reset.className='search-tool-button';reset.removeAttribute('style');reset.hidden=!chips.childElementCount;bar.append(reset);
  const refresh=document.createElement('button');refresh.type='button';refresh.className='search-tool-button';refresh.textContent='⟳';refresh.title='刷新数据';refresh.setAttribute('aria-label','刷新数据');refresh.onclick=()=>refreshPublicData(true);bar.append(refresh);

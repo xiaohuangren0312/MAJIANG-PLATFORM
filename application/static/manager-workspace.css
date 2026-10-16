@@ -264,3 +264,8 @@
 .management-page #content .workspace-score-footer[data-state=invalid]{background:#fff3ef;border-color:#b84e3d}.workspace-score-footer[data-state=invalid] .score-save-status{color:#a53c2c}
 .management-page #content .workspace-score-footer button:disabled{background:#e8e6e2!important;border-color:#dedbd5!important;color:#98958f!important;opacity:1;cursor:not-allowed}
 @media(max-width:650px){.management-page #content .workspace-score-footer{bottom:8px;padding:12px;gap:8px}.score-save-status{flex-basis:100%;gap:10px}.score-save-status strong{font-size:16px}.workspace-score-footer button{flex:1 1 auto}.score-save-status small{font-size:12px}}
+
+/* Place creation beside the current event instead of an empty footer card. */
+.overview-event-heading>.overview-create-event{margin-left:auto!important;flex-shrink:0}
+.management-page main:has(.overview-settings-hub) #overview-tools{display:none!important}
+@media(max-width:600px){.overview-event-heading>.overview-create-event{margin-left:0!important}.overview-event-heading{gap:10px}}

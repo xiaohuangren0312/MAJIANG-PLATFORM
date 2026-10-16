@@ -117,12 +117,26 @@ function workspaceScore(m){
  lineupCard.classList.add('workspace-lineup-actions');lineupCard.hidden=m.seats.every(s=>s.playerId);lineupCard.querySelector('h2')?.remove();lineup.querySelector('.four')?.remove();f.querySelector('.four').after(lineupCard);
  const submit=f.querySelector('fieldset>button:not([type]),fieldset>button[type=submit]');if(submit){submit.textContent=m.state==='published'?'保存更正并重新发布':'保存草稿';submit.className='secondary';submit.dataset.saveScore='1'}
  const bar=document.createElement('div');bar.className='workspace-score-footer';f.append(bar);
+ const status=document.createElement('div');status.className='score-save-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.innerHTML='<span class="score-save-symbol" aria-hidden="true"></span><div><strong></strong><small></small></div>';bar.append(status);
+ const dirtyNote=$('#score-dirty');dirtyNote.hidden=true;
+ const updateSaveStatus=()=>{
+  const locked=event.document.stages.find(s=>s.id===m.stageId)?.locked,readonly=locked||m.readOnly||m.state==='cancelled';
+  const invalid=$('#workspace-score-total')?.classList.contains('invalid'),changed=workspaceUI.dirty,hasScores=m.seats.every(s=>'score' in s);
+  const lineupChanged=selectors.some((el,i)=>el.value!==(m.seats[i]?.playerId||''));
+  const mode=readonly?'readonly':invalid?'invalid':changed||!hasScores?'dirty':m.state==='published'?'published':'saved';
+  const messages={readonly:['本场只读','阶段已锁定或本场不可编辑。'],invalid:['点数校验未通过',$('#workspace-score-total')?.textContent||'请检查终局点数。'],dirty:[changed?'有未保存的修改':'比分尚未保存',lineupChanged?'请先保存出战名单，再核对并保存比分。':m.state==='published'?'保存更正后将重新发布赛果。':'请先保存草稿，再发布赛果。'],saved:['草稿已保存，尚未发布','确认无误后发布，观众端才会更新。'],published:['赛果已发布','当前显示已发布的比分。']};
+  bar.dataset.state=mode;status.querySelector('strong').textContent=messages[mode][0];status.querySelector('small').textContent=messages[mode][1];status.querySelector('.score-save-symbol').textContent=['saved','published'].includes(mode)?'✓':readonly?'—':'!';
+  if(submit){submit.classList.toggle('primary',mode==='dirty');submit.classList.toggle('secondary',mode!=='dirty');if(readonly)submit.disabled=true}
+  if($('#publish'))$('#publish').disabled=readonly||invalid||changed||!hasScores||lineupChanged||!can('publish');
+ };
+ const statusObserver=new MutationObserver(()=>{if(!f.isConnected){statusObserver.disconnect();return}updateSaveStatus()});statusObserver.observe(dirtyNote,{childList:true,subtree:true,characterData:true});
+
  if(submit)bar.append(submit);
  if(m.state==='draft'){const next=document.createElement('button');next.type='button';next.className='secondary';next.textContent='保存并进入下一场';next.onclick=()=>{if(!f.reportValidity())return;f.dataset.next='1';f.requestSubmit(submit)};bar.append(next);const publish=$('#publish');if(publish){publish.textContent='发布赛果';bar.append(publish);publish.type='button'}}
  const cancel=$('#cancel');if(cancel){const more=document.createElement('details');more.className='workspace-more';more.innerHTML='<summary>更多操作</summary>';more.append(cancel);bar.before(more)}
  const total=document.createElement('div');total.id='workspace-score-total';total.setAttribute('role','status');total.className='workspace-score-total';f.querySelector('.four').after(total);
- const check=()=>{const inputs=[...f.querySelectorAll('[name^=score]')].filter(x=>x.type==='number'),values=inputs.map(x=>x.value===''?NaN:Number(x.value)),sum=values.reduce((a,b)=>a+b,0),target=m.rule.start*4,short=Number.isFinite(sum)&&sum===Math.floor(target/100),valid=values.every(Number.isInteger)&&(sum===target||short);total.classList.toggle('invalid',!valid);total.textContent=!Number.isFinite(sum)?'请补齐四个终局点数':`${valid?'✓ 点数合计正确':'点数合计不符'}　${(short?sum*100:sum).toLocaleString()} / ${target.toLocaleString()}${short?'（省略两位，按 ×100 保存）':!valid?' · 差额 '+(sum-target).toLocaleString():''}`;bar.querySelectorAll('button').forEach(b=>{if(b.id!=='publish')b.disabled=!valid||!can(m.state==='published'?'correct':'score')});};
- f.addEventListener('input',()=>{workspaceUI.dirty=true;check()});selectors.forEach(s=>s.addEventListener('change',()=>{workspaceUI.dirty=true;lineupCard.hidden=false;if($('#publish'))$('#publish').disabled=true;$('#score-dirty').textContent='名单已修改，请先保存出战名单。'}));
+ const check=()=>{const inputs=[...f.querySelectorAll('[name^=score]')].filter(x=>x.type==='number'),values=inputs.map(x=>x.value===''?NaN:Number(x.value)),sum=values.reduce((a,b)=>a+b,0),target=m.rule.start*4,short=Number.isFinite(sum)&&sum===Math.floor(target/100),valid=values.every(Number.isInteger)&&(sum===target||short);total.classList.toggle('invalid',!valid);total.textContent=!Number.isFinite(sum)?'请补齐四个终局点数':`${valid?'✓ 点数合计正确':'点数合计不符'}　${(short?sum*100:sum).toLocaleString()} / ${target.toLocaleString()}${short?'（省略两位，按 ×100 保存）':!valid?' · 差额 '+(sum-target).toLocaleString():''}`;bar.querySelectorAll('button').forEach(b=>{if(b.id!=='publish')b.disabled=!valid||!can(m.state==='published'?'correct':'score')});updateSaveStatus();};
+ f.addEventListener('input',()=>{workspaceUI.dirty=true;check()});selectors.forEach(s=>s.addEventListener('change',()=>{workspaceUI.dirty=true;lineupCard.hidden=false;if($('#publish'))$('#publish').disabled=true;$('#score-dirty').textContent='名单已修改，请先保存出战名单。';updateSaveStatus()}));
  if(workspaceUI.pendingScores?.id===m.id){workspaceUI.pendingScores.values.forEach((value,i)=>{f.elements['score'+i].value=value});workspaceUI.dirty=workspaceUI.pendingScores.dirty;workspaceUI.pendingScores=null;if(workspaceUI.dirty&&$('#publish'))$('#publish').disabled=true;}
  check();
 }

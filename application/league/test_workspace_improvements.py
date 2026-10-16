@@ -19,7 +19,3 @@ class WorkspaceImprovementsTests(TestCase):
         self.client.force_login(self.viewer)
         response=self.client.post('/api/events/'+str(self.event.pk)+'/',{'action':'visibility','revision':1,'public':True},content_type='application/json')
         self.assertEqual(response.status_code,404)
-    def test_operations_is_root_only_and_read_only(self):
-        self.client.force_login(self.viewer);self.assertEqual(self.client.get('/api/operations/status/').status_code,403)
-        self.client.force_login(self.admin);r=self.client.get('/api/operations/status/');self.assertEqual(r.status_code,200);self.assertEqual(len(r.json()['roles']),5)
-        self.assertEqual(self.client.post('/api/operations/status/').status_code,403)

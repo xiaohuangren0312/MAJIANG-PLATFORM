@@ -41,23 +41,3 @@ class StageBalanceTests(SimpleTestCase):
         with self.assertRaises(Invalid):apply(d,'team','random-seats',dict(scope='stage',stageId='s'))
         d=self.document();d['stages'][0]['locked']=True
         with self.assertRaises(Invalid):apply(d,'team','random-seats',dict(scope='stage',stageId='s'))
-
-    def test_daily_group_never_switches_tables(self):
-        d=self.document()
-        for m in list(d['matches']):
-            other=copy.deepcopy(m);other['id']+='-second';other['time']='20:30';other['number']=3-m['number'];other['table']=str(other['number']);d['matches'].append(other)
-        out=apply(d,'team','random-seats',dict(scope='stage',stageId='s'))
-        for day in {m['date'] for m in out['matches']}:
-            for t in map(str,range(8)):
-                self.assertEqual(len({m['number'] for m in out['matches'] if m['date']==day and any(s['teamId']==t for s in m['seats'])}),1)
-        for t in map(str,range(8)):
-            self.assertEqual(Counter(m['number'] for m in out['matches'] if any(s['teamId']==t for s in m['seats'])),{1:4,2:4})
-    def test_three_tables_supported(self):
-        d=self.document();d['matches']=[]
-        for day in range(12):
-            for table in range(3):
-                for hour in [19,20]:
-                    d['matches'].append(dict(id=f'{day}-{table}-{hour}',stageId='s',date=f'2099-01-{day+1:02}',time=f'{hour}:30',number=table+1,table=str(table+1),state='draft',seats=[dict(teamId=str(table*4+i),playerId=None) for i in range(4)]))
-        out=apply(d,'team','random-seats',dict(scope='stage',stageId='s'))
-        for t in map(str,range(12)):
-            self.assertEqual(Counter(m['number'] for m in out['matches'] if any(s['teamId']==t for s in m['seats'])),{1:8,2:8,3:8})

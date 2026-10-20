@@ -10,6 +10,27 @@ def _solve(groups, fixed, teams, labels, target, seed):
     rng = random.Random(seed)
     base = {(t, l): fixed[t, l] for t in teams for l in labels}
     require(all(v <= target for v in base.values()), '已固定场次超过均衡目标，无法完全均分')
+    if all(len(items)==2 for items,_ in groups) and len(groups)<=28:
+        # Exact meet-in-the-middle for daily two-table assignments.
+        keys=list(base);vectors=[]
+        for items,allowed in groups:
+            options=[]
+            for order in [(0,1),(1,0)]:
+                c=Counter((t,allowed[order[i]]) for i,members in enumerate(items) for t in members)
+                options.append(tuple(c[k] for k in keys))
+            vectors.append(options)
+        target_vector=tuple(target-base[k] for k in keys)
+        def enumerate_half(part):
+            states=[(tuple(0 for _ in keys),())]
+            for options in part:
+                states=[(tuple(a+b for a,b in zip(v,option)),bits+(choice,)) for v,bits in states for choice,option in enumerate(options)]
+            return states
+        middle=len(vectors)//2
+        left=dict(enumerate_half(vectors[:middle]))
+        for vector,bits in enumerate_half(vectors[middle:]):
+            need=tuple(a-b for a,b in zip(target_vector,vector))
+            if need in left:return [[0,1] if bit==0 else [1,0] for bit in left[need]+bits]
+        require(False, '保留现有固定场次后，无法同时满足当日固定同桌和各队桌次完全均分；未作修改')
     best = None
     deadline = time.monotonic()+4
     # Each move exchanges two labels within one simultaneous group/game.
@@ -64,18 +85,36 @@ def balance(document, stage_id):
         slots[m['date'],m['time']].append(m)
         if m['id'] not in mutable:
             for w,s in enumerate(m['seats']):fixed_tables[s['teamId'],m['number']]+=1;fixed_winds[s['teamId'],w]+=1
-    table_groups=[];table_rows=[]
-    for key,slot in sorted(slots.items()):
+    for slot in slots.values():
         require(len({m['number'] for m in slot})==len(slot), '现有赛程同一时间桌号重复')
         require(len({s['teamId'] for m in slot for s in m['seats']})==4*len(slot), '同一时间队伍重复参赛')
-        moving=[m for m in slot if m['id'] in mutable]
-        if not moving:continue
-        # Only exchange occupied table labels, preserving empty and fixed tables.
-        labels=[m['number'] for m in moving]
-        table_groups.append(([[s['teamId'] for s in m['seats']] for m in moving],labels));table_rows.append(moving)
+    # A daily four-team group is indivisible: all its half games use one table.
+    days=defaultdict(lambda:defaultdict(list))
+    for m in rows:days[m['date']][tuple(sorted(s['teamId'] for s in m['seats']))].append(m)
+    fixed_tables=Counter();table_groups=[];table_rows=[]
+    for day,groups in sorted(days.items()):
+        participants=[t for group in groups for t in group]
+        require(len(participants)==len(set(participants)), '同一天同一队伍的对手组不一致，请先核对赛程')
+        labels=sorted({m['number'] for group in groups.values() for m in group})
+        require(len(labels)==len(groups), '当日比赛桌数量与队伍组数不一致，请先配置比赛桌')
+        reserved=set();moving_groups=[]
+        for members,group in groups.items():
+            fixed={m['number'] for m in group if m['id'] not in mutable}
+            require(len(fixed)<=1, '同组已有固定场次跨桌，无法在保留战果的同时统一当日桌次')
+            if fixed:
+                number=next(iter(fixed));require(number not in reserved,'不同队伍组已固定到同一张桌');reserved.add(number)
+                for m in group:
+                    if m['id'] in mutable:m['number']=number;m['table']=str(number)
+                    for t in members:fixed_tables[t,number]+=1
+            else:moving_groups.append(group)
+        if not moving_groups:continue
+        allowed=[n for n in labels if n not in reserved]
+        table_rows.append(moving_groups)
+        table_groups.append(([[s['teamId'] for m in group for s in m['seats']] for group in moving_groups],allowed))
     plan=_solve(table_groups,fixed_tables,total,tables,games//len(tables),407)
-    for group,assign,(_,labels) in zip(table_rows,plan,table_groups):
-        for i,m in enumerate(group):m['number']=labels[assign[i]];m['table']=str(m['number'])
+    for groups,assign,(_,labels) in zip(table_rows,plan,table_groups):
+        for i,group in enumerate(groups):
+            for m in group:m['number']=labels[assign[i]];m['table']=str(m['number'])
     moving=[m for m in rows if m['id'] in mutable]
     wind_groups=[([[s['teamId']] for s in m['seats']],list(range(4))) for m in moving]
     plan=_solve(wind_groups,fixed_winds,total,list(range(4)),games//4,911)
@@ -89,6 +128,10 @@ def balance(document, stage_id):
     for m in d['matches']:
         if m['state']=='cancelled':continue
         key=(m['date'],m['time'],m['number']);require(key not in occupied,'调整后与其他场次桌号冲突');occupied.add(key)
+    daily_tables=defaultdict(set)
+    for m in rows:
+        for seat in m['seats']:daily_tables[m['date'],seat['teamId']].add(m['number'])
+    require(all(len(v)==1 for v in daily_tables.values()), '同一比赛日队伍跨桌，校验失败')
     tc=Counter((s['teamId'],m['number']) for m in rows for s in m['seats'])
     wc=Counter((s['teamId'],w) for m in rows for w,s in enumerate(m['seats']))
     require(all(tc[t,n]==games//len(tables) for t in total for n in tables),'桌次校验失败')

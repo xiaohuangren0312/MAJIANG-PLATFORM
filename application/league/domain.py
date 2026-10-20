@@ -103,6 +103,10 @@ def apply(d,kind,action,b):
     require(not d.get('archive'),'赛事已归档，比赛数据不可修改')
     d=copy.deepcopy(d)
     if action=='random-seats':
+        if kind=='team':
+            require(b.get('scope')=='stage', '团体赛请使用阶段均衡分配')
+            from .stage_seats import balance
+            return balance(d,b.get('stageId'))
         from .seat_draw import draw
         draw(d,find(d['matches'],b.get('id')))
         return d

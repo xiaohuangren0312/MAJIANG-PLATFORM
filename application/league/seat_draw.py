@@ -8,6 +8,9 @@ def available(d,m):
     return not d.get('archive') and m['state']=='draft' and not find(d['stages'],m['stageId']).get('locked') and start>timezone.now() and not any('score' in s for s in m['seats']) and not m.get('penalties') and not m.get('yakuman')
 
 def draw(d,m,automatic=False):
+    if all(s.get('teamId') for s in m['seats']):
+        if automatic:return
+        require(False, '团体赛风位提前确定，请使用阶段均衡分配')
     if automatic:
         if m.get('seatDraw') or not all(s.get('playerId') for s in m['seats']) or not available(d,m):return
     else:require(available(d,m),'本场已开赛、录分、取消或阶段锁定，不能随机座位')

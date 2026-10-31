@@ -59,9 +59,38 @@ function refineViewerDesignBase(){
   const upcoming=document.querySelector('.ink-upcoming'),today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Shanghai'});if(upcoming){const matches=tournament.schedule.filter(m=>m.state==='scheduled'&&m.date>=today&&(stage(params)==='all'||m.stageId===stage(params))&&m.players.some(p=>p.teamId===id)).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));upcoming.className='viewer-upcoming';upcoming.innerHTML=matches.length?`<p class="note">${esc(matches[0].date)}</p>${matches.filter(m=>m.date===matches[0].date).map(fixtureCard).join('')}`:empty('暂无已公布的后续赛程')}
  }
 }
+// Player statistics use one stage selector and compact placement counts.
+const playerProfileBase=profile;
+profile=function(){
+ if(route==='player'&&!params.has('stage')){
+  const current=tournament.stages.find(s=>s.id===tournament.currentStage)||tournament.stages.at(-1);
+  if(current)params.set('stage',current.id);
+ }
+ return playerProfileBase();
+};
+function refinePlayerStatistics(){
+ if(route!=='player')return;
+ const selected=stage(params),record=getStats('player',selected,'raw').find(r=>r.id===params.get('id'));
+ const nav=document.querySelector('.ink-profile-controls .stage-nav');
+ if(nav){
+  const label=document.createElement('label');label.className='player-stage-select';label.innerHTML=`<span>阶段</span><select aria-label="统计阶段">${[{id:'all',name:'全部阶段'},...tournament.stages].map(s=>`<option value="${esc(s.id)}" ${selected===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`;
+  label.querySelector('select').onchange=e=>{const q=Object.fromEntries(params);q.stage=e.target.value;q.tab=document.querySelector('.profile-tabs [aria-selected=true]')?.dataset.profileTab||'records';navigate(route,q)};
+  nav.replaceWith(label);
+ }
+ const timeline=document.querySelector('#profile-stats .timeline');
+ if(timeline&&record){
+  if(timeline.previousElementSibling?.classList.contains('section-head'))timeline.previousElementSibling.remove();
+  const strip=document.createElement('section');strip.className='player-place-counts';strip.setAttribute('aria-label','顺位次数');
+  strip.innerHTML=`<h2>顺位次数</h2><div>${(record.places||[0,0,0,0]).map((n,i)=>`<span><small>${i+1}位</small><strong>${Number.isInteger(n)?n:n.toFixed(2)}</strong><small>次</small></span>`).join('')}</div>`;
+  timeline.replaceWith(strip);
+ }
+ if(params.get('tab')==='stats')document.querySelector('[data-profile-tab="stats"]')?.click();
+}
+
 const viewerResultDates=new Map();
 function refineViewerDesign(){
  refineViewerDesignBase();
+ refinePlayerStatistics();
  if(!['schedule','results'].includes(route))return;
  const groups=[...document.querySelectorAll(route==='results'?'.viewer-result-day':'.refined-schedule')];if(!groups.length)return;
  const nav=document.createElement('nav');nav.className='viewer-date-jump';nav.setAttribute('aria-label','跳到比赛日');

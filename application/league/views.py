@@ -285,10 +285,10 @@ def asset(request,name):
     require_names={'viewer-design.js','viewer-design.css','coach-navigation.js','manager-workspace.js','manager-workspace.css','manager-resources.js','manager-resources.css','coach-studio.css','daily-poster-renderer.js','daily-posters.js','posters.js','posters.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
-    require_names.update({'history-backfill.js','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'})
+    require_names.update({'history-backfill.js','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-maple-v2.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'})
     if name not in require_names:raise Http404
     path=settings.BASE_DIR/'static'/name
-    response=FileResponse(path.open('rb'),content_type='image/png' if name in {'table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','team-profile-art.png','player-default.png','leader-flames.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
+    response=FileResponse(path.open('rb'),content_type='image/png' if name in {'table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-maple-v2.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
     response['Cache-Control']='no-cache';return response
 
 @require_GET

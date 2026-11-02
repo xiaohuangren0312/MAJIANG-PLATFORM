@@ -1,3 +1,4 @@
+from .event_tables import catalog, display
 from .domain import optional_note
 import copy
 from fractions import Fraction
@@ -36,11 +37,11 @@ def _public_event(event):
         published=m['state']=='published'
         from .coach_lineups import visible
         disclosed=[visible(d,m,s) for s in m['seats']]
-        schedule.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],table=m['table'],number=m['number'],pairingRound=m.get('pairingRound'),lineupPublished=all(disclosed),seatOrderKnown=bool(m.get("seatDraw") or published),players=[dict(playerId=s['playerId'] if shown else None,teamId=s['teamId'],wind='东南西北'[i],lineupPublished=shown,lineupAssigned=bool(s.get('playerId'))) for i,(s,shown) in enumerate(zip(m['seats'],disclosed))],state='completed' if published else 'cancelled' if m['state']=='cancelled' else 'scheduled',resultId=m['id'] if published else None))
+        schedule.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],table=m['table'],tableName=display(d,m['number']),number=m['number'],pairingRound=m.get('pairingRound'),lineupPublished=all(disclosed),seatOrderKnown=bool(m.get("seatDraw") or published),players=[dict(playerId=s['playerId'] if shown else None,teamId=s['teamId'],wind='东南西北'[i],lineupPublished=shown,lineupAssigned=bool(s.get('playerId'))) for i,(s,shown) in enumerate(zip(m['seats'],disclosed))],state='completed' if published else 'cancelled' if m['state']=='cancelled' else 'scheduled',resultId=m['id'] if published else None))
         if published:
-            results.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],pairingRound=m.get('pairingRound'),table=m['table'],number=m['number'],ruleName=m['rule']['name'],ruleVersion=m['rule']['version'],seats=[dict(copy.deepcopy(seat),wind='东南西北'[i]) for i,seat in enumerate(m['seats'])],penalties=copy.deepcopy(m['penalties']),yakuman=copy.deepcopy(m['yakuman'])))
+            results.append(dict(id=m['id'],stageId=m['stageId'],date=m['date'],time=m['time'],pairingRound=m.get('pairingRound'),table=m['table'],tableName=display(d,m['number']),number=m['number'],ruleName=m['rule']['name'],ruleVersion=m['rule']['version'],seats=[dict(copy.deepcopy(seat),wind='东南西北'[i]) for i,seat in enumerate(m['seats'])],penalties=copy.deepcopy(m['penalties']),yakuman=copy.deepcopy(m['yakuman'])))
     stats={stage:{metric:{kind:statistics(d,stage,metric=='competitive',kind) for kind in ['player','team']} for metric in ['raw','competitive']} for stage in ['all']+[s['id'] for s in d['stages']]}
-    return dict(id=str(event.id),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name'],advanceCount=s.get('advanceCount',0)) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl'),'bio':t.get('bio','')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl'),'bond':p.get('bond',False),'bondStages':p.get('bondStages',{})} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
+    return dict(id=str(event.id),tables=catalog(d),name=event.name,type=event.kind,season=d['season'],venue=d['venue'],currentStage=d['stages'][-1]['id'] if d['stages'] else 'all',stages=[dict(id=s['id'],name=s['name'],advanceCount=s.get('advanceCount',0)) for s in d['stages']],teams=[{**{k:t[k] for k in ['id','name','color']},'imageUrl':t.get('imageUrl'),'bio':t.get('bio','')} for t in d['teams']],players=[{**{k:p[k] for k in ['id','name','teamId','bio']},'imageUrl':p.get('imageUrl'),'bond':p.get('bond',False),'bondStages':p.get('bondStages',{})} for p in d['players']],results=results,schedule=schedule,statistics=stats,rules={'name':d['rules'][-1]['name']})
 
 def settlement_preview(d,kind,b):
     require(not d.get('archive'),'赛事已归档')

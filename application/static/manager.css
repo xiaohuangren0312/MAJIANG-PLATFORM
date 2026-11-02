@@ -314,7 +314,7 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .management-page .team-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.management-page .team-directory .roster-team{border:1px solid #e5dfd3;border-radius:8px;padding:14px;background:#faf8f2;align-items:flex-start;flex-wrap:wrap}.team-directory .roster-row-actions{width:100%;justify-content:flex-end}.roster-directory .table-scroll{max-height:620px;overflow:auto}.roster-directory th{position:sticky;top:0;z-index:1}.management-page .roster-directory>.grid{padding:12px!important}.roster-directory td{padding:12px!important}.roster-directory .roster-row-actions button{min-height:34px}
 .score-wind{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;border:1px solid #b7a17d;color:#8d7045;border-radius:50%;margin-bottom:10px;font-family:SimSun}.score-workspace .admin-page-heading{min-height:92px}.score-workspace .seat{position:relative}.score-workspace #score-form .seat input{font-size:26px;background:#fffdf8}.score-workspace .score-mode-switch{margin-top:14px}.score-workspace #score-form .form-actions{position:sticky;bottom:8px;background:#fffdf8;padding:14px;border:1px solid #ded8cb;border-radius:8px;z-index:5}
 .lineup-page main>h1{font-family:SimSun,serif;background:url('/assets/matchday-landscape.png') right bottom/430px auto no-repeat;padding:22px 0 32px;border-bottom:1px solid #d6d0c2;font-size:30px}.lineup-page main>.grid{grid-template-columns:2fr 1fr;margin:18px 0;padding:14px 18px;background:#fffdf8;border:1px solid #ded8cb;border-radius:9px}.lineup-page #lineup-form>.card{padding:20px}.lineup-page #lineup-form>.card h2{font-size:17px}.lineup-page #lineup-form>.card>.grid{gap:12px}.lineup-page #lineup-form>.lineup-savebar{border-color:#d6cfbf;background:#fffdf8}.lineup-page #lineup-poster-link{float:right;margin-top:-3px}.poster-page .poster-workspace{max-width:1640px}.poster-page .poster-layout{grid-template-columns:280px minmax(0,1fr);gap:24px}.poster-page .poster-heading{padding:14px 0}.poster-page .poster-heading h1{font:700 30px SimSun,serif}.poster-page .poster-controls{padding:18px;gap:14px}.poster-page .poster-preview{background:#e6e2d8;padding:24px;min-height:620px}.poster-page .poster-tabs{gap:10px}.poster-page .poster-tabs a{padding:10px 24px}.poster-page .poster-tabs [aria-current=page]{background:#e6eadd;border-color:#36513d;color:#36513d;border-radius:7px 7px 0 0}
-@media(min-width:1450px){.admin-page-actions{position:absolute;right:0;bottom:22px}.admin-page-heading{padding-right:420px}}
+/* Header actions remain in normal flow at every viewport width. */
 @media(max-width:1100px){.stage-directory{grid-template-columns:1fr}.manage-fixture{grid-template-columns:90px minmax(0,1fr)}.manage-fixture-actions{grid-column:1/-1;display:flex;flex-direction:row;justify-content:flex-end;align-items:center}.manage-fixture-actions>[data-match]{width:auto}.fixture-more[open]{top:32px}.team-directory-grid{grid-template-columns:1fr!important}}
 @media(max-width:850px){.management-page .workspace>main{padding:20px 16px}.admin-page-heading,.overview-heading{background-size:330px auto}.admin-page-heading>h1{font-size:27px}.schedule-toolbar{flex-wrap:wrap;padding:12px}.schedule-toolbar label{flex:1 1 140px}.schedule-toolbar .schedule-search{flex-basis:100%}.admin-tool-panel>.card,.admin-tool-panel>.fold-body{position:fixed;left:12px;right:12px;top:15vh;width:auto;max-height:75vh}.overview-metrics p{font-size:18px}.poster-page .poster-layout{grid-template-columns:1fr}.poster-page .poster-preview{min-height:260px}.admin-brand-logo{width:78px;height:36px}.lineup-page main>.grid{grid-template-columns:1fr}.manage-day-heading{flex-wrap:wrap}.manage-day-heading>a{margin-left:auto}}
 @media(max-width:600px){.manage-fixture{display:flex;padding:16px}.manage-fixture-seats>div{padding-left:12px}.manage-fixture-actions{flex-wrap:wrap}.admin-page-heading{padding-bottom:16px}.admin-page-actions{justify-content:flex-start}.management-page .team-directory .roster-team{padding:12px}.roster-directory .table-scroll{max-height:none}.poster-page .poster-controls{position:static}.schedule-toolbar button{min-height:44px}.schedule-toolbar select,.schedule-toolbar input{min-height:44px!important;font-size:16px!important}}@media(min-width:1101px){.lineup-page #lineup-form{grid-template-columns:1fr;gap:10px}.lineup-page #lineup-form>.card{display:grid;grid-template-columns:minmax(220px,1fr) minmax(360px,1.6fr) minmax(190px,1fr);gap:6px 22px;align-items:center;padding:16px 20px}.lineup-page #lineup-form>.card>h2{grid-column:1;grid-row:1;margin:0}.lineup-page #lineup-form>.card>p{grid-column:1;grid-row:2;margin:0;font-size:12px}.lineup-page #lineup-form>.card>.grid{grid-column:2;grid-row:1/3}.lineup-page #lineup-form>.card>label{grid-column:3;grid-row:1/3;margin:0}.lineup-page #lineup-form>.card>small{grid-column:2/4;font-size:11px}.lineup-page #lineup-form>.card>button{grid-column:3;justify-self:end}.lineup-page #lineup-form>.card>.grid label{margin:0}}.stage-directory:has(>form:only-of-type){grid-template-columns:1fr}.stage-directory:has(>form:only-of-type) form[data-stage-edit]>.grid{grid-template-columns:2fr 1fr}.stage-directory:has(>form:only-of-type) form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end}.stage-directory:has(>form:only-of-type) .form-actions{border:0;margin:0;padding:0 0 12px;width:auto}@media(max-width:850px){.stage-directory:has(>form:only-of-type) form{display:block}.stage-directory:has(>form:only-of-type) form[data-stage-edit]>.grid{grid-template-columns:1fr}}@media(min-width:1101px){.management-page .team-directory .roster-team{flex-wrap:nowrap;align-items:center;min-height:86px}.team-directory .roster-row-actions{width:auto;margin-left:auto;flex-shrink:0}.team-directory .roster-row-actions button{min-height:34px!important;padding:6px 10px!important;font-size:12px!important}}
@@ -394,3 +394,101 @@ header .portal-switch{display:inline-block;width:104px;flex:0 0 104px;min-height
 .logo-editor .logo-zoom{margin:4px 0 16px}.logo-editor .logo-zoom button{flex-basis:44px;width:44px;min-width:44px;min-height:44px;border:1px solid #e2dbd0;border-radius:8px;background:#f8f3eb}
 .logo-editor .logo-editor-footer{position:sticky;bottom:-24px;background:#fffdf8;padding:8px 0 12px;z-index:1}.logo-editor .logo-editor-footer>p{margin:0 0 8px;text-align:center;font-size:12px}.logo-editor .logo-editor-actions{border:0;padding:0;gap:12px}.logo-editor .logo-editor-actions [data-cancel]{flex:1}.logo-editor .logo-editor-actions [data-save]{flex:2;min-height:46px}
 @media(max-width:600px){.logo-editor{padding:16px}.logo-editor .logo-editor-footer{bottom:-16px;padding-bottom:max(8px,env(safe-area-inset-bottom))}.logo-editor fieldset{margin-bottom:10px}.logo-editor canvas{max-width:min(310px,38dvh)}}
+
+.table-settings-dialog{width:min(860px,calc(100vw - 32px));max-height:85dvh;overflow:auto}.table-settings-dialog input[name^=table-]{min-width:160px}.stage-table-choices{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0;border:1px solid #ded6c9;border-radius:6px;padding:12px}.stage-table-choices label,.table-override{display:flex;align-items:center;gap:8px}.stage-table-choices input,.table-override input{width:auto}.stage-table-choices small{flex-basis:100%;color:#807665}
+
+/* At-a-glance stage/table mapping, using the existing overview styles. */
+.stage-table-directory{border:1px solid #e4ddd1;border-radius:8px;overflow:hidden;margin-top:14px}
+.stage-table-directory-head,.stage-table-directory-row{display:grid;grid-template-columns:minmax(100px,1fr) minmax(140px,2fr) auto;gap:16px;align-items:center;padding:14px 16px}
+.stage-table-directory-head{font-size:12px;color:#827766;background:#f4f0e7;padding-top:10px;padding-bottom:10px}
+.stage-table-directory-row+.stage-table-directory-row{border-top:1px solid #e4ddd1}
+.stage-table-title{display:flex;flex-direction:column;gap:5px}.stage-table-title small{font-size:12px;color:#827766}.stage-table-title .stage-current{color:#496148}
+.stage-table-names{display:flex;flex-wrap:wrap;gap:6px 14px;line-height:1.6;overflow-wrap:anywhere}.stage-table-names span{max-width:100%}
+.stage-table-directory-row>button{margin:0;min-width:64px}
+.stage-table-edit-dialog{width:min(680px,calc(100vw - 32px))!important}.stage-table-edit-dialog [data-stage-edit]{margin-top:18px}.stage-table-edit-dialog .stage-table-choices{margin:18px 0}.stage-table-edit-dialog .stage-table-choices label{padding:6px 10px;background:#f5f1e8;border-radius:6px}
+@media(max-width:600px){.stage-table-directory-head,.stage-table-directory-row{grid-template-columns:minmax(70px,1fr) minmax(90px,1.5fr) auto;gap:8px;padding:12px 10px}.stage-table-directory-row>button{min-width:48px;padding:8px}.stage-table-names{gap:4px 8px}.stage-table-edit-dialog .grid{grid-template-columns:1fr}}
+
+#content .overview-settings-hub>.overview-stage-line{display:block;padding-top:18px}
+#content .overview-stage-line>.overview-hub-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+#content .overview-stage-line>.overview-hub-title button{width:auto;flex:0 0 auto}
+#content .overview-stage-line>.stage-table-directory{width:100%;box-sizing:border-box}
+
+/* Profile editing keeps one visible layer, with a stationary action bar. */
+dialog.profile-editor{position:fixed;inset:0 0 0 auto;margin:0;width:min(560px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding:0;overflow:hidden}
+dialog.profile-editor[open]{display:flex;flex-direction:column}.profile-editor .profile-editor-head{flex:none;margin:0;padding:20px 24px;background:#f5f2e9}.profile-editor [data-editor-status]{padding:0 24px}.profile-editor .profile-fields{flex:1;min-height:0;overflow:auto;padding:0 24px 24px}.profile-editor .profile-fixed-footer{flex:none;display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid #ded6c9;background:#fffdf8}.profile-discard{flex:none;padding:16px 24px;background:#fff0df}.profile-editor [data-profile]>button[hidden]{display:none!important}@media(max-width:600px){dialog.profile-editor{width:100vw}.profile-editor .profile-editor-head{top:auto}.profile-fixed-footer button{flex:1}}
+
+/* Drawer visual refinement: calm ink header, clear sections and persistent actions. */
+body dialog.operation-drawer .operation-head,body dialog.profile-editor .profile-editor-head,body dialog.roster-drawer .roster-drawer-head{padding:24px 28px;min-height:88px;box-sizing:border-box;background:linear-gradient(90deg,#f8f5ed 25%,#f8f5ed99),url('/assets/matchday-landscape.png') right bottom/400px auto no-repeat;border-bottom:1px solid #ded8cb;gap:16px}
+body dialog.operation-drawer .operation-head h2,body dialog.profile-editor .profile-editor-head h2{font:700 25px SimSun,serif;letter-spacing:1px;border-left:3px solid #ac4536;padding-left:12px}
+body dialog.operation-drawer .operation-head button:last-child,body dialog.profile-editor [data-close]{width:36px;height:36px;padding:0;border:1px solid #ded8cb;border-radius:50%;background:#fffdf8cc;color:#586052;font-size:24px;flex-shrink:0}
+body dialog.operation-drawer .operation-body{padding:24px 28px;background:#fffdf8}
+body dialog.operation-drawer .drawer-section-title{font-size:15px;color:#344b3b;margin:4px 0 18px;display:flex;align-items:center;gap:12px}
+body dialog.operation-drawer .drawer-section-title:not(:first-child){margin-top:24px}
+.drawer-section-title:after{content:'';height:1px;background:#e8e2d7;flex:1}
+body dialog.operation-drawer label{font-size:13px;color:#756c5e;line-height:1.6;margin-bottom:16px}
+body dialog.operation-drawer input:not([type=checkbox]):not([type=radio]):not([type=file]),body dialog.operation-drawer select,body dialog.operation-drawer textarea{margin-top:7px;min-height:44px;background:#fff;border-color:#dcd5c9;border-radius:7px;color:#27382e;font-size:14px}
+body dialog.operation-drawer .grid{gap:0 18px}
+body dialog.operation-drawer .four{gap:12px}
+body dialog.operation-drawer .four>label{padding:12px;background:#f5f3ec;border-radius:8px;margin:0}
+body dialog.operation-drawer .drawer-image-setting{display:grid;grid-template-columns:88px minmax(0,1fr);gap:18px;align-items:center;background:#f5f3ec;border:1px solid #e6dfd2;border-radius:10px;padding:18px;margin-top:16px}
+.drawer-image-setting>img{width:88px;height:88px;object-fit:contain;background:white;border-radius:8px;border:1px solid #e5ded1;padding:6px;box-sizing:border-box}
+body dialog.operation-drawer .drawer-image-setting label{margin:0;font-size:12px}
+body dialog.operation-drawer input[type=file]{border:0;padding:8px 0;background:transparent;font-size:12px}
+body dialog.operation-drawer input[type=file]::file-selector-button{border:1px solid #cfc8b9;background:#fffdf8;color:#344b3b;border-radius:6px;padding:9px 12px;margin-right:8px;cursor:pointer}
+body dialog.operation-drawer .operation-footer,body dialog.profile-editor .profile-fixed-footer{padding:18px 28px;box-shadow:0 -4px 18px #27382e06;gap:12px;background:#faf8f1}
+body dialog.operation-drawer .operation-footer button{min-height:42px;min-width:96px;border-radius:7px;font-weight:600}
+body dialog.operation-drawer .operation-footer .primary{background:#a94334;border-color:#a94334;color:#fff}
+body dialog.operation-drawer .operation-footer .secondary{background:#fffdf8}
+body dialog.operation-drawer .operation-discard{border-left:3px solid #b98135;margin:0;background:#fff3df}
+@media(max-width:600px){body dialog.operation-drawer .operation-head,body dialog.operation-drawer .operation-body{padding:20px}body dialog.operation-drawer .operation-footer{padding:14px 20px max(14px,env(safe-area-inset-bottom))}body dialog.operation-drawer .drawer-image-setting{grid-template-columns:64px minmax(0,1fr);padding:12px;gap:12px}.drawer-image-setting>img{width:64px;height:64px}body dialog.operation-drawer input:not([type=checkbox]):not([type=radio]),body dialog.operation-drawer select,body dialog.operation-drawer textarea{font-size:16px}}
+
+body.management-page dialog.operation-drawer .operation-body .overview-default-logo{margin:0;padding:0;border:0}
+body.management-page dialog.operation-drawer .operation-body .grid{gap:0 18px}
+body.management-page dialog.operation-drawer .operation-body label{margin:0 0 16px}
+body.management-page dialog.operation-drawer .operation-body .drawer-image-setting label{margin:0}
+body.management-page dialog.operation-drawer .operation-body .four>label{margin:0}
+body.management-page dialog.operation-drawer .operation-body .drawer-section-title{margin:0 0 16px}
+body.management-page dialog.operation-drawer .operation-body .drawer-section-title:not(:first-child){margin-top:24px}
+
+/* Remaining editors: unified hierarchy, compact media and bounded references. */
+body.management-page #roster-editor .roster-drawer-head{padding:24px;min-height:88px;background:linear-gradient(90deg,#f8f5ed 25%,#f8f5ed99),url('/assets/matchday-landscape.png') right bottom/400px auto no-repeat}
+body.management-page #roster-editor .roster-drawer-head h2{font:700 25px SimSun,serif;border-left:3px solid #ac4536;padding-left:12px}
+body.management-page #roster-editor .roster-drawer-head button{border-radius:50%;min-width:36px;width:36px;height:36px;padding:0;font-size:24px;background:#fffdf8cc}
+body.management-page #roster-editor .roster-drawer-body{padding:22px 24px}
+.editor-section-title{font-size:14px;color:#344b3b;margin:0 0 16px;display:flex;align-items:center;gap:12px}.editor-section-title:after{content:'';height:1px;background:#e5dfd3;flex:1}
+body #roster-editor .roster-drawer-body>label,body .profile-editor [data-profile]>label{font-size:13px;color:#756c5e;margin:0 0 16px}
+body #roster-editor input:not([type=checkbox]):not([type=color]):not([type=file]),body #roster-editor select,body #roster-editor textarea,body .profile-editor [data-profile] input:not([type=color]),body .profile-editor textarea{min-height:42px;margin-top:6px;border-radius:7px;background:white;font-size:14px}
+body #roster-editor input[type=color],body .profile-editor input[type=color]{width:72px;height:40px;padding:4px;display:block;margin-top:6px}
+body #roster-editor .editor-status-row{background:#eff3eb;padding:12px;border-radius:7px;display:flex;align-items:center;gap:8px;color:#3d5940;margin-bottom:16px}
+body #roster-editor .editor-status-row input{margin:0;width:16px;height:16px}
+body #roster-editor .roster-impact{background:#f5f2eb;border:1px solid #e5ddcf;padding:12px 14px;margin:0 0 18px;border-radius:8px;font-size:12px}
+body #roster-editor .roster-impact.is-warning{background:#fff1dd;border-color:#d2ab70}
+.editor-related-list{max-height:180px;overflow:auto;border-top:1px solid #ded6c8;margin-top:10px;padding-top:4px}.editor-related-list p{font-variant-numeric:tabular-nums;margin:0;padding:8px 0;border-bottom:1px solid #e6e0d4}
+.editor-image-box{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:center;padding:14px;background:#f5f3ec;border:1px solid #e5dfd3;border-radius:9px;margin:0 0 18px}.editor-image-box img,.editor-image-placeholder{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:7px;display:grid;place-items:center;color:#877961;font-size:14px}.editor-image-box label{margin:0!important;font-size:12px}
+body #roster-editor input[type=file],body .profile-editor input[type=file]{padding:8px 0;border:0;font-size:12px;background:transparent;max-width:100%}
+body #roster-editor input[type=file]::file-selector-button,body .profile-editor input[type=file]::file-selector-button{background:#fffdf8;border:1px solid #d8d0c0;border-radius:6px;padding:8px 10px;color:#344b3b}
+body #roster-editor .roster-drawer-footer{background:#faf8f1;box-shadow:0 -4px 18px #27382e06}
+body #roster-editor .roster-drawer-footer .inline-discard{margin:12px 0 0;padding:12px}
+body .profile-editor .profile-fields{padding-top:16px}body .profile-editor [data-editor-status]{font-size:12px;color:#807560;margin:12px 0 0}
+body .profile-editor .profile-upload{display:grid;grid-template-columns:80px minmax(0,1fr);gap:10px 16px;background:#f5f3ec;border:1px solid #e5dfd3;border-radius:9px;padding:16px;margin-top:20px}
+body .profile-editor .profile-upload>.editor-image-preview{grid-row:1 / 4;width:80px;height:80px;object-fit:contain;border-radius:8px;margin:0}
+body .profile-editor .profile-upload>label{margin:0;font-size:12px;min-width:0}body .profile-editor .profile-upload>button{grid-column:2;font-size:13px;padding:9px 12px;margin:0;justify-self:start}
+body.management-page #create-event{padding:0;overflow:hidden;border-radius:12px;border:1px solid #dcd4c5}
+body.management-page #create-event form{margin:0;padding:0 24px 20px;max-height:90dvh;overflow:auto}
+body.management-page #create-event .creation-head{margin:0 -24px 20px;padding:24px;background:linear-gradient(90deg,#f8f5ed 25%,#f8f5ed99),url('/assets/matchday-landscape.png') right bottom/340px auto no-repeat;border-bottom:1px solid #e2dbce}
+body.management-page #create-event .creation-head h2{font:700 24px SimSun,serif;border-left:3px solid #ac4536;padding-left:12px}
+body.management-page #create-event .creation-head button{border-radius:50%;width:34px;height:34px;border:1px solid #ded6c8;padding:0;background:#fffdf8cc}
+body.management-page #create-event label{font-size:13px;color:#756c5e;margin:0 0 16px}
+body.management-page #create-event input:not([type=checkbox]),body.management-page #create-event select{margin-top:6px;min-height:42px;border-radius:7px}
+body.management-page #create-event label:has([type=checkbox]){padding:12px;background:#f4f1e8;border-radius:7px;font-size:12px;line-height:1.6}
+.creation-actions{display:flex;justify-content:flex-end;gap:12px;border-top:1px solid #e2dbce;padding-top:18px;margin-top:20px}
+body.management-page .table-settings-dialog>.overview-hub-title{background:linear-gradient(90deg,#f8f5ed 25%,#f8f5ed99),url('/assets/matchday-landscape.png') right bottom/380px auto no-repeat;min-height:80px}
+body.management-page .table-settings-dialog h2{font:700 24px SimSun,serif;border-left:3px solid #ac4536;padding-left:12px}
+body.management-page .table-settings-dialog td{padding:14px 10px}body.management-page .table-settings-dialog input{border-radius:7px;min-height:42px;background:#fff}body.management-page .table-settings-dialog .actions{border-top:1px solid #e2dbce}
+@media(max-width:600px){body #roster-editor input:not([type=checkbox]):not([type=file]),body #roster-editor select,body #roster-editor textarea,body .profile-editor textarea,body .profile-editor [data-profile] input:not([type=color]){font-size:16px}.editor-image-box{gap:10px;grid-template-columns:60px minmax(0,1fr)}.editor-image-box img,.editor-image-placeholder{width:60px;height:60px}}
+
+body.management-page #create-event .form-actions:empty{display:none}
+
+body .profile-editor [data-profile]>.form-actions:has(>button[hidden]){display:none}
+body .profile-editor .profile-upload>.form-actions{grid-column:2;margin:0;padding:0;border:0;display:flex;flex-wrap:wrap;gap:8px;background:transparent}
+body .profile-editor .profile-upload>.form-actions button{padding:9px 12px;font-size:13px;margin:0;min-height:38px;width:auto;flex:none}

@@ -102,6 +102,10 @@ def result(d,kind,m,body):
 def apply(d,kind,action,b):
     require(not d.get('archive'),'赛事已归档，比赛数据不可修改')
     d=copy.deepcopy(d)
+    if action=='tables-update':
+        from .event_tables import update
+        update(d,b.get('tables'))
+        return d
     if action=='random-seats':
         from .seat_draw import draw
         draw(d,find(d['matches'],b.get('id')))
@@ -144,6 +148,9 @@ def apply(d,kind,action,b):
     elif action=='stage-update':
         stage=live_stage(d,b.get('id'));name=label(b.get('name',stage['name']))
         require(not any(x['id']!=stage['id'] and x['name']==name for x in d['stages']),'阶段名称重复')
+        if 'tableNumbers' in b:
+            from .event_tables import selection
+            stage['tableNumbers']=selection(d,b['tableNumbers'])
         stage.update(name=name,advanceCount=integer(b.get('advanceCount',stage.get('advanceCount',0)),'晋级名次',0,10000))
     elif action=='stage':
         d['stages'].append(dict(id=uid(),name=label(b.get('name')),locked=False))
@@ -165,6 +172,9 @@ def apply(d,kind,action,b):
         try: datetime.time.fromisoformat(time)
         except ValueError: raise Invalid('比赛时间无效')
         number=integer(b.get('number'),'桌号',1,1000)
+        from .event_tables import validate_match
+        validate_match(d,number)
+        if 'tables' in d:require(bool(stage.get('tableNumbers')),'请先设置本阶段使用桌次')
         require(not any(m['date']==day and m['time']==time and m['number']==number and m['state']!='cancelled' for m in d['matches']),'同一开赛时间桌号重复')
         d['matches'].append(dict(id=uid(),stageId=stage['id'],date=day,time=time,number=number,table=str(number),seats=validate_lineup(d,kind,b.get('seats'),False,stage_id=stage['id']),rule=copy.deepcopy(d['rules'][-1]),state='draft',lineupPublished=False,penalties=[],yakuman=[]))
         if b.get('commentators'):

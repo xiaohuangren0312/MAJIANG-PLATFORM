@@ -23,6 +23,13 @@ def context(d,kind,b):
     except (ValueError,TypeError):require(False,'请填写有效比赛日期和时间')
     start=integer(b.get('startTable',1),'起始桌号',1,1000)
     require(start+len(players)//4-1<=1000,'生成桌号超出范围')
+    from .event_tables import stage_tables, selection
+    numbers=b.get('tableNumbers')
+    if numbers is not None:numbers=selection(d,numbers)
+    elif 'tables' in d or 'tableNumbers' in stage:numbers=stage_tables(d,stage)
+    else:numbers=list(range(start,start+len(players)//4))
+    require(len(numbers)>=len(players)//4,'阶段用桌不足，请先在阶段设置增加用桌')
+    numbers=numbers[:len(players)//4]
     published=[m for m in d['matches'] if m['state']=='published']
     require(not published or (day,time)>max((m['date'],m['time']) for m in published),'下一轮开赛时间必须晚于已有已发布对局')
     rows={r['id']:r for r in statistics(d,stage['id'],True,'player')}
@@ -33,13 +40,13 @@ def context(d,kind,b):
     ranking=[dict(id=p['id'],name=p['name'],number=p['number'],points=rows[p['id']]['total'],games=rows[p['id']]['games'],order=i+1) for i,p in enumerate(players)]
     commentators=b.get('commentators',[]);require(isinstance(commentators,list) and len(commentators)<=10,'最多10位解说员')
     commentators=[label(x) for x in commentators]
-    return dict(commentators=commentators,stageId=stage['id'],stageName=stage['name'],date=day,time=time,startTable=start,round=next(iter(counts))+1,method='number' if first else 'high-high',ranking=ranking,rule=copy.deepcopy(d['rules'][-1]))
+    return dict(tableNumbers=numbers,commentators=commentators,stageId=stage['id'],stageName=stage['name'],date=day,time=time,startTable=start,round=next(iter(counts))+1,method='number' if first else 'high-high',ranking=ranking,rule=copy.deepcopy(d['rules'][-1]))
 
 def preview(d,kind,b):
     p=context(d,kind,b);tables=[]
     for i in range(0,len(p['ranking']),4):
         seats=[r['id'] for r in p['ranking'][i:i+4]];secrets.SystemRandom().shuffle(seats)
-        tables.append(dict(number=p['startTable']+i//4,players=seats))
+        tables.append(dict(number=p['tableNumbers'][i//4],players=seats))
     p['tables']=tables
     return p
 

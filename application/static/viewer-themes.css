@@ -1,0 +1,177 @@
+/* Browser-local spectator themes. Ink leaves existing page styling intact. */
+.theme-switch{position:relative;flex:none;margin-left:auto}.theme-trigger{font-family:inherit;font-size:13px;white-space:nowrap;border:1px solid var(--line);border-radius:7px;padding:9px 12px;background:var(--theme-surface,#fffdf8);color:var(--ink);cursor:pointer}.theme-panel[hidden]{display:none}.theme-panel{position:absolute;right:0;top:calc(100% + 12px);z-index:1000;width:min(330px,calc(100vw - 24px));box-sizing:border-box;padding:18px;background:var(--theme-surface,#fffdf8);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 36px #0003}.theme-panel>strong{display:block;font-size:16px}.theme-panel>small{display:block;color:var(--muted);margin:6px 0 16px}.theme-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.theme-options button{padding:9px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font:12px sans-serif;cursor:pointer;text-align:left}.theme-options button[aria-pressed=true]{outline:2px solid var(--red);outline-offset:1px}.theme-swatch{display:block;height:35px;border-radius:4px;margin-bottom:8px;background:linear-gradient(120deg,#f7f4ed 50%,#29372e 50%)}[data-theme=celadon] .theme-swatch{background:linear-gradient(120deg,#edf7f2 50%,#668f82 50%)}[data-theme=wood] .theme-swatch{background:linear-gradient(120deg,#fbefdc 50%,#956646 50%)}[data-theme=cloud] .theme-swatch{background:linear-gradient(120deg,#f6f8fb 50%,#8198b2 50%)}[data-theme=night] .theme-swatch{background:linear-gradient(120deg,#17221e 50%,#8fae9c 50%)}[data-theme=vampire] .theme-swatch{background:linear-gradient(120deg,#201a30 50%,#a34b65 50%)}.theme-status{font-size:12px;line-height:1.5;margin:12px 0 0}.theme-status:empty{display:none}
+html[data-viewer-theme=celadon]{--bg:#edf5f1;--ink:#213c35;--muted:#5c746a;--line:#cfdfd7;--red:#397766;--theme-surface:#fbfffc;--theme-soft:#e1eee7;--theme-wash:#c4ded1}
+html[data-viewer-theme=wood]{--bg:#f8efdf;--ink:#4c3426;--muted:#826c56;--line:#dfceb6;--red:#a65b35;--theme-surface:#fffaf0;--theme-soft:#eee0cb;--theme-wash:#dec4a2}
+html[data-viewer-theme=cloud]{--bg:#f2f5f9;--ink:#293a4f;--muted:#66758a;--line:#d7e0e9;--red:#4f719c;--theme-surface:#fff;--theme-soft:#e9eef5;--theme-wash:#d6e1ee}
+html[data-viewer-theme=night]{--bg:#17221e;--ink:#eee9dc;--muted:#b7bfb5;--line:#435047;--red:#e58b76;--theme-surface:#222f28;--theme-soft:#303f35;--theme-wash:#344d40}
+html[data-viewer-theme=vampire]{--bg:#15121f;--ink:#eeeaf5;--muted:#bbb0c8;--line:#44364f;--red:#e893aa;--theme-surface:#211b2d;--theme-soft:#30253c;--theme-wash:#49314d}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body{background:var(--bg);color:var(--ink)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.site-header,#mobile-nav,.context-bar,.site-footer,.card,.viewer-table,.search-toolbar,.filter-popover,.detail-hero,.spotlight,.metric-grid>div){background-color:var(--theme-surface);color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .event-banner{background:linear-gradient(95deg,var(--bg) 30%,transparent),linear-gradient(0deg,var(--theme-wash),var(--theme-wash)),url('/assets/matchday-landscape.png') right center/cover;background-blend-mode:normal,multiply,normal;border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .viewer-table>header{background:linear-gradient(90deg,var(--theme-soft),transparent),linear-gradient(0deg,var(--theme-wash),var(--theme-wash)),url('/assets/table-landscape-a.png') center/cover;background-blend-mode:normal,multiply,normal;border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body :is(.event-banner h2,.event-banner p,.viewer-table>header h3,.schedule-contender strong,.viewer-person>a,.site-footer strong,.site-header nav a,.spotlight h3,.player-top strong){color:var(--ink);text-shadow:none}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body :is(.schedule-time small,.schedule-contender small,.viewer-person>small,.section-head p,.viewer-table-note,.viewer-score-labels,.spotlight p){color:var(--muted);text-shadow:none}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body :is(.viewer-fixture,.viewer-score-row,.rank-row,.schedule-row,td,th){border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body :is(input,select,.badge,.viewer-place,.viewer-live-pending,.table-scroll th,#mobile-nav a.active){background:var(--theme-soft);color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body :is(.viewer-score-row.is-winner,.history-layout .rank-row:first-child){background:var(--theme-soft);box-shadow:none}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body #content .refined-schedule .schedule-row{background:var(--theme-surface);border-color:var(--line)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body :is(.section-head a,.event-banner h2 span){color:var(--red)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body #content .section-head h2{border-color:var(--red)}
+html[data-viewer-theme=cloud] body :is(.event-banner,.viewer-table>header){background:linear-gradient(145deg,var(--theme-surface) 55%,var(--theme-soft) 55%,var(--theme-wash))}
+html[data-viewer-theme=wood] body .event-banner{background:linear-gradient(90deg,var(--bg) 40%,transparent),repeating-linear-gradient(90deg,transparent 0 28px,#8c67451a 28px 30px),linear-gradient(120deg,var(--theme-surface),var(--theme-wash))}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body :is(.spotlight:before,.team-profile-art:after,.home-next-matchday:before){opacity:.12}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body :is(.positive,.result-score-toggle.positive){color:#f0947b}html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body :is(.negative,.result-score-toggle.negative){color:#8bc9b0}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body .table-scroll td:first-child{background:var(--theme-surface)}
+@media(max-width:640px){.site-header{gap:8px}.theme-trigger{padding:8px;min-height:40px}.theme-panel{position:fixed;top:76px;right:12px}.site-header .brand{min-width:0}.public-account-actions{flex:none}.theme-options button{min-height:70px}}
+
+/* Keep controls and sticky ranking cells legible in the dark palette. */
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body #content :is(td,th){background-color:var(--theme-surface)!important;color:var(--ink)}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body :is(button,.button,.section-head a,.rank-gap){color:var(--ink)}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body #content :is(.positive,.rank-up,.change-up){color:#f0947b}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body #content :is(.negative,.rank-down,.change-down){color:#8bc9b0}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body #content :is(button.active,a.active){color:var(--red)}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body input::placeholder{color:var(--muted);opacity:1}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) body #content .viewer-table{box-shadow:none;border-color:var(--line)}
+
+/* Moonlit silver, velvet plum and restrained crimson. */
+html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner{background:radial-gradient(circle at 85% 33%,#eeeaf5 0 22px,#c5b9dc66 23px,transparent 56px),radial-gradient(ellipse at 80% 100%,#69415888,transparent 60%),linear-gradient(115deg,#15121f,#2c223c 65%,#181522);border-bottom:1px solid #68516e}
+html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner-seal{background:#762e47;color:#f2dce4}
+html[data-viewer-theme=vampire][data-viewer-theme] body .viewer-table>header{background:linear-gradient(95deg,#30253c,#472b41 65%,#241b32);border-bottom:1px solid #72556e}
+html[data-viewer-theme=vampire][data-viewer-theme] body #content .section-head h2{border-color:#b85b79}
+html[data-viewer-theme=vampire][data-viewer-theme] body #content .viewer-table{border-color:#68516e;box-shadow:0 8px 24px #09070e33}
+html[data-viewer-theme=vampire][data-viewer-theme] body #content :is(.positive,.rank-up,.change-up){color:#f2a1b4}
+html[data-viewer-theme=vampire][data-viewer-theme] body #content :is(.negative,.rank-down,.change-down){color:#b9b5ed}
+html[data-viewer-theme=vampire][data-viewer-theme] body .theme-panel{box-shadow:0 16px 45px #08060c88}
+html[data-viewer-theme=vampire][data-viewer-theme] body #content .section-head a{color:#e893aa}
+@media(max-width:640px){html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner{background:radial-gradient(circle at 91% 26%,#eeeaf5 0 13px,#c5b9dc44 14px,transparent 35px),linear-gradient(115deg,#15121f,#2c223c)}}
+
+/* Decorative only: no hit targets and no layout impact. */
+.vampire-night-decor{display:none;pointer-events:none}
+html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{display:block;position:absolute;right:70px;bottom:0;width:400px;height:150px;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20400%20150%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22glow%22%3E%3Cstop%20stop-color%3D%22%23ffb548%22%20stop-opacity%3D%22.3%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ffb548%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22pumpkin%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23d78038%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23783341%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cellipse%20cx%3D%22310%22%20cy%3D%22118%22%20rx%3D%2288%22%20ry%3D%2232%22%20fill%3D%22url%28%23glow%29%22%2F%3E%3Cg%20fill%3D%22%23100d19%22%20stroke%3D%22%2393809f%22%20stroke-width%3D%22.65%22%3E%3Cpath%20d%3D%22M88%2041%20Q67%2017%2045%2026%20Q57%2033%2055%2044%20Q68%2038%2073%2049%20Q80%2044%2088%2053%20Q96%2044%20103%2049%20Q109%2038%20122%2044%20Q120%2033%20132%2026%20Q109%2017%2094%2041%20L94%2032%20L91%2036%20L88%2032Z%22%2F%3E%3Cpath%20d%3D%22M196%2061%20Q179%2043%20165%2047%20Q173%2054%20171%2062%20Q183%2057%20185%2068%20Q190%2063%20196%2071%20Q202%2063%20207%2068%20Q210%2057%20221%2062%20Q220%2054%20228%2047%20Q211%2043%20201%2061%20L201%2054%20L198%2057%20L196%2054Z%22%2F%3E%3Cpath%20d%3D%22M290%2025%20Q277%2010%20264%2015%20Q271%2020%20269%2026%20Q280%2022%20282%2030%20L290%2034%20L298%2030%20Q300%2022%20311%2026%20Q309%2020%20316%2015%20Q303%2010%20294%2025%20L294%2019%20L292%2022%20L290%2019Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%28255%2078%29%22%3E%3Cpath%20d%3D%22M43%208%20Q37%20-6%2049%20-10%20L54%20-5%20Q44%20-2%2049%209%22%20fill%3D%22%238e9c6c%22%2F%3E%3Cellipse%20cx%3D%2225%22%20cy%3D%2234%22%20rx%3D%2223%22%20ry%3D%2228%22%20fill%3D%22url%28%23pumpkin%29%22%2F%3E%3Cellipse%20cx%3D%2264%22%20cy%3D%2234%22%20rx%3D%2223%22%20ry%3D%2228%22%20fill%3D%22url%28%23pumpkin%29%22%2F%3E%3Cellipse%20cx%3D%2244%22%20cy%3D%2234%22%20rx%3D%2229%22%20ry%3D%2230%22%20fill%3D%22url%28%23pumpkin%29%22%2F%3E%3Cpath%20d%3D%22M43%206%20Q27%2033%2042%2063%20M48%206%20Q65%2033%2049%2063%22%20fill%3D%22none%22%20stroke%3D%22%23692a38%22%20opacity%3D%22.45%22%2F%3E%3Cg%20fill%3D%22%23ffe39c%22%3E%3Cpath%20d%3D%22M17%2029%20L33%2022%20L30%2034Z%20M55%2022%20L72%2029%20L59%2034Z%20M43%2033%20L38%2043%20L48%2043Z%20M20%2043%20L30%2048%20L34%2044%20L40%2051%20L49%2051%20L55%2045%20L60%2048%20L71%2042%20Q63%2062%2044%2059%20Q28%2059%2020%2043Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%28225%20111%29%20scale%28.48%29%22%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2225%22%20rx%3D%2234%22%20ry%3D%2226%22%20fill%3D%22%23a65738%22%2F%3E%3Cpath%20d%3D%22M35%200%20L32%20-12%20L42%20-14%20L41%200%22%20fill%3D%22%23819064%22%2F%3E%3Cpath%20d%3D%22M12%2022%20L25%2014%20L27%2026Z%20M47%2014%20L60%2022%20L45%2026Z%20M15%2033%20L27%2037%20L35%2033%20L44%2037%20L58%2032%20Q38%2055%2015%2033%22%20fill%3D%22%23ffcf75%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") center/contain no-repeat;z-index:1}
+html[data-viewer-theme=vampire] .event-banner .event-banner-copy{position:relative;z-index:2}
+@media(max-width:800px){html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{width:210px;height:80px;right:0;opacity:.8}}
+@media(max-width:480px){html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{width:150px;height:57px;right:0;bottom:0}}
+
+html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner{position:relative;isolation:isolate;overflow:hidden}
+
+/* Restrained corner vignette: one moon, one bat, one lantern. */
+html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner{background:linear-gradient(115deg,#15121f,#292035 75%,#1b1726)}
+html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner-seal{display:none}
+html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{right:30px;bottom:0;width:320px;height:140px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20320%20140%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22p%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23b96835%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23713544%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%22188%22%20cy%3D%2243%22%20r%3D%2219%22%20fill%3D%22%23e1dce9%22%2F%3E%3Cpath%20d%3D%22M127%2042%20Q115%2031%20105%2034%20Q111%2039%20110%2045%20Q118%2042%20121%2049%20L129%2052%20L136%2048%20Q139%2042%20147%2044%20Q146%2038%20151%2033%20Q140%2031%20132%2042%20L132%2037%20L129%2039%20L127%2037Z%22%20fill%3D%22%2314101e%22%20stroke%3D%22%2376637e%22%20stroke-width%3D%22.7%22%2F%3E%3Cg%20transform%3D%22translate%28214%2084%29%20scale%28.68%29%22%3E%3Cpath%20d%3D%22M35%205%20Q30%20-5%2039%20-9%20L44%20-5%20Q36%20-2%2040%206%22%20fill%3D%22%23798165%22%2F%3E%3Cellipse%20cx%3D%2223%22%20cy%3D%2225%22%20rx%3D%2221%22%20ry%3D%2223%22%20fill%3D%22url%28%23p%29%22%2F%3E%3Cellipse%20cx%3D%2253%22%20cy%3D%2225%22%20rx%3D%2221%22%20ry%3D%2223%22%20fill%3D%22url%28%23p%29%22%2F%3E%3Cellipse%20cx%3D%2238%22%20cy%3D%2225%22%20rx%3D%2222%22%20ry%3D%2225%22%20fill%3D%22url%28%23p%29%22%2F%3E%3Cpath%20d%3D%22M17%2022%20L29%2017%20L28%2026Z%20M47%2017%20L60%2022%20L49%2026Z%20M20%2033%20L30%2037%20L38%2034%20L47%2037%20L57%2032%20Q39%2050%2020%2033%22%20fill%3D%22%23edc57e%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");opacity:1}
+@media(max-width:800px){html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{width:210px;height:92px;right:0}}
+@media(max-width:480px){html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{width:145px;height:64px;right:0;bottom:0;opacity:.85}}
+
+/* Approved moonlit scene replaces the temporary icon vignette. */
+html[data-viewer-theme=vampire] .event-banner .vampire-night-decor{display:none}
+html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner{background-color:#171321;background-image:linear-gradient(90deg,#171321 0%,#171321 35%,transparent 64%),url('/assets/vampire-scene.png');background-repeat:no-repeat;background-position:center,right 20%;background-size:100% 100%,auto 160%;background-blend-mode:normal}
+@media(max-width:640px){html[data-viewer-theme=vampire][data-viewer-theme] body .event-banner{background-image:linear-gradient(90deg,#171321f5 0%,#171321c9 45%,#17132122 100%),url('/assets/vampire-scene.png');background-size:100% 100%,auto 125%;background-position:center,right center}}
+
+/* Shared header control, intentionally borderless in every portal. */
+body .theme-switch>.theme-trigger{border:0!important;background:transparent!important;box-shadow:none!important;color:inherit;padding:8px 10px;min-height:40px}
+body .theme-trigger:hover{opacity:.75}
+body .theme-trigger:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+body .theme-switch{color:inherit;z-index:1100}
+body .theme-panel{line-height:1.5;text-align:left;font-weight:400}
+body .theme-panel>strong{font-size:16px;margin:0;color:var(--ink)}
+body .theme-panel .theme-options button{display:block;width:auto;margin:0;background:transparent;color:var(--ink);border:1px solid var(--line);font-size:12px;padding:9px}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page){--paper:var(--bg);background:var(--bg);color:var(--ink)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page)>header{background:var(--theme-surface);color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page)>header a{color:var(--ink)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page) :is(aside,.card,dialog,.team-hero,.member-panel,.player-card,.coach-card,.overview-summary,.overview-identity,.overview-todos,.poster-controls){background-color:var(--theme-surface);color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page) :is(input,select,textarea,fieldset,button.secondary){background:var(--theme-soft);color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page) :is(h1,h2,h3,label,summary){color:var(--ink)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) :is(.management-page,.coach-studio,.poster-page) :is(small,.muted){color:var(--muted)}
+html:is([data-viewer-theme=night],[data-viewer-theme=vampire]) :is(.management-page,.coach-studio,.poster-page) :is(td,th){background:var(--theme-surface);color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) .management-page aside nav button.active{background:var(--theme-soft);color:var(--ink)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) .coach-studio .team-hero{background:linear-gradient(110deg,var(--theme-surface),var(--theme-soft))}
+html[data-viewer-theme=vampire] .coach-studio .team-hero{background:linear-gradient(90deg,#171321 20%,#17132166),url('/assets/vampire-scene.png') right center/cover}
+@media(max-width:640px){body>header .theme-switch{margin-left:auto}body>header .theme-panel{top:72px}body>header .theme-trigger{padding:8px 4px}}
+
+/* Portal-specific surfaces override legacy fixed ivory styling. */
+body .manage-header .manage-account,body.coach-studio>header>.account-menu,body.poster-page>header>.account-menu{margin-left:12px}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio,.poster-page) :is(.workspace>aside,.card,.workspace-metrics,.workspace-todo,.overview-settings-hub,.overview-venue-card,.coach-next-card,.coach-recent-card,.coach-release-card,.coach-sidebar,.member-panel,.profile-summary,.profile-grid>article,.lineup-savebar,.lineup-publish-settings,.coach-half-list,.match-row,dialog,.drawer-body,.drawer-footer,.drawer-header,.account-dropdown){background:var(--theme-surface)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio,.poster-page) :is(.overview-heading,.page-heading,.resource-heading){background:linear-gradient(110deg,var(--theme-surface),var(--theme-soft))!important;color:var(--ink)}
+html[data-viewer-theme=vampire] body.management-page .overview-heading{background:linear-gradient(90deg,#171321 30%,#17132133),url('/assets/vampire-scene.png') right center/cover!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio,.poster-page) :is(button,a.button,.badge,.status-pill,.coach-main-nav a,.workspace>aside a,.workspace>aside button){color:var(--ink);border-color:var(--line)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio,.poster-page) :is(.secondary,.workspace>aside button.active,.coach-main-nav a.active,.badge,.status-pill){background:var(--theme-soft)!important;color:var(--ink)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio,.poster-page) :is(.primary,button.danger){background:#973e56!important;color:#fff!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body.management-page .workspace>aside:before,html[data-viewer-theme]:not([data-viewer-theme=ink]) body.management-page .workspace>aside:after{opacity:.08}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio,.poster-page) :is(.workspace-todo p,.workspace-metrics p,.workspace>aside label,.workspace>aside small,.overview-heading p){color:var(--muted)!important}
+
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body.management-page .workspace>aside :is(button,a,svg){color:var(--ink)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body.management-page .workspace>aside>label{background:var(--theme-soft)!important;border-color:var(--line)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body:is(.management-page,.coach-studio) :is(.ui-button:not(.primary):not(.danger),a.coach-action,.coach-action,button.secondary){background:var(--theme-soft)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body.management-page :is(.workspace-todo strong,.workspace-todo b){color:var(--red)!important}
+html[data-viewer-theme=vampire][data-viewer-theme] body.management-page .overview-heading{background:linear-gradient(90deg,#171321 25%,#17132155),url('/assets/vampire-scene.png') right center/cover!important}
+html[data-viewer-theme=vampire][data-viewer-theme] body.coach-studio .team-hero{background:linear-gradient(90deg,#171321 25%,#17132155),url('/assets/vampire-scene.png') right center/cover!important}
+
+html body .theme-switch .theme-panel .theme-options button{background:transparent!important;color:var(--ink)!important;border:1px solid var(--line)!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body.management-page .overview-heading-actions a{background:var(--theme-soft)!important;color:var(--ink)!important;border-color:var(--line)!important}
+
+/* Independent material artwork, shared by all three portals. */
+html[data-viewer-theme=celadon]{--theme-art:url('/assets/theme-celadon.png')}
+html[data-viewer-theme=celadon][data-viewer-theme] body :is(.event-banner,.overview-heading,.team-hero){background-image:var(--theme-art)!important;background-color:var(--bg)!important;background-size:cover!important;background-position:center!important;background-blend-mode:normal!important}
+html[data-viewer-theme=celadon][data-viewer-theme] body .viewer-table>header{background-image:linear-gradient(90deg,var(--theme-soft) 8%,transparent),var(--theme-art)!important;background-size:cover!important;background-position:right 55%!important;background-blend-mode:normal!important}
+html[data-viewer-theme=celadon] body .event-banner-seal{display:none}
+html[data-viewer-theme=celadon] body:before,html[data-viewer-theme=celadon] body:after,html[data-viewer-theme=celadon] .home-next-matchday:before{display:none!important}
+html[data-viewer-theme=wood]{--theme-art:url('/assets/theme-wood.png')}
+html[data-viewer-theme=wood][data-viewer-theme] body :is(.event-banner,.overview-heading,.team-hero){background-image:var(--theme-art)!important;background-color:var(--bg)!important;background-size:cover!important;background-position:center!important;background-blend-mode:normal!important}
+html[data-viewer-theme=wood][data-viewer-theme] body .viewer-table>header{background-image:linear-gradient(90deg,var(--theme-soft) 8%,transparent),var(--theme-art)!important;background-size:cover!important;background-position:right 55%!important;background-blend-mode:normal!important}
+html[data-viewer-theme=wood] body .event-banner-seal{display:none}
+html[data-viewer-theme=wood] body:before,html[data-viewer-theme=wood] body:after,html[data-viewer-theme=wood] .home-next-matchday:before{display:none!important}
+html[data-viewer-theme=cloud]{--theme-art:url('/assets/theme-cloud.png')}
+html[data-viewer-theme=cloud][data-viewer-theme] body :is(.event-banner,.overview-heading,.team-hero){background-image:var(--theme-art)!important;background-color:var(--bg)!important;background-size:cover!important;background-position:center!important;background-blend-mode:normal!important}
+html[data-viewer-theme=cloud][data-viewer-theme] body .viewer-table>header{background-image:linear-gradient(90deg,var(--theme-soft) 8%,transparent),var(--theme-art)!important;background-size:cover!important;background-position:right 55%!important;background-blend-mode:normal!important}
+html[data-viewer-theme=cloud] body .event-banner-seal{display:none}
+html[data-viewer-theme=cloud] body:before,html[data-viewer-theme=cloud] body:after,html[data-viewer-theme=cloud] .home-next-matchday:before{display:none!important}
+html[data-viewer-theme=night]{--theme-art:url('/assets/theme-night.png')}
+html[data-viewer-theme=night][data-viewer-theme] body :is(.event-banner,.overview-heading,.team-hero){background-image:var(--theme-art)!important;background-color:var(--bg)!important;background-size:cover!important;background-position:center!important;background-blend-mode:normal!important}
+html[data-viewer-theme=night][data-viewer-theme] body .viewer-table>header{background-image:linear-gradient(90deg,var(--theme-soft) 8%,transparent),var(--theme-art)!important;background-size:cover!important;background-position:right 55%!important;background-blend-mode:normal!important}
+html[data-viewer-theme=night] body .event-banner-seal{display:none}
+html[data-viewer-theme=night] body:before,html[data-viewer-theme=night] body:after,html[data-viewer-theme=night] .home-next-matchday:before{display:none!important}
+
+html[data-viewer-theme=night]{--bg:#0e1a23;--ink:#e6edef;--muted:#adbec7;--line:#344b57;--red:#a3c7cf;--theme-surface:#162630;--theme-soft:#213743;--theme-wash:#294653}
+html[data-viewer-theme=wood] body{background-image:repeating-linear-gradient(18deg,#946a3a03 0 1px,transparent 1px 5px)!important}
+html[data-viewer-theme=wood] body #content .viewer-table{border:1px solid #b58a5a;box-shadow:0 4px 14px #7d552a12}
+html[data-viewer-theme=wood] body .viewer-table>header{border-top:4px solid #a4774b;border-bottom:2px solid #c39b6b}
+html[data-viewer-theme=celadon] body{background-image:radial-gradient(ellipse at 90% 20%,#dcebe580,transparent 60%)!important}
+html[data-viewer-theme=celadon] body #content .viewer-table{border-color:#aec9ba;box-shadow:inset 0 0 0 3px #ffffff80,0 4px 18px #5575650c;border-radius:12px}
+html[data-viewer-theme=cloud] body{background-image:radial-gradient(ellipse at 100% 15%,#daeaffaa,transparent 65%)!important}
+html[data-viewer-theme=cloud] body #content .viewer-table{border-color:#e4edf7;box-shadow:0 6px 22px #617d9b12;border-radius:14px}
+html[data-viewer-theme=night] body #content .viewer-table{border:1px solid #344b57;box-shadow:0 8px 20px #0002;border-radius:10px}
+@media(max-width:640px){html:is([data-viewer-theme=celadon],[data-viewer-theme=wood],[data-viewer-theme=cloud],[data-viewer-theme=night])[data-viewer-theme] body :is(.event-banner,.overview-heading,.team-hero){background-image:linear-gradient(90deg,var(--bg) 0%,transparent 85%),var(--theme-art)!important;background-position:right center!important}}
+
+html[data-viewer-theme=night][data-viewer-theme] body .event-banner{background-size:auto 115%!important;background-position:right center!important;background-repeat:no-repeat!important}
+
+/* Material layer: distinct from the scenic hero image. */
+html[data-viewer-theme=celadon]{--theme-material:url('/assets/material-celadon.jpg');--material-veil:linear-gradient(#ffffff75,#ffffffbb)}
+html[data-viewer-theme=celadon][data-viewer-theme] body[data-public-page]{background-image:var(--material-veil),var(--theme-material)!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important}
+html[data-viewer-theme=celadon][data-viewer-theme] body .viewer-table>header{background-image:var(--theme-material)!important;background-position:right center!important;background-size:cover!important}
+html[data-viewer-theme=celadon] body :is(.spotlight,.detail-hero,.player-top>.card){background-image:linear-gradient(90deg,var(--theme-surface),transparent),var(--theme-material)!important;background-size:cover!important}
+html[data-viewer-theme=wood]{--theme-material:url('/assets/material-wood.jpg');--material-veil:linear-gradient(#ffffff75,#ffffffbb)}
+html[data-viewer-theme=wood][data-viewer-theme] body[data-public-page]{background-image:var(--material-veil),var(--theme-material)!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important}
+html[data-viewer-theme=wood][data-viewer-theme] body .viewer-table>header{background-image:var(--theme-material)!important;background-position:right center!important;background-size:cover!important}
+html[data-viewer-theme=wood] body :is(.spotlight,.detail-hero,.player-top>.card){background-image:linear-gradient(90deg,var(--theme-surface),transparent),var(--theme-material)!important;background-size:cover!important}
+html[data-viewer-theme=cloud]{--theme-material:url('/assets/material-cloud.jpg');--material-veil:linear-gradient(#ffffff75,#ffffffbb)}
+html[data-viewer-theme=cloud][data-viewer-theme] body[data-public-page]{background-image:var(--material-veil),var(--theme-material)!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important}
+html[data-viewer-theme=cloud][data-viewer-theme] body .viewer-table>header{background-image:var(--theme-material)!important;background-position:right center!important;background-size:cover!important}
+html[data-viewer-theme=cloud] body :is(.spotlight,.detail-hero,.player-top>.card){background-image:linear-gradient(90deg,var(--theme-surface),transparent),var(--theme-material)!important;background-size:cover!important}
+html[data-viewer-theme=night]{--theme-material:url('/assets/material-night.jpg');--material-veil:linear-gradient(#ffffff75,#ffffffbb)}
+html[data-viewer-theme=night][data-viewer-theme] body[data-public-page]{background-image:var(--material-veil),var(--theme-material)!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important}
+html[data-viewer-theme=night][data-viewer-theme] body .viewer-table>header{background-image:var(--theme-material)!important;background-position:right center!important;background-size:cover!important}
+html[data-viewer-theme=night] body :is(.spotlight,.detail-hero,.player-top>.card){background-image:linear-gradient(90deg,var(--theme-surface),transparent),var(--theme-material)!important;background-size:cover!important}
+
+html[data-viewer-theme=night]{--material-veil:linear-gradient(#0e1a23b8,#0e1a23e0)}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body #content:before,
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .viewer-table>header h3:before,
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .team-profile-art:after,
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .spotlight:before,
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .player-top>.card:before,
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .ink-profile-identity:before{display:none!important}
+html[data-viewer-theme]:not([data-viewer-theme=ink]) body .context-bar{background:transparent;border-bottom:1px solid var(--line)}
+html[data-viewer-theme=celadon] body #content .viewer-table{border:1px solid #aec6b7;box-shadow:inset 0 0 0 3px #ffffffa0,0 6px 22px #607d7015}
+html[data-viewer-theme=wood] body #content .viewer-table{border:1px solid #bd9162;border-radius:5px;box-shadow:0 3px 9px #794c2320}
+html[data-viewer-theme=wood] body .viewer-table>header{border:3px solid #b5804d;border-bottom-width:2px;border-radius:3px;background-size:100% 100%!important}
+html[data-viewer-theme=cloud] body #content .viewer-table{border:1px solid #fff;box-shadow:0 8px 28px #698eb31c;background-color:#ffffffed}
+html:is([data-viewer-theme=celadon],[data-viewer-theme=wood],[data-viewer-theme=cloud],[data-viewer-theme=night]) body #content .section-head a{color:var(--red)!important}
+@media(max-width:640px){html[data-viewer-theme]:not([data-viewer-theme=ink]) body[data-public-page]{background-attachment:scroll!important}html[data-viewer-theme=night] body .viewer-table>header{background-position:right center!important}}

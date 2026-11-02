@@ -19,6 +19,9 @@ def mutate(document,kind,action,body):
         try:datetime.time.fromisoformat(time)
         except (TypeError,ValueError):require(False,'时间格式错误')
         require(type(number) is int and 1<=number<=1000,'桌号超出范围')
+        if number!=m['number']:
+            from .event_tables import validate_match
+            validate_match(d,number)
         require(not any(x['id']!=m['id'] and x['state']!='cancelled' and x['date']==day and x['time']==time and x['number']==number for x in d['matches']),'同一开赛时间桌号重复')
         m.update(date=day,time=time,number=number,table=str(number))
     elif action=='stage-delete':

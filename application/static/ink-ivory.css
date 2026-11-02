@@ -505,3 +505,7 @@ body #content .refined-schedule .schedule-lineup .schedule-contender>:is(img,.te
 body #content .refined-schedule .schedule-lineup .schedule-contender>div{min-width:0;flex:1}
 body #content .refined-schedule .schedule-lineup[data-lineup-mode=team] .schedule-contender strong,body #content .refined-schedule .schedule-lineup .schedule-contender strong{font:400 14px/1.6 'Microsoft YaHei','PingFang SC',Arial,sans-serif!important;white-space:normal;word-break:normal;overflow-wrap:anywhere;text-wrap:balance;display:block;-webkit-line-clamp:unset;overflow:visible}
 }
+
+/* Table-count adaptation: retain existing two-column cards and their dimensions. */
+.viewer-tables>.viewer-table:only-child{grid-column:1 / -1}
+.viewer-table>header h3{overflow-wrap:anywhere}

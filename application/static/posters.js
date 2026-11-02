@@ -16,6 +16,11 @@ const font='"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif';
 const serif='"Noto Serif CJK SC","Songti SC","SimSun",serif';
 const template=()=>document.querySelector('[name="poster-template"]:checked').value;
 const table=v=>/^\d+$/.test(String(v))&&+v>=1&&+v<=26?String.fromCharCode(64+(+v)):String(v);
+function lineupTheme(value){
+ const code=String(value??'').trim().toUpperCase().replace(/桌$/,'');
+ const number=/^\d+$/.test(code)?Number(code):/^[A-Z]+$/.test(code)?[...code].reduce((n,ch)=>n*26+ch.charCodeAt(0)-64,0):1;
+ return number>0&&number%2===0?'wood':'ink';
+}
 function notice(t){$('poster-status').textContent=t}
 function options(node,items){node.replaceChildren(...items.map(([value,label])=>new Option(label,value)))}
 async function api(url){
@@ -40,7 +45,7 @@ function chooseDay(preferred){
 }
 function chooseMatch(preferred){
  const rows=data.matches.filter(m=>m.date===$('poster-day').value);
- options($('poster-match'),rows.map(m=>[m.id,`${m.time} · ${table(m.table)}桌 · 第${m.game}半庄 · ${m.stageName}`]));
+ options($('poster-match'),rows.map(m=>[m.id,`${m.time} · ${m.tableName||table(m.table)+"桌"} · 第${m.game}半庄 · ${m.stageName}`]));
  if(rows.some(m=>m.id===preferred))$('poster-match').value=preferred;
  syncTabs();draw();
 }
@@ -54,12 +59,12 @@ async function load(){
  catch(e){if(token===generation)notice(e.message)}
 }
 function text(c,value,x,y,size,max,color='#20251f',family=font,align='center',weight=600){
- c.fillStyle=color;c.textAlign=align;c.textBaseline='middle';
+ c.fillStyle=c.posterTheme==='wood'&&color==='#20251f'?'#4c3426':color;c.textAlign=align;c.textBaseline='middle';
  let s=size;c.font=`${weight} ${s}px ${family}`;
  while(c.measureText(String(value)).width>max&&s>12){s--;c.font=`${weight} ${s}px ${family}`}
  c.fillText(String(value),x,y);
 }
-function line(c,x,y,x2,y2,color='#d8d0c2',width=1){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x,y);c.lineTo(x2,y2);c.stroke()}
+function line(c,x,y,x2,y2,color='#d8d0c2',width=1){c.strokeStyle=c.posterTheme==='wood'&&color==='#d8d0c2'?'#dfceb6':color;c.lineWidth=width;c.beginPath();c.moveTo(x,y);c.lineTo(x2,y2);c.stroke()}
 function portrait(c,im,x,y,w,round=false){
  c.save();c.beginPath();if(round)c.arc(x+w/2,y+w/2,w/2,0,Math.PI*2);else c.rect(x,y,w,w);c.clip();
  c.fillStyle='#faf7ef';c.fillRect(x,y,w,w);
@@ -82,9 +87,9 @@ function title(c,name,x,y,max,size,color='#20251f',align='center'){
  let widths=width();while(widths[0]+widths[1]+22>max&&n>16){n--;widths=width()}
  const left=x-(widths[0]+widths[1]+22)/2;
  text(c,parts[1],left,y,n,widths[0]+2,color,serif,'left',800);
- text(c,parts[2],left+widths[0]+22,y,Math.round(n*1.48),widths[1]+2,'#a23829',font,'left',800);
+ text(c,parts[2],left+widths[0]+22,y,Math.round(n*1.48),widths[1]+2,c.posterTheme==='wood'?'#a65b35':'#a23829',font,'left',800);
 }
-function caption(m){return `${m.stageName} · ${table(m.table)}桌 · 第${m.game}半庄`}
+function caption(m){return `${m.stageName} · ${m.tableName||table(m.table)+"桌"} · 第${m.game}半庄`}
 function commentaryLines(c,width){
  c.font=`400 24px ${font}`;
  const value=match.commentators?.length?'解说：'+match.commentators.join(' · '):'解说待定';
@@ -93,14 +98,18 @@ function commentaryLines(c,width){
  if(line)lines.push(line);return lines;
 }
 function commentary(c,width,x,y,color){commentaryLines(c,width).forEach((line,i)=>text(c,line,x,y+i*32,24,width,color,font,'center',400))}
-function ink(c,avatars,logo,landscape){
- c.fillStyle='#faf7ee';c.fillRect(0,0,1200,c.canvas.height);
- if(landscape){c.save();c.globalAlpha=.4;c.drawImage(landscape,0,1070,1200,430);c.restore()}
+function ink(c,avatars,logo,landscape,texture,foliage){
+ const wood=c.posterTheme==='wood';
+ c.fillStyle=wood?'#f8efdf':'#faf7ee';c.fillRect(0,0,1200,c.canvas.height);
+ if(wood){
+  c.save();c.globalAlpha=.55;if(foliage)contain(c,foliage,740,-20,460,307);c.restore();
+  c.save();c.globalAlpha=.48;if(landscape)contain(c,landscape,0,c.canvas.height-400,1200,400);c.restore();
+ }else if(landscape){c.save();c.globalAlpha=.4;c.drawImage(landscape,0,1070,1200,430);c.restore()}
  contain(c,logo,475,40,250,100);
  title(c,data.name,600,220,1060,68);
  line(c,180,280,1020,280,'#a83e2d',2);
  text(c,match.date.replaceAll('-','.'),600,328,30,950,'#635d53',serif);
- c.fillStyle='#9f3d2e';c.fillRect(330,375,540,64);
+ c.fillStyle=wood?'#a65b35':'#9f3d2e';c.fillRect(330,375,540,64);
  text(c,caption(match),600,408,27,505,'#fffaf0');
  line(c,600,485,600,1315);line(c,165,920,1035,920);
  match.players.forEach((p,i)=>{
@@ -165,16 +174,16 @@ async function draw(){
  $('poster-warning').hidden=true;
  if(!match){notice('该比赛日暂无场次');return}
  if(!match.complete){notice('出战名单未齐，请先设置四位选手后再生成。');return}
- const current=match,mode=template();notice('正在生成预览…');
+ const current=match,mode=template(),theme=mode==='versus'?'ink':lineupTheme(match.table);notice('正在生成预览…');
  if(current.private){$('poster-warning').hidden=false;$('poster-warning').textContent='本场包含尚未公开的出战名单。下载后请勿提前发布。'}
  try{
  let failed=0;
  const avatars=await Promise.all(current.players.map(async p=>{try{return await image(p.imageUrl)}catch(e){if(p.imageUrl===fallback)throw e;failed++;return image(fallback)}}));
- const [logo,landscape,texture]=await Promise.all([image('/brand/logo'),image('/assets/matchday-landscape.png').catch(()=>null),mode==='versus'?image('/assets/poster-drybrush.png'):Promise.resolve(null)]);
+ const [logo,landscape,texture,foliage]=await Promise.all([image('/brand/logo'),image(theme==='wood'?'/assets/wood-mountains-v2.png':'/assets/matchday-landscape.png').catch(()=>null),mode==='versus'?image('/assets/poster-drybrush.png'):Promise.resolve(null),theme==='wood'?image('/assets/wood-maple-v2.png').catch(()=>null):Promise.resolve(null)]);
  if(token!==generation)return;
  const out=document.createElement('canvas');out.width=mode==='ink'?1200:1800;out.height=mode==='ink'?1500:1200;
- const c=out.getContext('2d');out.height+=Math.max(0,commentaryLines(c,mode==='ink'?980:1640).length-1)*32;c.imageSmoothingQuality='high';(mode==='ink'?ink:versus)(c,avatars,logo,landscape,texture);
- canvas.width=out.width;canvas.height=out.height;canvas.getContext('2d').drawImage(out,0,0);canvas.hidden=false;
+ const c=out.getContext('2d');out.height+=Math.max(0,commentaryLines(c,mode==='ink'?980:1640).length-1)*32;c.posterTheme=theme;c.imageSmoothingQuality='high';(mode==='ink'?ink:versus)(c,avatars,logo,landscape,texture,foliage);
+ canvas.dataset.posterTheme=theme;canvas.width=out.width;canvas.height=out.height;canvas.getContext('2d').drawImage(out,0,0);canvas.hidden=false;
  ready=true;download.disabled=busy;
  const defaults=current.players.filter(p=>p.imageUrl===fallback).length;
  notice(failed?`${failed} 张头像加载失败，已使用默认头像；可刷新重试。`:`预览已生成${defaults?' · '+defaults+' 位选手使用默认头像':''}`);
@@ -200,7 +209,7 @@ download.onclick=async()=>{
  if(token!==generation)return;
  if(!blob)throw Error('图片导出失败');
  const url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download=`${data.name}-${match.date}-${table(match.table)}桌-第${match.game}半庄-${template()==='ink'?'水墨':'对阵'}.png`.replace(/[<>:"/\\|?*]/g,'_');
+ a.href=url;a.download=`${data.name}-${match.date}-${match.tableName||table(match.table)+"桌"}-第${match.game}半庄-${template()==='ink'?'竖版':'横版'}.png`.replace(/[<>:"/\\|?*]/g,'_');
  a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);notice('已生成 PNG；手机可在下载文件中保存图片。');
  }catch(e){notice(e.message)}finally{busy=false;download.disabled=!ready}
 };

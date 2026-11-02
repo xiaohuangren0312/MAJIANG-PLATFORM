@@ -1,3 +1,4 @@
+from .event_tables import display
 from .roles import venue_admin
 """Read-only, manager-scoped lineup poster data. Never publishes a lineup."""
 from django.contrib.auth.decorators import login_required
@@ -58,7 +59,7 @@ def detail(request,id):
             disclosed=bool(s.get("lineupPublished",m.get("lineupPublished",False)) or m["state"]=="completed") if snapshot is not None else visible(d,m,s)
             private=private or bool(player and not disclosed)
             roster.append({"wind":(s.get("wind") if snapshot is not None else "东南西北"[i]) if known and i<4 else None,"name":player["name"] if player else "待定","playerId":player["id"] if player else None,"imageUrl":(player or {}).get("imageUrl") or "/assets/player-default.png","teamName":team.get("name",""),"color":team.get("color","")})
-        rows.append({"id":m["id"],"date":m["date"],"time":m["time"],"table":str(m.get("table",m.get("number",1))),"stageName":stages.get(m.get("stageId"),""),"game":counts[key],"players":sorted(roster,key=lambda p:"东南西北".index(p["wind"]) if p["wind"] else 4),"seatOrderKnown":known,"commentators":resources.get("commentators",[]),"private":private,"complete":len(roster)==4 and all(r["playerId"] for r in roster)})
+        rows.append({"id":m["id"],"date":m["date"],"time":m["time"],"table":str(m.get("table",m.get("number",1))),"tableName":m.get("tableName") or display(source,m.get("number",int(m.get("table",1)) if str(m.get("table",1)).isdigit() else 1)),"stageName":stages.get(m.get("stageId"),""),"game":counts[key],"players":sorted(roster,key=lambda p:"东南西北".index(p["wind"]) if p["wind"] else 4),"seatOrderKnown":known,"commentators":resources.get("commentators",[]),"private":private,"complete":len(roster)==4 and all(r["playerId"] for r in roster)})
     return response({"id":str(e.pk),"name":e.name,"revision":e.revision,"matches":rows})
 
 
@@ -83,7 +84,7 @@ def daily(request,id):
     players={p['id']:p['name'] for p in payload.get('players',[])}
     matches=[]
     for m in today:
-        matches.append(dict(commentators=m.get('resources',{}).get('commentators',[]),id=m['id'],time=m.get('time',''),table=m.get('table',m.get('number','')),stageId=m['stageId'],seats=[dict(name=players.get(s.get('playerId'),'未知选手'),team=teams.get(s.get('teamId'),''),wind=s.get('wind') if s.get('wind') and s.get('wind') in '东南西北' else None,rank=s.get('rank'),score=s.get('score'),points=s.get('points'),teamImageUrl=team_details.get(s.get('teamId'),{}).get('imageUrl'),teamColor=team_details.get(s.get('teamId'),{}).get('color')) for s in sorted(m.get('seats',[]),key=lambda s:'东南西北'.index(s['wind']) if s.get('wind') and s.get('wind') in '东南西北' else 4)]))
+        matches.append(dict(commentators=m.get('resources',{}).get('commentators',[]),id=m['id'],time=m.get('time',''),table=m.get('table',m.get('number','')),tableName=m.get('tableName'),stageId=m['stageId'],seats=[dict(name=players.get(s.get('playerId'),'未知选手'),team=teams.get(s.get('teamId'),''),wind=s.get('wind') if s.get('wind') and s.get('wind') in '东南西北' else None,rank=s.get('rank'),score=s.get('score'),points=s.get('points'),teamImageUrl=team_details.get(s.get('teamId'),{}).get('imageUrl'),teamColor=team_details.get(s.get('teamId'),{}).get('color')) for s in sorted(m.get('seats',[]),key=lambda s:'东南西北'.index(s['wind']) if s.get('wind') and s.get('wind') in '东南西北' else 4)]))
     stages=[]
     kind='team' if e.kind=='team' else 'player'
     key='teamPoints' if kind=='team' else 'points'

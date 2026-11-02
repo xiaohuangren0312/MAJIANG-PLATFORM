@@ -220,6 +220,40 @@ body[data-public-page] .viewer-table>header .viewer-live-pending,body[data-publi
  #content .ranking-expanded .identity>strong .ranking-team{display:block!important}
 }
 
+/* Compact team placement counts. */
+.team-place-counts{display:flex;align-items:center;gap:22px;margin:12px 0;color:#514e43}
+.team-place-counts>span{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.team-place-counts small{font-size:12px;font-weight:400;color:#8a8070}
+.team-place-counts b{font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+.team-place-counts>span:first-child b{color:#a67c34}
+@media(max-width:640px){.team-place-counts{gap:0;justify-content:space-between}.team-place-counts>span{gap:4px}.team-place-counts small{font-size:11px}.team-place-counts b{font-size:17px}}
+
+@media(max-width:640px){#content .ink-profile-overview:has(.team-place-counts){display:block!important;margin-top:22px}#content .ink-profile-overview:has(.team-place-counts)>section:first-child{display:none}#content .ink-profile-overview:has(.team-place-counts) .section-head{margin:0 0 12px}.ink-record-summary:has(.team-place-counts){padding:12px}}
+
+.ink-profile-overview:has(.team-place-counts) [data-profile-jump=records]{border:0;background:transparent;color:#8a8070;font-size:11px;padding:0}.ink-record-summary:has(.team-place-counts)>p{font-size:12px;color:#8a8070;font-weight:400}
+
+/* Compact team record strip. */
+.ink-record-summary:has(.team-place-counts){display:grid;grid-template-columns:160px minmax(0,1fr);align-items:center;column-gap:30px;padding:22px 26px;background:linear-gradient(105deg,#f5f0e4cc,#fffdf766);border:1px solid #e5ddcd;border-radius:6px}
+.ink-record-summary:has(.team-place-counts)>strong{grid-column:1;grid-row:1;font-size:15px;color:#3f493e;font-weight:500}
+.ink-record-summary:has(.team-place-counts)>p{grid-column:1;grid-row:2;margin:8px 0 0;font-size:11px!important;color:#938777}
+.ink-record-summary .team-place-counts{grid-column:2;grid-row:1/3;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0;border-left:1px solid #dfd5c3}
+.ink-record-summary .team-place-counts>span{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative}
+.ink-record-summary .team-place-counts>span+span{border-left:1px solid #e9e1d4}
+.ink-record-summary .team-place-counts>span small:first-child{font-size:11px;letter-spacing:2px;color:#8b806f}
+.ink-record-summary .team-place-counts b{font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.1;font-weight:400;color:#4e5e4c}
+.ink-record-summary .team-place-counts>span:first-child b{color:#a67e3e}
+.ink-record-summary .team-place-counts>span small:last-child{position:absolute;bottom:2px;left:calc(50% + 13px);font-size:10px;color:#a49988}
+@media(max-width:640px){
+ #content .ink-record-summary:has(.team-place-counts){grid-template-columns:1fr 1fr;gap:17px 6px;padding:17px 16px}
+ #content .ink-record-summary:has(.team-place-counts)>strong{grid-column:1;grid-row:1;font-size:13px}
+ #content .ink-record-summary:has(.team-place-counts)>p{grid-column:2;grid-row:1;text-align:right;margin:0;font-size:10px!important}
+ #content .ink-record-summary .team-place-counts{grid-column:1/-1;grid-row:2;border-left:0;border-top:1px solid #e5dccb;padding-top:15px}
+ #content .ink-record-summary .team-place-counts b{font-size:27px}
+ #content .ink-profile-overview:has(.team-place-counts){margin-top:22px}
+}
+
+.team-record-stages{margin:0 0 12px!important;display:flex!important;justify-content:flex-start;border-bottom:1px solid #e5ddcd}.team-record-stages button{font-size:12px;padding:9px 15px}.team-record-stages button.active{color:#a3372b;border-bottom:2px solid #a3372b}
+
 /* Player detail: shared stage dropdown and compact finish counts. */
 .player-stage-select{display:flex;align-items:center;gap:10px;margin-left:auto;order:2;color:#817565;font-size:13px;min-width:0}
 .player-stage-select select{width:180px;max-width:100%;padding:8px 12px;background:#fffdf8;border:1px solid #ddd4c7;border-radius:6px;color:#343c34;font:inherit}

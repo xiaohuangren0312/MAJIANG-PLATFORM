@@ -118,7 +118,9 @@ def event_detail(request,id):
     e=get_object_or_404(allowed(request.user),pk=id)
     if request.method=='GET':
         from .management_projection import document_for
-        return JsonResponse({**summary(e,request.user),'document':e.document,'managementDocument':document_for(e),'completed':bool(e.document.get('historySnapshot')),**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
+        from .coach_lineups import team_ids, writable
+        coach_tools = writable(e) and bool(team_ids(e, request.user))
+        return JsonResponse({**summary(e,request.user),'coachTools':coach_tools,'document':e.document,'managementDocument':document_for(e),'completed':bool(e.document.get('historySnapshot')),**({'historyDisplay':public_event(e)} if e.document.get('historySnapshot') else {})})
     require(request.method=='POST','请求方法不支持');b=body(request)
     action=b.get('action');authorize(e,request.user,action,backfill=getattr(request,'history_backfill',False))
     if b.get('revision')!=e.revision:return revision_conflict(e,b.get('revision'))
@@ -299,7 +301,7 @@ def event_detail(request,id):
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
     require_names={'viewer-themes.js','viewer-themes.css','event-tables.js','manager-improvements.js','manager-improvements.css','viewer-design.js','viewer-design.css','coach-navigation.js','manager-workspace.js','manager-workspace.css','manager-resources.js','manager-resources.css','coach-studio.css','daily-poster-renderer.js','daily-posters.js','posters.js','posters.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
-    require_names.update({'batch-schedule.js','batch-schedule.css'})
+    require_names.update({'feature-dashboard.js','batch-schedule.js','batch-schedule.css'})
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
     require_names.update({'history-backfill.js','material-celadon.jpg','material-wood.jpg','material-cloud.jpg','material-night.jpg','theme-celadon.png','theme-wood.png','theme-cloud.png','theme-night.png','vampire-scene.png','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-report-ornament-v1.png','wood-maple-v2.png','wood-report-autumn-v3.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'})

@@ -1,7 +1,7 @@
 function scheduleToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let events=[],event=null,page=new URLSearchParams(location.search).get('page')||'overview',opened=null,preview=null,accountAdmin=false,resourceMatchId=new URLSearchParams(location.search).get('match');
-const pages={overview:'赛事概览',roster:'队伍选手',rules:'计分规则',schedule:'赛程战果',resources:'对局资料',settle:'阶段结算',lifecycle:'赛事归档',access:'赛事授权'};
+let events=[],event=null,page=new URLSearchParams(location.search).get('page')||'dashboard',opened=null,preview=null,accountAdmin=false,resourceMatchId=new URLSearchParams(location.search).get('match');
+const pages={dashboard:'功能总览',overview:'赛事概览',roster:'队伍选手',rules:'计分规则',schedule:'赛程战果',resources:'对局资料',settle:'阶段结算',lifecycle:'赛事归档',access:'赛事授权'};
 function tableLabel(n){let out='';for(n=Number(n);n>0;n=Math.floor((n-1)/26))out=String.fromCharCode(65+(n-1)%26)+out;return out}
 function tableName(n){return event?.document?.tables?.find(t=>t.number===Number(n))?.name||(tableLabel(n)+'桌')}
 const pt=n=>(n/10).toFixed(1),team=id=>event.document.teams.find(x=>x.id===id)?.name||'未分配',player=id=>event.document.players.find(x=>x.id===id)?.name||'待公布';
@@ -33,6 +33,12 @@ function render(){
  if(event&&({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[page])&&!can({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[page]))page='overview';
  $('#nav').innerHTML=Object.entries(pages).filter(([k])=>!event||!({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[k])||can({pairing:'pairing-preview',rules:'rule',settle:'settlement-preview',access:'coach-manage'}[k])).map(([k,v])=>`<button data-page="${k}" class="${page===k?'active':''}">${v}</button>`).join('');document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=b.dataset.page;opened=null;preview=null;render()});
  $('#overview-tools').hidden=page!=='overview';
+ if(page==='dashboard'){
+  const host=document.createElement('div');$('#content').replaceChildren(host);
+  import('/assets/feature-dashboard.js').then(module=>{if(host.isConnected)module.showDashboard(host)}).catch(()=>{if(host.isConnected)notice('功能总览加载失败，请刷新重试',true)});
+  if(event)enforcePermissions();
+  return;
+ }
  if(!event){$('#content').innerHTML='<h1>暂无可管理赛事</h1><p>场馆管理员可以创建赛事；其他账号请联系场馆管理员授权。</p>';return}
  ({overview,roster,rules,schedule,resources,pairing,settle,lifecycle,access})[page]();if(page==='overview'){eventBrandPanel();workspaceOverviewSettings();eventTableSettings();}if(page==='schedule')matchdayLivePanel();enforcePermissions();workspaceContextBar();workspaceRetainedPanel();settingsTrack();
 }

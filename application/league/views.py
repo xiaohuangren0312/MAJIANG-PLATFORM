@@ -194,6 +194,9 @@ def event_detail(request,id):
         require(signed['event']==str(e.id) and signed['revision']==e.revision,'更正预览已过期，请重新生成')
         require(b.get('acknowledgeCarry') is True,'请确认原表快照与后续带入分保留不变')
         new=history_commit(old,signed['body']);new['historyCorrections'][-1].update(actor=request.user.username,at=timezone.now().isoformat());b['reason']=optional_note(signed['body'].get('reason'))
+    elif action=='batch-schedule':
+        from .batch_schedule import commit as batch_commit
+        new=batch_commit(old,e.kind,b)
     elif action=='pairing-commit':
         from .pairing import commit as pairing_commit
         signed=signing.loads(b.get('token'),salt='pairing',max_age=1800)
@@ -296,6 +299,7 @@ def event_detail(request,id):
 def asset(request,name):
     # Deliberate allowlist; no directory traversal or app source exposure.
     require_names={'viewer-themes.js','viewer-themes.css','event-tables.js','manager-improvements.js','manager-improvements.css','viewer-design.js','viewer-design.css','coach-navigation.js','manager-workspace.js','manager-workspace.css','manager-resources.js','manager-resources.css','coach-studio.css','daily-poster-renderer.js','daily-posters.js','posters.js','posters.css','coach-profile.js','coach-lineups.js','manager-controls.js','pairing.js','lifecycle.js','public.js','trend-data.js','public.css','history-ui.js','ink-ivory.css','red-white.css','manager.js','manager.css','roster.js','match-editor.js','access.js','history-review.js','history-editor.js'}
+    require_names.update({'batch-schedule.js','batch-schedule.css'})
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
     require_names.update({'history-backfill.js','material-celadon.jpg','material-wood.jpg','material-cloud.jpg','material-night.jpg','theme-celadon.png','theme-wood.png','theme-cloud.png','theme-night.png','vampire-scene.png','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-report-ornament-v1.png','wood-maple-v2.png','wood-report-autumn-v3.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'})

@@ -17,6 +17,8 @@ def actions_for(event,user,backfill=False):
         actions=actions|{'rule','rule-select','history-image','history-roster-delete','history-roster','history-stage-update'}
     if backfill and user.is_superuser and settings.HISTORY_BACKFILL_ENABLED and event.document.get('historySnapshot'):
         actions=actions|{'history-inverse','history-preview','history-correct','history-player-add','history-bond-register'}
+    if event.kind=='team' and not any(event.document.get(k) for k in ('archive','archiveRevision','historySnapshot')):
+        actions=actions|{'batch-schedule'}
     if event.kind=='personal' and not event.document.get('historySnapshot'):
         actions=actions|{'pairing-preview','pairing-commit'}
     actions=actions|{'coach-manage','event-logo'}

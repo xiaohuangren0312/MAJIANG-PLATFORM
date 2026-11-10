@@ -22,3 +22,6 @@ urlpatterns += [path('api/posters/<uuid:id>/daily/',posters.daily)]
 
 from league.brand import settings_api
 urlpatterns += [path('api/brand/settings/',settings_api)]
+
+from league import batch_schedule
+urlpatterns += [path('manage/events/<uuid:id>/batch-schedule/', batch_schedule.page, name='batch-schedule')]

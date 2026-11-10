@@ -54,3 +54,11 @@ class BatchScheduleTests(TestCase):
         self.event.save()
         self.assertEqual(self.client.get(self.page).status_code, 403)
         self.assertEqual(self.post([self.row]).status_code, 403)
+
+    def test_personal_entry_opens_current_event_pairing(self):
+        self.event.kind = 'personal'
+        self.event.save(update_fields=['kind'])
+        self.assertRedirects(self.client.get(self.page),
+                             f'/manage/?event={self.event.pk}&page=pairing',
+                             fetch_redirect_response=False)
+        self.assertEqual(self.post([self.row]).status_code, 403)

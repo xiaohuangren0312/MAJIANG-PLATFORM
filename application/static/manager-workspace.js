@@ -21,7 +21,6 @@ function schedule(){
  const update=()=>{scheduleFilter={...scheduleFilter,date:day.value,query:query.value,state:state.value};workspaceFixtures();workspaceFilterChips()};
  day.onchange=state.onchange=async()=>{if(!await resourceCanLeave()){day.value=scheduleFilter.date;state.value=scheduleFilter.state;return}update()};query.oninput=async()=>{if(!await resourceCanLeave()){query.value=scheduleFilter.query;return}update()};
  $('.schedule-toolbar>button').onclick=async()=>{if(!await resourceCanLeave())return;day.value='';query.value='';state.value='all';delete scheduleFilter.task;update()};$('#schedule-empty')?.remove();
- const template=$('#schedule-template');if(template){const details=document.createElement('details');details.className='workspace-more schedule-method';const summary=document.createElement('summary');summary.textContent='排程方式';details.append(summary);$('.schedule-toolbar').append(details);details.append(template.closest('label'))}
  const date=$('#match-form [name=date]');if(date&&!date.value)date.value=day.value||scheduleToday();
  update();workspaceCompactFilters();
 }

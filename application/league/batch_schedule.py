@@ -26,6 +26,10 @@ def available_tables(document, stage):
 def page(request, id):
     from .views import allowed
     event = get_object_or_404(allowed(request.user), pk=id)
+    if event.kind == 'personal':
+        from django.shortcuts import redirect
+        authorize(event, request.user, 'pairing-preview')
+        return redirect(f'/manage/?event={event.pk}&page=pairing')
     authorize(event, request.user, 'batch-schedule')
     document = event.document
     stages = []

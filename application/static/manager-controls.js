@@ -92,7 +92,7 @@
   toolPanel(document.querySelector('#matchday-live-form'),'桌次直播');
   toolPanel(document.querySelector('#match-form'),'＋ 安排赛程');
   const actions=hero?.querySelector('.admin-page-actions');
-  if(actions && content.querySelector('.workspace-schedule') && can('batch-schedule') && !actions.querySelector('.batch-schedule-link')){
+  if(actions && content.querySelector('.workspace-schedule') && (can('batch-schedule') || can('pairing-preview')) && !actions.querySelector('.batch-schedule-link')){
    const link=document.createElement('a');
    link.className='batch-schedule-link';
    link.textContent='批量排程';

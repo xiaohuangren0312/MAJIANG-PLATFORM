@@ -13,10 +13,6 @@ function workspaceStatus(m){return m.state==='published'?'已发布':m.state==='
 function workspaceGo(target,match=null){page=target;opened=match;render()}
 function schedule(){
  workspaceContext();if(opened&&!event.document.matches.some(m=>m.id===opened))opened=null;legacySchedule();if(opened)return;
- if(can('batch-schedule')){
-  const link=document.createElement('a');link.textContent='批量排程';link.className='secondary';link.href='/manage/events/'+encodeURIComponent(event.id)+'/batch-schedule/';
-  document.querySelector('.schedule-toolbar')?.append(link);
- }
  const old=$('.manage-matchdays');if(!old)return;
  old.outerHTML='<div class="workspace-schedule"><div id="workspace-fixtures"></div><section class="card workspace-detail" id="workspace-match" aria-label="本场详情"></section></div>';
  const day=$('#schedule-day'),query=$('#schedule-query'),state=$('#match-state');

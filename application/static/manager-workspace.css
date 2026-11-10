@@ -338,3 +338,6 @@ html:has(#roster-editor[open]),body:has(#roster-editor[open]){overflow:hidden}
 .management-page #content>.admin-page-heading>.admin-page-actions>.admin-tool-panel{flex:0 0 auto;margin:0}
 .management-page #content>.admin-page-heading>.admin-page-actions:empty{display:none}
 @media(max-width:850px){.management-page #content>.admin-page-heading>.admin-page-actions{justify-content:flex-start}}
+
+.management-page .admin-page-actions>a.batch-schedule-link{display:inline-flex;align-items:center;padding:8px 16px;border:1px solid #d6cfbf;border-radius:6px;background:#fffdf8;color:inherit;font-size:13px;text-decoration:none}
+.management-page .admin-page-actions>a.batch-schedule-link:hover{background:#eee7da}

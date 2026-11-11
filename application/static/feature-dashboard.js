@@ -129,7 +129,7 @@ function catalog() {
 export function showDashboard(host) {
     const cards=catalog();
     host.className='feature-dashboard';
-    host.innerHTML='<section class="feature-head"><small></small><h1>功能总览</h1><label><span aria-hidden="true">⌕</span><input type="search" aria-label="搜索功能" placeholder="搜索功能，例如：排赛程、录分、海报"></label></section><p class="feature-count" role="status"></p><div class="feature-groups"></div>';
+    host.innerHTML='<section class="feature-head"><small></small><h1>功能总览</h1><label><span aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg></span><input type="search" aria-label="搜索功能" placeholder="搜索功能，例如：排赛程、录分、海报"></label></section><p class="feature-count" role="status"></p><div class="feature-groups"></div>';
     host.querySelector('small').textContent=event?event.name+'　/　'+(event.kind==='team'?'团体赛':'个人赛'):'场馆管理';
     const search=host.querySelector('input');
     function draw() {

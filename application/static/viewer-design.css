@@ -270,3 +270,8 @@ body[data-public-page] .viewer-table>header .viewer-live-pending,body[data-publi
  #content .player-place-counts h2{font-size:15px;margin:0 0 14px;padding-left:8px}
  .player-place-counts>div>span{gap:4px}.player-place-counts small{font-size:11px}.player-place-counts strong{font-size:23px}
 }
+
+
+.viewer-result .viewer-person .result-name-line{display:flex;align-items:baseline;gap:4px;min-width:0;white-space:nowrap;overflow:hidden}
+.viewer-result .result-name-line>a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viewer-result .result-name-line>.result-bond{flex:none;font-size:10px;line-height:1;color:var(--muted, #766b5d);font-weight:normal}

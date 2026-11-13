@@ -52,4 +52,4 @@ class Middleware:
    return response
   finally:_current.reset(token)
 def branding(request):
- v=venue();return {'filing_site_name':'欢雀楼联赛赛事管理系统' if v['key']=='hql' else '', 'venue_name':v['name'],'venue_english':v.get('english',''),'venue_tagline':v.get('tagline','以牌会友 · 共赴山海'),'venue_credit':v.get('credit',''),'venue_icp':v.get('icp','浙ICP备2026081609号-1' if v['key']=='hql' else '')}
+ v=venue();return {'filing_site_name':'赛事管理系统' if v['key']=='hql' else '', 'venue_name':v['name'],'venue_english':v.get('english',''),'venue_tagline':v.get('tagline','以牌会友 · 共赴山海'),'venue_credit':v.get('credit',''),'venue_icp':v.get('icp','浙ICP备2026081609号-1' if v['key']=='hql' else '')}

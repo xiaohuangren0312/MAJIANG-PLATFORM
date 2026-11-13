@@ -42,7 +42,8 @@ function render(options={}){
  const active=route==='result'?'results':route==='team'?'teams':route==='player'?'players':route;
  ['desktop-nav','mobile-nav'].forEach(id=>$(id).innerHTML=Object.entries(navs).filter(([key])=>key!=='teams'||tournament.type==='team').map(([key,label])=>`<a href="${href(key)}" class="${active===key?'active':''}">${label}</a>`).join(''));
  document.querySelector('.brand').href=href('home');$('event-select').innerHTML=opts(data.tournaments,tournament.id);$('context-info').textContent=`${tournament.season} 赛季 · ${tournament.type==='team'?'团体赛':'个人赛'} · ${tournament.archived?'已归档':tournament.historical?'历史赛事':'进行中'}`;
- document.title=(navs[active]||'赛事详情')+' · '+(window.HQL_BRAND?.name||'赛事');
+ const siteName=document.querySelector('.brand').dataset.siteName;
+ document.title=active==='home' && siteName ? siteName : (navs[active]||'赛事详情')+' · '+(siteName||window.HQL_BRAND?.name||'赛事');
  if(route==='home')home();else if(route==='schedule')schedule();else if(route==='results')results();else if(route==='teams'||route==='players')board();else if(route==='result')resultDetail();else if(route==='team'||route==='player')profile();else $('content').innerHTML=title('未找到页面','请使用顶部导航浏览赛事。');
  if(tournament.archived){const f=tournament.finalStandings;$('content').insertAdjacentHTML('afterbegin',`<section class="card archive-summary"><h2>比赛已归档 · ${esc(f.stageName)}最终排名</h2><div class="final-standings">${f.rows.map(r=>`<div><span>${r.rank} · ${esc(r.name)}</span><strong>${fmt(r.total)} PT</strong></div>`).join('')}</div></section>`)}
  compactFilters();refinePublicLayout();refineProfile();if(typeof refineViewerDesign==='function')refineViewerDesign();bindFixtureCards();alignSchedulePreview();bindResultCards();

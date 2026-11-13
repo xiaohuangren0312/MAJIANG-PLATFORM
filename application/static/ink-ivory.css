@@ -509,3 +509,7 @@ body #content .refined-schedule .schedule-lineup[data-lineup-mode=team] .schedul
 /* Table-count adaptation: retain existing two-column cards and their dimensions. */
 .viewer-tables>.viewer-table:only-child{grid-column:1 / -1}
 .viewer-table>header h3{overflow-wrap:anywhere}
+
+.site-header .brand[data-site-name]:not([data-site-name=""])>span{display:block;white-space:normal;line-height:1.25;font-size:clamp(14px,1.4vw,20px)}
+.site-header .brand.brand-wide[data-site-name]:not([data-site-name=""]) .brand-tile{width:68px;height:44px}
+@media(max-width:600px){.site-header .brand[data-site-name]:not([data-site-name=""])>span{max-width:9em}.site-header .brand.brand-wide[data-site-name]:not([data-site-name=""]) .brand-tile{width:48px;height:36px}}

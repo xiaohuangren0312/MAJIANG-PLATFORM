@@ -316,3 +316,25 @@ body[data-public-page] .viewer-table>header .viewer-live-pending,body[data-publi
   background: #89692f;
   color: white;
 }
+
+/* Keep each yakuman attached to the player who won it. */
+#content .viewer-result .result-name-line:has(.result-yakuman-badge) {
+  flex-wrap: wrap;
+  white-space: normal;
+  overflow: visible;
+}
+#content .viewer-result .result-yakuman-badge {
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1px 4px;
+  border: 1px solid #c59a4e;
+  border-radius: 3px;
+  background: #fcf4df;
+  color: #805410;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

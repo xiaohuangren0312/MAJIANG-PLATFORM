@@ -324,17 +324,41 @@ body[data-public-page] .viewer-table>header .viewer-live-pending,body[data-publi
   overflow: visible;
 }
 #content .viewer-result .result-yakuman-badge {
+  position: relative;
+  isolation: isolate;
   display: inline-block;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 1px 4px;
-  border: 1px solid #c59a4e;
-  border-radius: 3px;
-  background: #fcf4df;
-  color: #805410;
+  padding: 2px 7px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px,
+    100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%,
+    0 calc(100% - 5px), 0 5px);
+  background: linear-gradient(135deg, #c4c8d2, #ffffff 22%, #bac1cc 47%,
+    #f9fbff 70%, #b8bdc9);
+  color: #75658c;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: .04em;
   line-height: 1.4;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+#content .viewer-result .result-yakuman-badge::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  pointer-events: none;
+  clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%,
+    0 calc(100% - 4px), 0 4px);
+  background:
+    linear-gradient(135deg, #e8d8fa 0 18%, transparent 19%) top left / 12px 70% no-repeat,
+    linear-gradient(225deg, #d4eafa 0 28%, transparent 29%) top right / 13px 75% no-repeat,
+    linear-gradient(45deg, #d5e9fa 0 28%, transparent 29%) bottom left / 13px 75% no-repeat,
+    linear-gradient(315deg, #eddcfa 0 25%, transparent 26%) bottom right / 12px 70% no-repeat,
+    linear-gradient(115deg, #edf3fc, #ffffff 35%, #fbfcff 65%, #edf1fa);
+  box-shadow: inset 0 0 0 1px #ffffffd9;
 }

@@ -305,9 +305,10 @@ def asset(request,name):
     if name in {'history-editor.js','history-review.js','history-backfill.js'}:
         if not settings.HISTORY_BACKFILL_ENABLED or not request.user.is_authenticated or not request.user.is_superuser:raise Http404
     require_names.update({'history-backfill.js','material-celadon.jpg','material-wood.jpg','material-cloud.jpg','material-night.jpg','theme-celadon.png','theme-wood.png','theme-cloud.png','theme-night.png','vampire-scene.png','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-report-ornament-v1.png','wood-maple-v2.png','wood-report-autumn-v3.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'})
+    require_names.add('yakuman-diamond-background.png')
     if name not in require_names:raise Http404
     path=settings.BASE_DIR/'static'/name
-    response=FileResponse(path.open('rb'),content_type='image/jpeg' if name.endswith('.jpg') else 'image/png' if name in {'material-celadon.jpg','material-wood.jpg','material-cloud.jpg','material-night.jpg','theme-celadon.png','theme-wood.png','theme-cloud.png','theme-night.png','vampire-scene.png','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-report-ornament-v1.png','wood-maple-v2.png','wood-report-autumn-v3.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
+    response=FileResponse(path.open('rb'),content_type='image/png' if name == 'yakuman-diamond-background.png' else 'image/jpeg' if name.endswith('.jpg') else 'image/png' if name in {'material-celadon.jpg','material-wood.jpg','material-cloud.jpg','material-night.jpg','theme-celadon.png','theme-wood.png','theme-cloud.png','theme-night.png','vampire-scene.png','table-landscape-a.png','table-landscape-b.png','poster-drybrush.png','event-ink.png','matchday-landscape.png','wood-report-ornament-v1.png','wood-maple-v2.png','wood-report-autumn-v3.png','wood-mountains-v2.png','team-profile-art.png','player-default.png','leader-flames.png'} else 'text/javascript' if name.endswith('.js') else 'text/css')
     response['Cache-Control']='no-cache';return response
 
 @require_GET

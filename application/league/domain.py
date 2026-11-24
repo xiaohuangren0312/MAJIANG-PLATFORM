@@ -189,6 +189,8 @@ def apply(d,kind,action,b):
             require(m['state']=='draft','已发布或取消的记录不可直接修改')
             if action=='lineup':
                 seats=validate_lineup(d,kind,b.get('seats'),True,stage_id=m['stageId'])
+                if m.get('seatDraw',{}).get('mode')=='fixed':
+                    require([s['teamId'] for s in seats]==[s['teamId'] for s in m['seats']],'本场队伍风位随赛程固定')
                 validate_qualification(d,kind,m['stageId'],seats)
                 require(not m['penalties'] and not m['yakuman'],'请先处理原有罚分和役满事件')
                 m.update(seats=seats,lineupPublished=True)

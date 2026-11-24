@@ -25,7 +25,9 @@ def context(d,kind,b):
     require(start+len(players)//4-1<=1000,'生成桌号超出范围')
     from .event_tables import stage_tables, selection
     numbers=b.get('tableNumbers')
-    if numbers is not None:numbers=selection(d,numbers)
+    if numbers is not None:
+        if 'tables' in d or 'tableNumbers' in stage or numbers!=list(range(start,start+len(players)//4)):
+            numbers=selection(d,numbers)
     elif 'tables' in d or 'tableNumbers' in stage:numbers=stage_tables(d,stage)
     else:numbers=list(range(start,start+len(players)//4))
     require(len(numbers)>=len(players)//4,'阶段用桌不足，请先在阶段设置增加用桌')

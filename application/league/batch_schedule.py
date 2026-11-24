@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_http_methods
 
 from .domain import Invalid, apply, eligible_ids, live_stage, require
 from .event_tables import catalog, stage_tables
@@ -22,35 +22,10 @@ def available_tables(document, stage):
 @login_required
 @never_cache
 @ensure_csrf_cookie
-@require_GET
+@require_http_methods(["GET","POST"])
 def page(request, id):
-    from .views import allowed
-    event = get_object_or_404(allowed(request.user), pk=id)
-    if event.kind == 'personal':
-        from django.shortcuts import redirect
-        authorize(event, request.user, 'pairing-preview')
-        return redirect(f'/manage/?event={event.pk}&page=pairing')
-    authorize(event, request.user, 'batch-schedule')
-    document = event.document
-    stages = []
-    for stage in document['stages']:
-        if stage.get('locked'):
-            continue
-        try:
-            eligible = eligible_ids(document, 'team', stage['id'])
-        except Invalid:
-            eligible = set()
-        stages.append(dict(id=stage['id'], name=stage['name'],
-                           teams=[team['id'] for team in document['teams']
-                                  if team['active'] and team['id'] in eligible],
-                           tables=available_tables(document, stage)))
-    matches = [dict(day=m['date'], time=m['time'], table=m['number'], stage=m['stageId'],
-                    teams=[s['teamId'] for s in m['seats']]) for m in document['matches']
-               if m['state'] != 'cancelled']
-    config = dict(id=str(event.pk), revision=event.revision, stages=stages, matches=matches,
-                  teams={t['id']: t['name'] for t in document['teams']},
-                  tables={t['number']: t['name'] for t in catalog(document)})
-    return render(request, 'batch_schedule.html', {'config': config, 'event': event})
+    from .schedule_excel import page as wizard
+    return wizard(request, id)
 
 
 def commit(document, kind, body):
@@ -58,6 +33,8 @@ def commit(document, kind, body):
             '当前赛事不能批量排程')
     stage = live_stage(document, body.get('stageId'))
     tables = set(available_tables(document, stage))
+    mode = body.get('windMode', stage.get('windMode','random'))
+    require(mode in ('random','fixed'), '风位安排无效')
     rows = body.get('rows')
     require(isinstance(rows, list) and 1 <= len(rows) <= 500, '每批可保存 1 至 500 场')
     used_teams, used_tables = defaultdict(set), defaultdict(set)
@@ -87,9 +64,11 @@ def commit(document, kind, body):
             require(not used_teams[slot].intersection(teams), '队伍在该时段已有比赛')
             match = apply(context, kind, 'match', dict(stageId=stage['id'], date=day, time=time,
                           number=number, seats=[{'teamId': t} for t in teams]))['matches'][0]
+            if mode == 'fixed':
+                match['seatDraw'] = {'mode':'fixed','count':0}
             created.append(match)
             used_tables[slot].add(number)
             used_teams[slot].update(teams)
         except Invalid as exc:
             raise Invalid(f'第 {index} 场：{exc}') from exc
-    return {**document, 'matches': [*document['matches'], *created]}
+    return {**document, 'stages':[dict(s,windMode=mode) if s['id']==stage['id'] else s for s in document['stages']], 'matches': [*document['matches'], *created]}

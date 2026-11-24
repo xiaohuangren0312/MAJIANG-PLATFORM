@@ -1,0 +1,40 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>批量排程 · {{ event.name }}</title>
+<link rel="stylesheet" href="/assets/batch-schedule.css"><link rel="stylesheet" href="/assets/viewer-themes.css"><script src="/assets/viewer-themes.js"></script>
+<link rel="stylesheet" href="/assets/bulma-o-steps-1.1.0.css"><style>
+[hidden]{display:none!important}main{max-width:1100px;margin:auto;padding:24px}section{background:#fffdf8;border:1px solid #d8d4c6;border-radius:10px;padding:20px}h2{margin-top:0}fieldset{border:0;margin:12px 0;padding:0}legend{font-weight:600;margin-bottom:6px}.choices{display:flex;gap:8px;flex-wrap:wrap}.choices label{padding:6px 9px;background:#f1f1e9;border-radius:5px}.choices input{width:auto}textarea{box-sizing:border-box;width:100%;padding:10px;font:inherit}button,select,input{margin:3px}button{cursor:pointer}.actions{display:flex;justify-content:space-between;align-items:center;margin-top:18px}.instruction{padding:12px 0;border-bottom:1px solid #e4dfd3}.instruction h3{margin:0 0 7px}.warn{background:#fbf0d9;color:#78541e}.good{background:#edf3eb}.audit,details.day{padding:9px;margin:5px 0;border-radius:5px}summary{cursor:pointer}.scroll{overflow:auto}.scroll table{min-width:620px;width:100%}#message{color:#87472e}dialog{max-width:min(88vw,520px);border:1px solid #cfcbbd;border-radius:10px}dialog label{display:block;margin:8px} @media(max-width:650px){main{padding:10px}section{padding:12px}.actions{flex-wrap:wrap}}
+.workspace{display:grid;grid-template-columns:180px minmax(0,1fr);min-height:90vh;background:#f5f2ea}.workspace nav{padding:24px 12px;border-right:1px solid #dedacf;background:#faf8f2}.workspace nav a{display:block;padding:10px;color:inherit;text-decoration:none}.workspace nav .current{border-radius:5px;background:#e4ecdf;font-weight:650}.workspace main{width:100%;margin:0 auto}@media(max-width:760px){.workspace{display:block}.workspace nav{display:none}}
+
+
+
+
+.file-card{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid #d7d9ce;border-radius:7px;background:#fafaf5}.file-icon{display:grid;place-items:center;width:32px;height:40px;background:#31734f;color:white;border-radius:3px;font-weight:750}.file-card div{flex:1;min-width:0;overflow-wrap:anywhere}.file-card small{display:block;color:#667068}
+#audit .audit{padding:0;margin:4px 0;background:transparent;border:1px solid #d9dfd4}#audit .audit.warn{background:#fcf2dc;border-color:#ebd8a6}#audit summary{display:flex;align-items:center;gap:8px;padding:5px 10px;list-style:none}#audit summary::-webkit-details-marker{display:none}.audit-icon{border-radius:50%;width:18px;height:18px;display:grid;place-items:center;color:white;background:#38684f;font-weight:bold}.warn .audit-icon{background:#a66a12}.audit-link{margin-left:auto;color:#365a46;font-size:13px}.audit[open] .audit-link{font-size:0}.audit[open] .audit-link:after{content:'收起明细';font-size:13px}.audit>p,.audit>div{margin:5px 12px}#audit h3{font-size:15px;margin:8px 0}
+
+#steps{list-style:none;padding:14px 4px;margin:16px 0;background:#fffdf8;border:1px solid #dedbcf;border-radius:8px}
+#steps .steps-marker,#steps .steps-segment:after{background-color:#326348}
+#steps .is-active:after,#steps .is-active~li:after,#steps .is-active~li .steps-marker{background-color:#dcded5}
+#steps .is-active~li .steps-marker{color:#546053}
+#steps .steps-marker{color:white;font-weight:650}
+#steps .steps-content{display:block;font-size:14px}
+#steps .is-active .steps-content{font-weight:700;color:#244c37}
+@media(max-width:600px){#steps .steps-content{font-size:12px;margin-inline:1px}#steps{padding-inline:0}}
+</style><body class="theme-utility"><header><strong>赛事管理系统</strong><a href="/manage/?event={{event.pk}}&amp;page=schedule">返回赛程战果</a></header>
+<div class="workspace"><nav aria-label="赛事管理"><a href="/manage/?event={{event.pk}}&amp;page=dashboard">功能总览</a><a href="/manage/?event={{event.pk}}&amp;page=overview">赛事概览</a><a class="current" href="/manage/?event={{event.pk}}&amp;page=schedule">赛程战果</a></nav><main data-event="{{event.pk}}" data-kind="{{event.kind}}"><small>{{event.name}} / 赛程战果</small><h1>批量排程</h1>
+<ol id="steps" class="steps has-content-centered is-horizontal" aria-label="排程进度"><li class="steps-segment"><span class="steps-marker" aria-hidden="true">1</span><span class="steps-content">选择要求</span></li><li class="steps-segment"><span class="steps-marker" aria-hidden="true">2</span><span class="steps-content">外部 AI 生成</span></li><li class="steps-segment"><span class="steps-marker" aria-hidden="true">3</span><span class="steps-content">上传 Excel</span></li><li class="steps-segment"><span class="steps-marker" aria-hidden="true">4</span><span class="steps-content">核对微调</span></li><li class="steps-segment"><span class="steps-marker" aria-hidden="true">5</span><span class="steps-content">确认导入</span></li></ol>
+<p id="message" role="status">{{error}}</p>{% csrf_token %}
+<section><h2>选择排程要求</h2><label>比赛阶段 <select id="stage"></select></label>
+<fieldset><legend>{% if personal %}本轮选手{% else %}参赛队伍{% endif %}</legend><div id="entries" class="choices"></div></fieldset>
+<fieldset><legend>比赛用桌</legend><div id="tables" class="choices"></div></fieldset>
+<fieldset><legend>比赛日</legend><input type="date" id="date"><button id="addDate">添加比赛日</button><div id="days" class="choices"></div></fieldset>
+<label>开赛时间 <input id="times" value="19:30" placeholder="19:30、20:30"></label>
+{% if checks %}<fieldset><legend>阶段次数校验</legend><div class="choices">{% for c in checks %}<label><input type="checkbox" name="checks" checked value="{{c}}">{{c}}</label>{% endfor %}</div></fieldset>{% endif %}
+<label>其他要求（选填）<textarea id="notes" rows="2" placeholder="例如：指定日期、队伍轮空"></textarea></label>
+<div class="actions"><button data-go="3">已有 Excel，直接上传</button><button class="primary" id="prepare">生成提示词和模板</button></div></section>
+<section hidden><h2>交给外部 AI 生成赛程</h2><div class="instruction"><h3>① 复制排程提示词</h3><textarea id="prompt" rows="5" readonly></textarea><button id="copy">复制提示词</button></div>
+<div class="instruction"><h3>② 下载本赛事模板</h3><div class="file-card"><span class="file-icon" aria-hidden="true">X</span><div><strong id="file-name"></strong><small id="file-size"></small></div><button id="download">下载模板</button></div></div>
+<div class="instruction"><h3>③ 将提示词和模板一起发给 AI</h3>让 AI 填好模板并返回 Excel 文件。</div><div class="actions"><button data-go="1">上一步</button><button class="primary" data-go="3">下一步，上传 Excel</button></div></section>
+<section hidden><h2>上传赛程文件</h2><form id="upload"><label>AI 返回的 Excel 文件 <input required type="file" name="workbook" accept=".xlsx"></label><div class="actions"><button type="button" id="uploadBack">上一步</button><button class="primary">生成预览</button></div></form></section>
+<section hidden><h2>核对与微调</h2><div id="audit"></div><div class="actions"><h3>赛程预览</h3><button id="swap">交换比赛日</button></div><div id="preview"></div><div class="actions"><button data-go="3">重新上传</button><button class="primary" data-go="5">下一步，确认导入</button></div></section>
+<section hidden><h2>确认导入</h2><p id="summary"></p><p class="warn" id="warning" hidden>次数有差异，可按当前安排导入。</p><div class="actions"><button data-go="4">返回微调</button><button class="primary" id="confirm">确认导入 {{rows|length}} 场</button></div></section>
+<dialog id="edit"><form method="dialog"><h3 id="dialogTitle"></h3><div id="fields"></div><p id="editError" role="alert"></p><button value="cancel">取消</button><button type="button" class="primary" id="apply">应用并核对</button></form></dialog>
+{{stages|json_script:"stage-data"}}{{preview|json_script:"initial"}}<script src="/assets/schedule-wizard.js"></script></main></div></body></html>

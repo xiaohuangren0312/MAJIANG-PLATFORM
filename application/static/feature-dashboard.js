@@ -73,8 +73,7 @@ function catalog() {
         const pending=doc.matches.filter(m=>m.state==='draft' && openStages.some(s=>s.id===m.stageId));
         const roundPending=openStages.length===1 && pending.length;
         add('安排单场赛程','选择时间、桌次和参赛名单','排赛程 手动安排 新建比赛',destination('schedule','#match-form',true),can('match'));
-        add('批量排程','按多个比赛日生成整批赛程','排赛程 自动安排 多日 分桌',url,can('batch-schedule'));
-        add('高高碰批量排程','按本轮排名预览全部桌次','排赛程 自动安排 个人赛 分桌',url,can('pairing-preview'),roundPending?'本阶段还有 '+pending.length+' 桌待完成':'');
+        add('批量排程',teamEvent?'用外部 AI 编排多个比赛日，上传 Excel 后核对导入':'上传本轮高高碰 Excel，核对全部桌次','AI Excel 排赛程 高高碰 模板 分桌',url,teamEvent?can('batch-schedule'):can('pairing-preview'));
         add('录入比分','选择待赛对局，录分或发布赛果','录分 成绩 粘贴比分 名单 罚分 役满 发布',chooseMatch(pending),can('score'),pending.length?'':'暂无待录分对局');
         add('更正赛果','选择已发布的对局并核对比分','更正成绩 修正 改分',chooseMatch(doc.matches.filter(m=>m.state==='published'&&!m.readOnly&&openStages.some(s=>s.id===m.stageId))),can('correct'));
         add('编辑对局','调整赛程、名单或取消待赛对局','修改比赛时间 桌号 取消 删除对局',chooseMatch(pending),can('match-update')||can('cancel'));

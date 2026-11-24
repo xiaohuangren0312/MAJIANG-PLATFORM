@@ -32,6 +32,23 @@ class BatchScheduleTests(TestCase):
         self.assertEqual(len(self.event.document['matches']), 2)
         self.assertEqual(Audit.objects.get(event=self.event).actor, self.manager)
 
+    def test_wind_mode_is_per_stage_and_only_affects_new_matches(self):
+        self.assertEqual(self.post([self.row]).status_code, 200)
+        self.payload.update(revision=self.payload['revision']+1, windMode='fixed')
+        self.assertEqual(self.post([dict(self.row, day='2027-01-02')]).status_code, 200)
+        self.event.refresh_from_db()
+        document = self.event.document
+        first, fixed = document['matches']
+        self.assertNotIn('seatDraw', first)
+        self.assertEqual(document['stages'][0]['windMode'], 'fixed')
+        self.assertEqual(fixed['seatDraw']['mode'], 'fixed')
+        from .seat_draw import draw
+        from .domain import Invalid
+        draw(document, fixed, automatic=True)
+        with self.assertRaises(Invalid):
+            draw(document, fixed)
+        self.assertEqual([s['teamId'] for s in fixed['seats']], self.ids[:4])
+
     def test_conflicts_rollback(self):
         for other in [dict(self.row, table=2), dict(self.row, teams=self.ids[4:8]),
                       dict(self.row, day='2027-01-02', teams=['foreign'] + self.ids[:3]),
@@ -58,7 +75,5 @@ class BatchScheduleTests(TestCase):
     def test_personal_entry_opens_current_event_pairing(self):
         self.event.kind = 'personal'
         self.event.save(update_fields=['kind'])
-        self.assertRedirects(self.client.get(self.page),
-                             f'/manage/?event={self.event.pk}&page=pairing',
-                             fetch_redirect_response=False)
+        self.assertContains(self.client.get(self.page),'本轮选手')
         self.assertEqual(self.post([self.row]).status_code, 403)

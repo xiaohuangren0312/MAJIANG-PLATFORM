@@ -134,7 +134,7 @@ function resultResources(m){const r=m.resources||{};return `<div class="card">${
 function tableName(value){const n=/^\d+$/.test(String(value))?Number(value):null;return tournament?.tables?.find(t=>t.number===n)?.name||(displayTable(value)+'桌')}
 function displayTable(value){if(!/^\d+$/.test(String(value)))return value;let n=Number(value),out='';while(n>0){out=String.fromCharCode(65+(n-1)%26)+out;n=Math.floor((n-1)/26)}return out}
 
-function trendControl(kind,id,stage){const line=scoreTimeline(tournament,kind,id,stage),last=kind==='team'?line.find(point=>point.date===latestCompletedMatchDay(tournament,stage)):line.at(-1),value=last?.delta;if(last&&!last.played)return '<span class="trend-bye" title="轮空">-</span>';return `<span style="color:${value>0?'#ba3c30':value<0?'#26745a':'inherit'}">${!last?'—':value==null?'未知':value>0?'▲ '+fmt(value):value<0?'▼ '+fmt(value):'— 0.0'}</span>`}
+function trendControl(kind,id,stage){const line=scoreTimeline(tournament,kind,id,stage),last=kind==='team'?line.find(point=>point.date===latestCompletedMatchDay(tournament,stage)):line.at(-1),value=last?.delta;if(last&&!last.played)return '<span class="trend-bye" title="轮空">—</span>';return `<span style="color:${value>0?'#ba3c30':value<0?'#26745a':'inherit'}">${!last?'—':value==null?'未知':value>0?'▲ '+fmt(value):value<0?'▼ '+fmt(value):'— 0.0'}</span>`}
 function openScoreTrend(kind,id,stage,metric=params.get('metric')||'raw'){
  if(kind==='team')return openTeamTrend(stage,metric);
  document.getElementById('score-trend-dialog')?.remove();const dialog=document.createElement('dialog');dialog.id='score-trend-dialog';dialog.style.cssText='width:min(960px,94vw);max-height:90vh;overflow:auto;border:1px solid #ded8cc;border-radius:12px;background:#f7f4ed;padding:24px';
